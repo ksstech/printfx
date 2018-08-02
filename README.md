@@ -24,3 +24,15 @@ Extensions:
     Optional upper / lower case conversion of MAC address output.
   BINARY format output 
   
+What is NOT supported:
+  locale, radix fixed to '.'
+  *n*th argument in the form of %n$
+  'n' conversion character
+  'h' flag as applied to 'diouxX' to specify source value being short [un]signed int
+  'l' flag as applied to 'diouxX' to specify source value being long [un]signed int
+  'L' flag as applied to 'eEfgG' to specify source value being long double
+  ' ' flag
+  
+What is PARTIALLY supported:
+  '#' flag, not in 'oxXeEfgG' or '.' radix conversions
+  

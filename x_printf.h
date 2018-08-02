@@ -73,7 +73,7 @@
  *	*------------> DTZ=elapsed time,	DUMP=relative addr,
  *
  * Examples:
- * "%'03llz"			- print binary representation, optional separator, llong & field width modifiers
+ * "%'03llJ"			- print binary representation, optional separator, llong & field width modifiers
  * "%['!#+ll]{BbHhWw}"	- hexdump of memory area, USE 2 PARAMETERS FOR START AND LENGTH !!!!
  * 							MUST NOT specify "*" or "." or "*." or .*", this will screw up the parameter sequence
  * "%[-0]I"				- print IP address, justified left or right (pad 0 or ' ')
@@ -81,7 +81,6 @@
  * "%[!']D"				- POSIX [relative/altform] date (1 parameter, pointer to TSZ_t
  * "%[!']T"				- POSIX [relative/altform] time
  * "%[!']Z"				- POSIX [relative/altform] date, time & zone
- *
  */
 
 #pragma once
@@ -89,7 +88,7 @@
 #include	"x_definitions.h"
 #include	"x_buffers.h"
 #include	"x_sockets.h"
-#include	"x_stdio.h"
+#include	"x_ubuf.h"
 
 #if		(ESP32_PLATFORM == 1)
 	#include	<regex.h>
@@ -115,7 +114,7 @@ extern "C" {
 /* Specifically for the ESP-IDF we force output to x[v]printf(format, ...) to be treated same
  * as x[v]fprintf(stdout, format, ...) with locking enabled */
 #define	xpfSUPPORT_ALIASES				1
-#define	xpfSUPPORT_ALLOW_NUL			0
+#define	xpfSUPPORT_FILTER_NUL			1
 
 // ################################## x[snf]printf() related #######################################
 
@@ -244,7 +243,8 @@ typedef	struct xpc_s {
 		char *		pStr ;
 		FILE *		stream ;
 		sock_ctx_t * psSock ;						// socket context pointer
-		buf_t * 	psBuf ;
+		uubuf_t *	psUUBuf ;
+		int			fd ;							// file descriptor/handle
 		int 		(*DevPutc)(int ) ;
 	} ;
 	xpf_t	f ;
@@ -254,7 +254,7 @@ typedef	struct xpc_s {
  * Public function prototypes for extended functionality version of stdio supplied functions
  * These names MUST be used if any of the extended functionality is used in a format string
  */
-int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const char *format, va_list args) ;
+int		xPrint(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list) ;
 
 int 	xvsnprintf(char * , size_t , const char * , va_list ) ;
 int 	xsnprintf(char * , size_t , const char * , ...) ;
@@ -263,33 +263,32 @@ int		xsprintf(char * , const char * , ...) ;
 
 void	cprintf_lock(void) ;
 void	cprintf_unlock(void) ;
+int 	vcprintf(const char *, va_list) ;
+int 	cprintf(const char *, ...) ;
 
-int 	vcprintf(const char * format, va_list vArgs) ;
-int 	cprintf(const char * format, ...) ;
+int 	vdevprintf(int (* handler)(int ), const char *, va_list) ;
+int 	devprintf(int (* handler)(int), const char *, ...) ;
 
-int 	vdevprintf(int (* handler)(int ), const char * format, va_list vArgs) ;
-int 	devprintf(int (* handler)(int), const char * format, ...) ;
-
-int 	xvnprintf(size_t count, const char * format, va_list args) ;
-int 	xvprintf(const char * , va_list ) ;
-int 	xnprintf(size_t Count, const char * format, ...) ;
-int		xprintf(const char * format, ...) ;
+int 	xvnprintf(size_t, const char *, va_list) ;
+int 	xvprintf(const char * , va_list) ;
+int 	xnprintf(size_t, const char *, ...) ;
+int		xprintf(const char *, ...) ;
 
 int		xvfprintf(FILE * , const char * , va_list ) ;
 int		xfprintf(FILE * , const char * , ...) ;
 
-/*
- * non standard additions
- */
-int 	vsocprintf(sock_ctx_t * psSock, const char * format, va_list args) ;
-int 	socprintf(sock_ctx_t * psSock, const char * format, ...) ;
+int		xvdprintf(int , const char * , va_list ) ;
+int		xdprintf(int , const char * , ...) ;
 
-int     vbufprintf(buf_t * psBuf, const char * , va_list) ;
-int     bufprintf(buf_t * psBuf, const char * , ...) ;
+int 	vsocprintf(sock_ctx_t *, const char *, va_list) ;
+int 	socprintf(sock_ctx_t *, const char *, ...) ;
+
+int     vuuprintf(uubuf_t *, const char * , va_list) ;
+int     uuprintf(uubuf_t *, const char * , ...) ;
 
 // ############################## LOW LEVEL DIRECT formatted output ###############################
 
-int32_t	_xprintf(const char * format, ...) ;
+int32_t	cprintf_noblock(const char *, ...) ;
 
 // ##################################### functional tests ##########################################
 

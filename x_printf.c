@@ -77,7 +77,7 @@
 
 #include	"x_config.h"								// brings x_time.h with xTime_GMTime() function
 #include	"x_debug.h"									// need ASSERT, bring x_printf with
-#include	"x_string_general.h"					// xinstring function
+#include	"x_string_general.h"						// xinstring function
 #include	"x_errors_events.h"
 #include	"x_retarget.h"
 
@@ -88,7 +88,8 @@
 #include	<math.h>									// isnan()
 #include	<float.h>									// DBL_MIN/MAX
 
-#define		MODCODE			0x0D00
+#define	debugFLAG				(0x0001)
+#define	debugPARAM				(debugFLAG & 0x0001)
 
 // ######################## Character and value translation & rounding tables ######################
 
@@ -117,68 +118,6 @@ static	const double round_nums[xpfMAXIMUM_DECIMALS+1] = {
 
 // ############################# Foundation character and string output ############################
 
-int		vPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
-
-/*
- * stdout directed formatted printf support
- * Actual physical destination is controlled  in x_retarget.h through redirection to either UART, ITM or Segger RTT.
- * In the case of UART redirection the physical UART support is selected through macros defined in hal_usart.h
- */
-int		vPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
-
-/**
- * vPrintToStdoutDirect() - direct UART output, avoid Telnet redirection
- * @param psXPC
- * @param cChr
- * @return
- */
-int		vPrintToStdoutDirect(xpc_t * psXPC, int cChr) { return _putchar_stdout(cChr) ; }
-
-/*
- * String buffer directed formatted print support
- */
-int		vPrintToString(xpc_t * psXPC, int cChr) {
-	if (psXPC->pStr) {
-		*psXPC->pStr++ = cChr ;
-	}
-	return cChr ;
-}
-
-/*
- * Linear / Circular buffer directed formatted print support
- */
-int		vPrintToBuffer(xpc_t * psXPC, int cChr) {
-	if (psXPC->psBuf) {
-		return xBufPutC(cChr, psXPC->psBuf) ;
-	}
-	return cChr ;
-}
-
-/*
- * FILE directed formatted print support
- */
-int		vPrintToFile(xpc_t * psXPC, int cChr) {
-	if (psXPC->stream) {
-		return _fputc(cChr, psXPC->stream) ;
-	}
-	return cChr ;
-}
-
-/*
- * SOCKET directed formatted print support
- * problem here is that MSG_MORE is primarily supported on TCP sockets, UDP support can officially in 2.6
- * but support has not been included into LwIP yet.
- */
-int		vPrintToSocket(xpc_t * psXPC, int cChr) {
-	char cBuf = cChr ;
-	if (psXPC->psSock) {
-		if (xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf)) != sizeof(cBuf)) {
-			return EOF ;
-		}
-	}
-	return cChr ;
-}
-
 /*
  * vPrintChar
  * \brief	output a single character using/via the preselected function
@@ -190,16 +129,10 @@ int		vPrintToSocket(xpc_t * psXPC, int cChr) {
  */
 void	vPrintChar(xpc_t * psXPC, char cChr) {
 	if ((psXPC->f.maxlen == 0) || (psXPC->f.curlen < psXPC->f.maxlen)) {
-#if 	(xpfSUPPORT_ALLOW_NUL == 0)	// Normally we filter '\0' characters out, to pass through set the 'xpfSUPPORT_ALLOW_NUL' flags...
-		if (cChr == CHR_NUL) {
-			return ;
-		}
+#if 	(xpfSUPPORT_FILTER_NUL == 1)
+		if (cChr == CHR_NUL) { return ; }
 #endif
-		int	iRetVal ;
-		do {
-			iRetVal = psXPC->handler(psXPC, cChr) ;
-		} while (iRetVal != cChr) ;
-		psXPC->f.curlen++ ;		// adjust the count
+		if (psXPC->handler(psXPC, cChr) == cChr) { psXPC->f.curlen++ ; }	// adjust the count
 	}
 }
 
@@ -259,20 +192,14 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
 	// handle padding on left (ie right justified)
 	int32_t padchar = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
 	if ((psXPC->f.ljust == 0) && PadLen) {				// If right justified & we must pad
-		while (PadLen--) {
-			vPrintChar(psXPC, padchar) ;				// do left pad
-		}
+		while (PadLen--) { vPrintChar(psXPC, padchar) ; }	// do left pad
 	}
 	// output the actual string
 	psXPC->f.precision = psXPC->f.precision ? psXPC->f.precision : Len ;
-	while (*pStr && psXPC->f.precision--) {
-		vPrintChar(psXPC, *pStr++) ;
-	}
+	while (*pStr && psXPC->f.precision--) { vPrintChar(psXPC, *pStr++) ; }
 	// handle padding on right (ie left justified)
 	if ((psXPC->f.ljust == 1) && PadLen) {				// If left justified & we must pad
-		while (PadLen--) {
-			vPrintChar(psXPC, padchar) ;				// do right pad
-		}
+		while (PadLen--) { vPrintChar(psXPC, padchar) ;	}	// do right pad
 	}
 }
 
@@ -1268,20 +1195,24 @@ out_lbl:
 	return sXPC.f.curlen ;
 }
 
-/***************************************************************************************************
- * xvsnprintf() - print to a string buffer with specified size
- */
+// ##################################### Destination = STRING ######################################
+
+static	int	vPrintToString(xpc_t * psXPC, int cChr) {
+	if (psXPC->pStr) { *psXPC->pStr++ = cChr ; }
+	return cChr ;
+}
+
 int 	xvsnprintf(char * pBuf, size_t BufSize, const char * format, va_list vArgs) {
-	if (pBuf && (BufSize == 1)) {						// only space for '\000' ?
-		*pBuf = CHR_NUL ;								// yes, terminate with NULL
-		return 0 ;										// & return
+	if (pBuf && (BufSize == 1)) {
+		*pBuf = CHR_NUL ;
+		return 0 ; 										// terminate with NULL & return
 	}
 	int count = xPrint(vPrintToString, pBuf, BufSize, format, vArgs) ;
 	if (pBuf && (count == BufSize)) {
-		count-- ;										// adjust the length
+		count-- ; 										// adjust the length
 	}
 	if (pBuf) {
-		pBuf[count] = CHR_NUL ;							// terminate the string
+		pBuf[count] = CHR_NUL ; 						// terminate the string
 	}
 	return count ;
 }
@@ -1294,9 +1225,7 @@ int 	xsnprintf(char * pBuf, size_t BufSize, const char * format, ...) {
 	return count ;
 }
 
-int 	xvsprintf(char * pBuf, const char * format, va_list vArgs) {
-	return xvsnprintf(pBuf, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int 	xvsprintf(char * pBuf, const char * format, va_list vArgs) { return xvsnprintf(pBuf, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int 	xsprintf(char * pBuf, const char * format, ...) {
 	va_list	vArgs ;
@@ -1306,89 +1235,53 @@ int 	xsprintf(char * pBuf, const char * format, ...) {
 	return count ;
 }
 
-/**
- * cprintf_lock()
- */
-SemaphoreHandle_t	usartSemaphore = NULL ;
-void	cprintf_lock(void) {
-	if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-		if (usartSemaphore == NULL) {
-			usartSemaphore = xSemaphoreCreateMutex() ;
-		}
-		if (halNVIC_CalledFromISR() == 0) {
-			xSemaphoreTake(usartSemaphore, portMAX_DELAY) ;
-		}
+// ################################### Destination = FILE PTR ######################################
+
+static	int	vPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
+
+int 	xvfprintf(FILE * stream, const char * format, va_list vArgs) {
+	IF_myASSERT(debugPARAM, INRANGE_SRAM(stream)) ;
+#if 0
+int iRetVal ;
+	if (stream == stdout || stream == stderr) {
+		cprintf_lock() ;
+	} else {
+		if (stream && (_flock(stream, 100) == erFAILURE)) { return erFAILURE ; }
 	}
-}
-
-/**
- * cprintf_unlock()
- */
-void	cprintf_unlock(void) {
-	if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-		if (halNVIC_CalledFromISR() == 0) {
-			xSemaphoreGive(usartSemaphore) ;
-		}
+	iRetVal = xPrint(vPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	if (stream == stdout || stream == stderr) {
+		cprintf_unlock() ;
+	} else {
+		if (stream) { _funlock(stream) ; }
 	}
+	return iRetVal ;
+#else
+	return xPrint(vPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
+#endif
 }
 
-/***
- * vcprintf() prints directly to STDOUT without locking the channel
- * @param format
- * @return
- */
-int 	vcprintf(const char * format, va_list vArgs) {
-	return xPrint(vPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
-
-/***
- * cprintf() prints directly to STDOUT without locking the channel
- * @param format
- * @return
- */
-int 	cprintf(const char * format, ...) {
+int 	xfprintf(FILE * stream, const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int iRetVal = xPrint(vPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	int count = xvfprintf(stream, format, vArgs) ;
 	va_end(vArgs) ;
-	return iRetVal ;
+	return count ;
 }
 
-/***
- * vdevprintf() prints directly to a device handler
- * @param format
- * @return
- */
-int 	vdevprintf(int (* handler)(int ), const char * format, va_list vArgs) {
-	return xPrint(vPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+// ################################### Destination = STDOUT ########################################
 
-/***
- * devprintf() prints directly to a device handler
- * @param format
- * @return
- */
-int 	devprintf(int (* handler)(int ), const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int iRetVal = xPrint(vPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	va_end(vArgs) ;
-	return iRetVal ;
-}
-
-/***************************************************************************************************
- * xvnprintf() - print to console device, avoid fputc() and hence pseudo file locking
- */
 int 	xvnprintf(size_t count, const char * format, va_list vArgs) {
+#if 0
 	cprintf_lock() ;
 	int iRetVal = xPrint(vPrintToStdout, NULL, count, format, vArgs) ;
 	cprintf_unlock() ;
 	return iRetVal ;
+#else
+	return xPrint(vPrintToFile, stdout, count, format, vArgs) ;
+#endif
 }
 
-int 	xvprintf(const char * format, va_list vArgs) {
-	return xvnprintf(xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int 	xvprintf(const char * format, va_list vArgs) { return xvnprintf(xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int 	xnprintf(size_t count, const char * format, ...) {
 	va_list vArgs ;
@@ -1406,42 +1299,96 @@ int 	xprintf(const char * format, ...) {
 	return iRetVal ;
 }
 
-/***************************************************************************************************
- * xvfprintf() - print to file
- */
-int 	xvfprintf(FILE * stream, const char * format, va_list vArgs) {
-int iRetVal ;
-	if (stream == stdout || stream == stderr) {
-		cprintf_lock() ;
-	} else {
-		if (stream && (_flock(stream, 100) == erFAILURE)) {
-			return erFAILURE ;
-		}
-	}
-	iRetVal = xPrint(vPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	if (stream == stdout || stream == stderr) {
-		cprintf_unlock() ;
-	} else {
-		if (stream) {
-			_funlock(stream) ;
-		}
-	}
-	return iRetVal ;
+// ################################### Destination = HANDLE ########################################
+
+static	int	vPrintToHandle(xpc_t * psXPC, int cChr) {
+	char cChar = cChr ;
+	ssize_t size = write(psXPC->fd, &cChar, sizeof(cChar)) ;
+	return size == 1 ? cChr : size ;
 }
 
-int 	xfprintf(FILE * stream, const char * format, ...) {
-	va_list vArgs ;
+int		xvdprintf(int32_t fd, const char * format, va_list vArgs) { return xPrint(vPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+
+int		xdprintf(int32_t fd, const char * format, ...) {
+	va_list	vArgs ;
 	va_start(vArgs, format) ;
-	int count = xvfprintf(stream, format, vArgs) ;
+	int count = xvdprintf(fd, format, vArgs) ;
 	va_end(vArgs) ;
 	return count ;
 }
 
-/***************************************************************************************************
- * xvdprintf() - print to a socket
- */
+// ################################## Destination = UART/TELNET ####################################
+
+SemaphoreHandle_t	usartSemaphore = NULL ;
+
+void	cprintf_lock(void) {
+	if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+		if (usartSemaphore == NULL) { usartSemaphore = xSemaphoreCreateMutex() ; }
+		if (halNVIC_CalledFromISR() == 0) { xSemaphoreTake(usartSemaphore, portMAX_DELAY) ; }
+	}
+}
+
+void	cprintf_unlock(void) {
+	if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+		if (halNVIC_CalledFromISR() == 0) { xSemaphoreGive(usartSemaphore) ; }
+	}
+}
+
+/* Uses  a blocking character output function that requires FreeRTOS to be running.
+ * Also supports console redirection to Telnet. */
+static	int	vPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
+
+int 	vcprintf(const char * format, va_list vArgs) { return xPrint(vPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+
+int 	cprintf(const char * format, ...) {
+	va_list vArgs ;
+	va_start(vArgs, format) ;
+	int iRetVal = xPrint(vPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	va_end(vArgs) ;
+	return iRetVal ;
+}
+
+/* Output directly to the UART, no Telnet redirection, no FreeRTOS required */
+static	int	vPrintToStdoutNoBlock(xpc_t * psXPC, int cChr) { return _putchar_stdout_noblock(cChr) ; }
+
+int32_t	cprintf_noblock(const char * format, ...) {
+	va_list vArgs ;
+	va_start(vArgs, format) ;
+	int32_t iRetVal = xPrint(vPrintToStdoutNoBlock, NULL, 128, format, vArgs) ;
+	va_end(vArgs) ;
+	return iRetVal ;
+}
+
+// ################################### Destination = DEVICE ########################################
+
+static	int	vPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
+
+int 	vdevprintf(int (* handler)(int ), const char * format, va_list vArgs) { return xPrint(vPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+
+int 	devprintf(int (* handler)(int ), const char * format, ...) {
+	va_list vArgs ;
+	va_start(vArgs, format) ;
+	int iRetVal = xPrint(vPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	va_end(vArgs) ;
+	return iRetVal ;
+}
+
+// #################################### Destination : SOCKET #######################################
+
+/* SOCKET directed formatted print support
+ * problem here is that MSG_MORE is primarily supported on TCP sockets, UDP support officially in 2.6
+ * but support has not been included into LwIP yet. */
+
+static	int	vPrintToSocket(xpc_t * psXPC, int cChr) {
+	char cBuf = cChr ;
+	if (xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf)) != sizeof(cBuf)) {
+		return EOF ;
+	}
+	return cChr ;
+}
+
 int 	vsocprintf(sock_ctx_t * psSock, const char * format, va_list vArgs) {
-	myASSERT(INRANGE_SRAM(psSock)) ;
+	IF_myASSERT(debugPARAM, INRANGE_SRAM(psSock)) ;
 	int	OldFlags	= psSock->flags ;
 	psSock->flags	|= MSG_MORE ;
 	int32_t iRetVal = xPrint(vPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
@@ -1450,12 +1397,6 @@ int 	vsocprintf(sock_ctx_t * psSock, const char * format, va_list vArgs) {
 	return (psSock->error == 0) ? iRetVal : erFAILURE ;
 }
 
-/**
- * xdprintf() -
- * @param psSock
- * @param format
- * @return
- */
 int 	socprintf(sock_ctx_t * psSock, const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
@@ -1464,41 +1405,30 @@ int 	socprintf(sock_ctx_t * psSock, const char * format, ...) {
 	return count ;
 }
 
-/***************************************************************************************************
- * Managed buffer directed formatted print support
- */
-int		vbufprintf(buf_t * psBuf, const char * format, va_list vArgs) {
-	int32_t		xCount ;
-	if (psBuf) {							// valid buffer
-		xCount = xBufSpace(psBuf) ;
-		if (xCount == 0) {					// Any space left?
-			return 0 ;						// No, return
-		}
-	} else {
-		xCount = 0 ;
-	}
-	/* In order to allow the accurate calculation of a string still to be printed
-	 * we support x[v]bprintf() with a NULL buffer pointer as destination. In this
-	 * case we simply return a space=0 since no actual output will be generated. */
-	return xPrint(vPrintToBuffer, psBuf, xCount, format, vArgs) ;
+// ################################### Destination : uuBUF #########################################
+
+static	int	uuputchar(xpc_t * psXPC, int cChr) {
+	uubuf_t * pUUBuf = psXPC->psUUBuf ;
+	*(pUUBuf->pBuf + pUUBuf->Idx)	= cChr ;			// store character in buffer, adjust pointer
+	++pUUBuf->Idx ;
+	++pUUBuf->Used ;
+	return cChr ;
 }
 
-int		bufprintf(buf_t * psBuf, const char * format, ...) {
+int		vuuprintf(uubuf_t * psUUBuf, const char * format, va_list vArgs) {
+	IF_myASSERT(debugPARAM, INRANGE_SRAM(psUUBuf) && INRANGE_MEM(format)) ;
+	if (psUUBuf->Used == psUUBuf->Size) {
+		return 0 ;										// any space left ?
+	}
+	return xPrint(uuputchar, psUUBuf, psUUBuf->Size - psUUBuf->Used, format, vArgs) ;
+}
+
+int		uuprintf(uubuf_t * psUUBuf, const char * format, ...) {
 	va_list	vArgs ;
 	va_start(vArgs, format) ;
-	int count = vbufprintf(psBuf, format, vArgs) ;
+	int count = vuuprintf(psUUBuf, format, vArgs) ;
 	va_end(vArgs) ;
 	return count ;
-}
-
-// ############################## LOW LEVEL DIRECT formatted output ################################
-
-int32_t	_xprintf(const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int32_t iRetVal = xPrint(vPrintToStdoutDirect, NULL, 128, format, vArgs) ;
-	va_end(vArgs) ;
-	return iRetVal ;
 }
 
 // ############################# Aliases for NEW/STDLIB supplied functions #########################
@@ -1510,6 +1440,8 @@ int32_t	_xprintf(const char * format, ...) {
  *		lib_a-getchar.o
  * using command line
  * 		ar -d /c/Dropbox/devs/ws/z-sdk\libc.a {name}
+ *
+ * 	Alternative is to ensure that the x_printf.obj is specified at the start to be linked with !!
  */
 #if		(xpfSUPPORT_ALIASES == 1)		// standard library printf functions
 	int		printf(const char * format, ...) __attribute__((alias("xprintf"), unused)) ;
@@ -1535,6 +1467,12 @@ int32_t	_xprintf(const char * format, ...) {
 
 	int 	vfprintf(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("xvfprintf"), unused)) ;
 	int 	vfprintf_r(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("xvfprintf"), unused)) ;
+
+	int 	dprintf(int fd, const char * format, ...) __attribute__((alias("xdprintf"), unused)) ;
+	int 	dprintf_r(int fd, const char * format, ...) __attribute__((alias("xdprintf"), unused)) ;
+
+	int 	vdprintf(int fd, const char * format, va_list vArgs) __attribute__((alias("xvdprintf"), unused)) ;
+	int 	vdprintf_r(int fd, const char * format, va_list vArgs) __attribute__((alias("xvdprintf"), unused)) ;
 
 	int 	fiprintf(FILE * stream, const char * format, ...) __attribute__((alias("xfprintf"), unused)) ;
 	int 	fiprintf_r(FILE * stream, const char * format, ...) __attribute__((alias("xfprintf"), unused)) ;
