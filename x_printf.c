@@ -1197,22 +1197,24 @@ out_lbl:
 
 // ##################################### Destination = STRING ######################################
 
-static	int	vPrintToString(xpc_t * psXPC, int cChr) {
-	if (psXPC->pStr) { *psXPC->pStr++ = cChr ; }
+static	int	xPrintToString(xpc_t * psXPC, int cChr) {
+	if (psXPC->pStr) {
+		*psXPC->pStr++ = cChr ;
+	}
 	return cChr ;
 }
 
 int 	xvsnprintf(char * pBuf, size_t BufSize, const char * format, va_list vArgs) {
-	if (pBuf && (BufSize == 1)) {
-		*pBuf = CHR_NUL ;
-		return 0 ; 										// terminate with NULL & return
+	if (pBuf && (BufSize == 1)) {						// buffer specified, but no space ?
+		*pBuf = CHR_NUL ;								// yes, terminate
+		return 0 ; 										// & return
 	}
-	int count = xPrint(vPrintToString, pBuf, BufSize, format, vArgs) ;
-	if (pBuf && (count == BufSize)) {
-		count-- ; 										// adjust the length
+	int count = xPrint(xPrintToString, pBuf, BufSize, format, vArgs) ;
+	if (pBuf && (count == BufSize)) {					// buffer specified and FULL?
+		count-- ; 										// yes, adjust the length for terminator
 	}
-	if (pBuf) {
-		pBuf[count] = CHR_NUL ; 						// terminate the string
+	if (pBuf) {											// buffer specified ?
+		pBuf[count] = CHR_NUL ; 						// yes, terminate
 	}
 	return count ;
 }
@@ -1237,27 +1239,14 @@ int 	xsprintf(char * pBuf, const char * format, ...) {
 
 // ################################### Destination = FILE PTR ######################################
 
-static	int	vPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
+/* For ESP-IDF we have no clean or simple way to retarget STDIO functions. Hence we
+ * use a wrapper function _fputc() as opposed to fputc() to intercept the character
+ * output and handle STDOUT & STDERR */
+static	int	xPrintToFile(xpc_t * psXPC, int cChr) { return _fputc(cChr, psXPC->stream) ; }
 
 int 	xvfprintf(FILE * stream, const char * format, va_list vArgs) {
 	IF_myASSERT(debugPARAM, INRANGE_SRAM(stream)) ;
-#if 0
-int iRetVal ;
-	if (stream == stdout || stream == stderr) {
-		cprintf_lock() ;
-	} else {
-		if (stream && (_flock(stream, 100) == erFAILURE)) { return erFAILURE ; }
-	}
-	iRetVal = xPrint(vPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	if (stream == stdout || stream == stderr) {
-		cprintf_unlock() ;
-	} else {
-		if (stream) { _funlock(stream) ; }
-	}
-	return iRetVal ;
-#else
-	return xPrint(vPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
-#endif
+	return xPrint(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
 }
 
 int 	xfprintf(FILE * stream, const char * format, ...) {
@@ -1270,16 +1259,7 @@ int 	xfprintf(FILE * stream, const char * format, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-int 	xvnprintf(size_t count, const char * format, va_list vArgs) {
-#if 0
-	cprintf_lock() ;
-	int iRetVal = xPrint(vPrintToStdout, NULL, count, format, vArgs) ;
-	cprintf_unlock() ;
-	return iRetVal ;
-#else
-	return xPrint(vPrintToFile, stdout, count, format, vArgs) ;
-#endif
-}
+int 	xvnprintf(size_t count, const char * format, va_list vArgs) { return xPrint(xPrintToFile, stdout, count, format, vArgs) ; }
 
 int 	xvprintf(const char * format, va_list vArgs) { return xvnprintf(xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
@@ -1301,13 +1281,16 @@ int 	xprintf(const char * format, ...) {
 
 // ################################### Destination = HANDLE ########################################
 
-static	int	vPrintToHandle(xpc_t * psXPC, int cChr) {
+/* For ESP-IDF we have no clean or simple way to retarget STDIO functions. Hence we
+ * use a wrapper function _fputc() as opposed to fputc() to intercept the character
+ * output and handle STDOUT & STDERR */
+static	int	xPrintToHandle(xpc_t * psXPC, int cChr) {
 	char cChar = cChr ;
-	ssize_t size = write(psXPC->fd, &cChar, sizeof(cChar)) ;
+	ssize_t size = _write(psXPC->fd, &cChar, sizeof(cChar)) ;
 	return size == 1 ? cChr : size ;
 }
 
-int		xvdprintf(int32_t fd, const char * format, va_list vArgs) { return xPrint(vPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int		xvdprintf(int32_t fd, const char * format, va_list vArgs) { return xPrint(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int		xdprintf(int32_t fd, const char * format, ...) {
 	va_list	vArgs ;
@@ -1323,52 +1306,58 @@ SemaphoreHandle_t	usartSemaphore = NULL ;
 
 void	cprintf_lock(void) {
 	if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-		if (usartSemaphore == NULL) { usartSemaphore = xSemaphoreCreateMutex() ; }
-		if (halNVIC_CalledFromISR() == 0) { xSemaphoreTake(usartSemaphore, portMAX_DELAY) ; }
+		if (usartSemaphore == NULL) {
+			usartSemaphore = xSemaphoreCreateMutex() ;
+		}
+		if (halNVIC_CalledFromISR() == 0) {
+			xSemaphoreTake(usartSemaphore, portMAX_DELAY) ;
+		}
 	}
 }
 
 void	cprintf_unlock(void) {
 	if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-		if (halNVIC_CalledFromISR() == 0) { xSemaphoreGive(usartSemaphore) ; }
+		if (halNVIC_CalledFromISR() == 0) {
+			xSemaphoreGive(usartSemaphore) ;
+		}
 	}
 }
 
 /* Uses  a blocking character output function that requires FreeRTOS to be running.
  * Also supports console redirection to Telnet. */
-static	int	vPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
+static	int	xPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
 
-int 	vcprintf(const char * format, va_list vArgs) { return xPrint(vPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int 	vcprintf(const char * format, va_list vArgs) { return xPrint(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int 	cprintf(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int iRetVal = xPrint(vPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	int iRetVal = xPrint(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
 	va_end(vArgs) ;
 	return iRetVal ;
 }
 
 /* Output directly to the UART, no Telnet redirection, no FreeRTOS required */
-static	int	vPrintToStdoutNoBlock(xpc_t * psXPC, int cChr) { return _putchar_stdout_noblock(cChr) ; }
+static	int	xPrintToStdoutNoBlock(xpc_t * psXPC, int cChr) { return putchar_stdout_noblock(cChr) ; }
 
 int32_t	cprintf_noblock(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int32_t iRetVal = xPrint(vPrintToStdoutNoBlock, NULL, 128, format, vArgs) ;
+	int32_t iRetVal = xPrint(xPrintToStdoutNoBlock, NULL, 128, format, vArgs) ;
 	va_end(vArgs) ;
 	return iRetVal ;
 }
 
 // ################################### Destination = DEVICE ########################################
 
-static	int	vPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
+static	int	xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
 
-int 	vdevprintf(int (* handler)(int ), const char * format, va_list vArgs) { return xPrint(vPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int 	vdevprintf(int (* handler)(int ), const char * format, va_list vArgs) { return xPrint(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int 	devprintf(int (* handler)(int ), const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int iRetVal = xPrint(vPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	int iRetVal = xPrint(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
 	va_end(vArgs) ;
 	return iRetVal ;
 }
@@ -1379,7 +1368,7 @@ int 	devprintf(int (* handler)(int ), const char * format, ...) {
  * problem here is that MSG_MORE is primarily supported on TCP sockets, UDP support officially in 2.6
  * but support has not been included into LwIP yet. */
 
-static	int	vPrintToSocket(xpc_t * psXPC, int cChr) {
+static	int	xPrintToSocket(xpc_t * psXPC, int cChr) {
 	char cBuf = cChr ;
 	if (xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf)) != sizeof(cBuf)) {
 		return EOF ;
@@ -1391,7 +1380,7 @@ int 	vsocprintf(sock_ctx_t * psSock, const char * format, va_list vArgs) {
 	IF_myASSERT(debugPARAM, INRANGE_SRAM(psSock)) ;
 	int	OldFlags	= psSock->flags ;
 	psSock->flags	|= MSG_MORE ;
-	int32_t iRetVal = xPrint(vPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	int32_t iRetVal = xPrint(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
 	psSock->flags	= OldFlags ;
 	xNetWrite(psSock, "\0", 1) ;
 	return (psSock->error == 0) ? iRetVal : erFAILURE ;
@@ -1407,20 +1396,14 @@ int 	socprintf(sock_ctx_t * psSock, const char * format, ...) {
 
 // ################################### Destination : uuBUF #########################################
 
-static	int	uuputchar(xpc_t * psXPC, int cChr) {
-	uubuf_t * pUUBuf = psXPC->psUUBuf ;
-	*(pUUBuf->pBuf + pUUBuf->Idx)	= cChr ;			// store character in buffer, adjust pointer
-	++pUUBuf->Idx ;
-	++pUUBuf->Used ;
-	return cChr ;
-}
+static	int	xPrintToUUBuf(xpc_t * psXPC, int cChr) { return xUUBufPutC(psXPC->psUUBuf, cChr) ; }
 
 int		vuuprintf(uubuf_t * psUUBuf, const char * format, va_list vArgs) {
 	IF_myASSERT(debugPARAM, INRANGE_SRAM(psUUBuf) && INRANGE_MEM(format)) ;
 	if (psUUBuf->Used == psUUBuf->Size) {
 		return 0 ;										// any space left ?
 	}
-	return xPrint(uuputchar, psUUBuf, psUUBuf->Size - psUUBuf->Used, format, vArgs) ;
+	return xPrint(xPrintToUUBuf, psUUBuf, psUUBuf->Size - psUUBuf->Used, format, vArgs) ;
 }
 
 int		uuprintf(uubuf_t * psUUBuf, const char * format, ...) {
