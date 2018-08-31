@@ -88,6 +88,7 @@
 #include	"x_definitions.h"
 #include	"x_sockets.h"
 #include	"x_ubuf.h"
+#include	"x_uubuf.h"
 
 #if		(ESP32_PLATFORM == 1)
 	#include	<regex.h>
@@ -242,7 +243,7 @@ typedef	struct xpc_s {
 		char *		pStr ;
 		FILE *		stream ;
 		sock_ctx_t * psSock ;						// socket context pointer
-		uubuf_t *	psUUBuf ;
+		ubuf_t *	psUBuf ;
 		int			fd ;							// file descriptor/handle
 		int 		(*DevPutc)(int ) ;
 	} ;
@@ -254,41 +255,37 @@ typedef	struct xpc_s {
  * These names MUST be used if any of the extended functionality is used in a format string
  */
 int		xPrint(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list) ;
-
+// ##################################### Destination = STRING ######################################
 int 	xvsnprintf(char * , size_t , const char * , va_list ) ;
 int 	xsnprintf(char * , size_t , const char * , ...) ;
 int 	xvsprintf(char * , const char * , va_list ) ;
 int		xsprintf(char * , const char * , ...) ;
-
-void	cprintf_lock(void) ;
-void	cprintf_unlock(void) ;
-int 	vcprintf(const char *, va_list) ;
-int 	cprintf(const char *, ...) ;
-
-int 	vdevprintf(int (* handler)(int ), const char *, va_list) ;
-int 	devprintf(int (* handler)(int), const char *, ...) ;
-
+// ################################### Destination = FILE PTR ######################################
+int		xvfprintf(FILE * , const char * , va_list ) ;
+int		xfprintf(FILE * , const char * , ...) ;
+// ################################### Destination = STDOUT ########################################
 int 	xvnprintf(size_t, const char *, va_list) ;
 int 	xvprintf(const char * , va_list) ;
 int 	xnprintf(size_t, const char *, ...) ;
 int		xprintf(const char *, ...) ;
-
-int		xvfprintf(FILE * , const char * , va_list ) ;
-int		xfprintf(FILE * , const char * , ...) ;
-
+// ################################### Destination = HANDLE ########################################
 int		xvdprintf(int , const char * , va_list ) ;
 int		xdprintf(int , const char * , ...) ;
-
+// ################################### Destination = DEVICE ########################################
+int 	vdevprintf(int (* handler)(int ), const char *, va_list) ;
+int 	devprintf(int (* handler)(int), const char *, ...) ;
+// #################################### Destination : SOCKET #######################################
 int 	vsocprintf(sock_ctx_t *, const char *, va_list) ;
 int 	socprintf(sock_ctx_t *, const char *, ...) ;
-
-int     vuuprintf(uubuf_t *, const char * , va_list) ;
-int     uuprintf(uubuf_t *, const char * , ...) ;
-
-// ############################## LOW LEVEL DIRECT formatted output ###############################
-
+// #################################### Destination : UBUF #########################################
+int     vuprintf(ubuf_t *, const char * , va_list) ;
+int     uprintf(ubuf_t *, const char * , ...) ;
+// ############################## LOW LEVEL DIRECT formatted output ################################
+void	cprintf_lock(void) ;
+void	cprintf_unlock(void) ;
+int 	vcprintf(const char *, va_list) ;
+int 	cprintf(const char *, ...) ;
 int32_t	cprintf_noblock(const char *, ...) ;
-
 // ##################################### functional tests ##########################################
 
 #ifdef __cplusplus

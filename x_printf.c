@@ -144,9 +144,8 @@ void	vPrintChar(xpc_t * psXPC, char cChr) {
  * \return		pointer to the correct character
  */
 char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
-char	cChr ;
-	myASSERT(Value < 0x10) ;
-	cChr = hexchars[Value] ;
+	IF_myASSERT(debugPARAM, Value < 0x10) ;
+	char cChr = hexchars[Value] ;
 	if ((psXPC->f.Ucase == 0) && (Value > 9)) {
 		cChr += 0x20 ;									// convert to lower case
 	}
@@ -165,7 +164,7 @@ int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
 	int32_t	len = 0 ;
 	while (*pStr) {
 		vPrintChar(psXPC, *pStr++) ;
-		len++ ;
+		++len ;
 	}
 	return len ;
 }
@@ -192,14 +191,20 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
 	// handle padding on left (ie right justified)
 	int32_t padchar = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
 	if ((psXPC->f.ljust == 0) && PadLen) {				// If right justified & we must pad
-		while (PadLen--) { vPrintChar(psXPC, padchar) ; }	// do left pad
+		while (PadLen--) {
+			vPrintChar(psXPC, padchar) ;				// do left pad
+		}
 	}
 	// output the actual string
 	psXPC->f.precision = psXPC->f.precision ? psXPC->f.precision : Len ;
-	while (*pStr && psXPC->f.precision--) { vPrintChar(psXPC, *pStr++) ; }
+	while (*pStr && psXPC->f.precision--) {
+		vPrintChar(psXPC, *pStr++) ;
+	}
 	// handle padding on right (ie left justified)
 	if ((psXPC->f.ljust == 1) && PadLen) {				// If left justified & we must pad
-		while (PadLen--) { vPrintChar(psXPC, padchar) ;	}	// do right pad
+		while (PadLen--) {
+			vPrintChar(psXPC, padchar) ;				// do right pad
+		}
 	}
 }
 
@@ -683,7 +688,7 @@ void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
 	if (psXPC->f.alt_form) {							// '#' format requested
 		Len += xPrintDate_Year(psXPC, &sTM, &Buffer[Len]) ;
 	} else {
-		if (Seconds > SECONDS_IN_DAY || psXPC->f.pad0 || psXPC->f.mon_ok) {
+		if (Seconds >= SECONDS_IN_DAY || psXPC->f.pad0 || psXPC->f.mon_ok) {
 			Len += xPrintDate_Day(psXPC, &sTM, &Buffer[Len]) ;
 		}
 	}
@@ -1239,10 +1244,7 @@ int 	xsprintf(char * pBuf, const char * format, ...) {
 
 // ################################### Destination = FILE PTR ######################################
 
-/* For ESP-IDF we have no clean or simple way to retarget STDIO functions. Hence we
- * use a wrapper function _fputc() as opposed to fputc() to intercept the character
- * output and handle STDOUT & STDERR */
-static	int	xPrintToFile(xpc_t * psXPC, int cChr) { return _fputc(cChr, psXPC->stream) ; }
+static	int	xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
 
 int 	xvfprintf(FILE * stream, const char * format, va_list vArgs) {
 	IF_myASSERT(debugPARAM, INRANGE_SRAM(stream)) ;
@@ -1281,12 +1283,9 @@ int 	xprintf(const char * format, ...) {
 
 // ################################### Destination = HANDLE ########################################
 
-/* For ESP-IDF we have no clean or simple way to retarget STDIO functions. Hence we
- * use a wrapper function _fputc() as opposed to fputc() to intercept the character
- * output and handle STDOUT & STDERR */
 static	int	xPrintToHandle(xpc_t * psXPC, int cChr) {
 	char cChar = cChr ;
-	ssize_t size = _write(psXPC->fd, &cChar, sizeof(cChar)) ;
+	ssize_t size = write(psXPC->fd, &cChar, sizeof(cChar)) ;
 	return size == 1 ? cChr : size ;
 }
 
@@ -1296,6 +1295,69 @@ int		xdprintf(int32_t fd, const char * format, ...) {
 	va_list	vArgs ;
 	va_start(vArgs, format) ;
 	int count = xvdprintf(fd, format, vArgs) ;
+	va_end(vArgs) ;
+	return count ;
+}
+
+// ################################### Destination = DEVICE ########################################
+
+static	int	xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
+
+int 	vdevprintf(int (* handler)(int ), const char * format, va_list vArgs) { return xPrint(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+
+int 	devprintf(int (* handler)(int ), const char * format, ...) {
+	va_list vArgs ;
+	va_start(vArgs, format) ;
+	int iRetVal = xPrint(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	va_end(vArgs) ;
+	return iRetVal ;
+}
+
+/* #################################### Destination : SOCKET #######################################
+ * SOCKET directed formatted print support. Problem here is that MSG_MORE is primarily supported on
+ * TCP sockets, UDP support officially in LwIP 2.6 but has not been included into ESP-IDF yet. */
+
+static	int	xPrintToSocket(xpc_t * psXPC, int cChr) {
+	char cBuf = cChr ;
+	if (xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf)) != sizeof(cBuf)) {
+		return EOF ;
+	}
+	return cChr ;
+}
+
+int 	vsocprintf(sock_ctx_t * psSock, const char * format, va_list vArgs) {
+	IF_myASSERT(debugPARAM, INRANGE_SRAM(psSock)) ;
+//	int	OldFlags	= psSock->flags ;
+//	psSock->flags	|= MSG_MORE ;
+	int32_t iRetVal = xPrint(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
+//	psSock->flags	= OldFlags ;
+	return (psSock->error == 0) ? iRetVal : erFAILURE ;
+}
+
+int 	socprintf(sock_ctx_t * psSock, const char * format, ...) {
+	va_list vArgs ;
+	va_start(vArgs, format) ;
+	int count = vsocprintf(psSock, format, vArgs) ;
+	va_end(vArgs) ;
+	return count ;
+}
+
+// #################################### Destination : UBUF #########################################
+
+static	int	xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr) ; }
+
+int		vuprintf(ubuf_t * psUBuf, const char * format, va_list vArgs) {
+	IF_myASSERT(debugPARAM, INRANGE_SRAM(psUBuf) && INRANGE_MEM(format)) ;
+	if (xUBufSpace(psUBuf) == 0) {						// if no space left
+		return 0 ;										// return
+	}
+	return xPrint(xPrintToUBuf, psUBuf, xUBufAvail(psUBuf), format, vArgs) ;
+}
+
+int		uprintf(ubuf_t * psUBuf, const char * format, ...) {
+	va_list	vArgs ;
+	va_start(vArgs, format) ;
+	int count = vuprintf(psUBuf, format, vArgs) ;
 	va_end(vArgs) ;
 	return count ;
 }
@@ -1323,16 +1385,19 @@ void	cprintf_unlock(void) {
 	}
 }
 
-/* Uses  a blocking character output function that requires FreeRTOS to be running.
- * Also supports console redirection to Telnet. */
 static	int	xPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
 
-int 	vcprintf(const char * format, va_list vArgs) { return xPrint(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int 	vcprintf(const char * format, va_list vArgs) {
+//	cprintf_lock() ;
+	int iRV = xPrint(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+//	cprintf_unlock() ;
+	return iRV ;
+}
 
 int 	cprintf(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int iRetVal = xPrint(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	int iRetVal = vcprintf(format, vArgs) ;
 	va_end(vArgs) ;
 	return iRetVal ;
 }
@@ -1346,72 +1411,6 @@ int32_t	cprintf_noblock(const char * format, ...) {
 	int32_t iRetVal = xPrint(xPrintToStdoutNoBlock, NULL, 128, format, vArgs) ;
 	va_end(vArgs) ;
 	return iRetVal ;
-}
-
-// ################################### Destination = DEVICE ########################################
-
-static	int	xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
-
-int 	vdevprintf(int (* handler)(int ), const char * format, va_list vArgs) { return xPrint(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ; }
-
-int 	devprintf(int (* handler)(int ), const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int iRetVal = xPrint(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	va_end(vArgs) ;
-	return iRetVal ;
-}
-
-// #################################### Destination : SOCKET #######################################
-
-/* SOCKET directed formatted print support
- * problem here is that MSG_MORE is primarily supported on TCP sockets, UDP support officially in 2.6
- * but support has not been included into LwIP yet. */
-
-static	int	xPrintToSocket(xpc_t * psXPC, int cChr) {
-	char cBuf = cChr ;
-	if (xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf)) != sizeof(cBuf)) {
-		return EOF ;
-	}
-	return cChr ;
-}
-
-int 	vsocprintf(sock_ctx_t * psSock, const char * format, va_list vArgs) {
-	IF_myASSERT(debugPARAM, INRANGE_SRAM(psSock)) ;
-	int	OldFlags	= psSock->flags ;
-	psSock->flags	|= MSG_MORE ;
-	int32_t iRetVal = xPrint(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	psSock->flags	= OldFlags ;
-	xNetWrite(psSock, "\0", 1) ;
-	return (psSock->error == 0) ? iRetVal : erFAILURE ;
-}
-
-int 	socprintf(sock_ctx_t * psSock, const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int count = vsocprintf(psSock, format, vArgs) ;
-	va_end(vArgs) ;
-	return count ;
-}
-
-// ################################### Destination : uuBUF #########################################
-
-static	int	xPrintToUUBuf(xpc_t * psXPC, int cChr) { return xUUBufPutC(psXPC->psUUBuf, cChr) ; }
-
-int		vuuprintf(uubuf_t * psUUBuf, const char * format, va_list vArgs) {
-	IF_myASSERT(debugPARAM, INRANGE_SRAM(psUUBuf) && INRANGE_MEM(format)) ;
-	if (psUUBuf->Used == psUUBuf->Size) {
-		return 0 ;										// any space left ?
-	}
-	return xPrint(xPrintToUUBuf, psUUBuf, psUUBuf->Size - psUUBuf->Used, format, vArgs) ;
-}
-
-int		uuprintf(uubuf_t * psUUBuf, const char * format, ...) {
-	va_list	vArgs ;
-	va_start(vArgs, format) ;
-	int count = vuuprintf(psUUBuf, format, vArgs) ;
-	va_end(vArgs) ;
-	return count ;
 }
 
 // ############################# Aliases for NEW/STDLIB supplied functions #########################
