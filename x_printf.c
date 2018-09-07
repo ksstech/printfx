@@ -76,6 +76,7 @@
  */
 
 #include	"x_config.h"								// brings x_time.h with xTime_GMTime() function
+#include	"x_printf.h"
 #include	"x_debug.h"									// need ASSERT, bring x_printf with
 #include	"x_string_general.h"						// xinstring function
 #include	"x_errors_events.h"
@@ -222,8 +223,8 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
  * 				'0'		Zero pad to the left of the value to fill the field
  */
 int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize) {
-int32_t	Len, iTemp, Count ;
-	myASSERT((pBuffer != NULL) && (BufSize != 0)) ;
+	int32_t	Len, iTemp, Count ;
+	IF_myASSERT(debugPARAM, (pBuffer != NULL) && (BufSize != 0)) ;
 	// Set pointer to end of buffer
 	char * pTemp = pBuffer + BufSize - 1 ;
 	// convert to string starting at end of buffer from Least (R) to Most (L) significant digits
@@ -304,8 +305,8 @@ void	vPrintX64(xpc_t * psXPC, uint64_t Value) {
  * 	http://git.musl-libc.org/cgit/musl/blob/src/stdio/vfprintf.c?h=v1.1.6
  */
 void	vPrintF64(xpc_t * psXPC, double dValue) {
-char	Buffer[xpfMAX_LEN_F64] ;
-int32_t 	idx, Exponent, Len = 0 ;
+	char	Buffer[xpfMAX_LEN_F64] ;
+	int32_t idx, Exponent, Len = 0 ;
 	psXPC->f.negvalue	= dValue < 0.0 ? 1 : 0 ;		// set negvalue if < 0.0
 	dValue				*= psXPC->f.negvalue ? -1.0 : 1.0 ;	// convert to positive number
 	xpf_t		xpf ;
@@ -466,7 +467,7 @@ void	vPrintHexU64(xpc_t * psXPC, uint64_t Value) {
  *
  */
 void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
-	myASSERT(Num > 0 && INRANGE_MEM(pStr)) ;
+	IF_myASSERT(debugPARAM, (Num > 0) && INRANGE_MEM(pStr)) ;
 	int32_t	Size = 1 << psXPC->f.size ;
 	if (psXPC->f.alt_form) {							// '#' specified to invert order ?
 		pStr += Num - Size ;							// working backwards so point to last
@@ -541,7 +542,7 @@ seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 	if ((psTSZ->pTZ) &&									// TZ info available
 		(psXPC->f.plus) &&								// display of TZ info requested
 		(psXPC->f.abs_rel == 0) &&						// not working with relative time
-		(psXPC->f.alt_form == 0)) {					// not asking for alternative form output
+		(psXPC->f.alt_form == 0)) {						// not asking for alternative form output
 		Seconds = xTime_CalcLocalTimeSeconds(psTSZ) ;
 	} else {
 		Seconds = xTimeStampAsSeconds(psTSZ->usecs) ;
@@ -756,15 +757,15 @@ void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 		} else if (psXPC->f.alt_form == 1) {			// TZ info available but '#' format specified
 			Len = xstrncpy(Buffer, " GMT", 4) ;			// show as GMT (ie UTC)
 
-		} else if (psXPC->f.plus) {					// TZ info available & '+x:xx(???)' format requested
-			psXPC->f.signed_val= 1 ;					// TZ hours offset is a signed value
+		} else if (psXPC->f.plus) {						// TZ info available & '+x:xx(???)' format requested
+			psXPC->f.signed_val	= 1 ;					// TZ hours offset is a signed value
 			psXPC->f.plus		= 1 ;					// force display of sign
-			psXPC->f.pad0		= 0 ;
-			Len = xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXPC->f.minwid = 2) ;
+			psXPC->f.pad0		= 1 ;
+			Len = xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXPC->f.minwid = 3) ;
 		// insert separating ':' or 'h'
 			Buffer[Len++]	= psXPC->f.form ? CHR_h : CHR_COLON ;
 		// add the minutes
-			psXPC->f.signed_val= 0 ;					// TZ offset minutes unsigned
+			psXPC->f.signed_val	= 0 ;					// TZ offset minutes unsigned
 			psXPC->f.plus		= 0 ;
 			psXPC->f.pad0		= 1 ;
 			Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXPC->f.minwid = 2) ;
@@ -778,12 +779,12 @@ void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 					psXPC->f.minwid++ ;
 				}
 				Len += psXPC->f.minwid ;
-				Buffer[Len++]	= CHR_R_ROUND ;							// and wrap it up...
+				Buffer[Len++]	= CHR_R_ROUND ;			// and wrap it up...
 			}
 #elif	(buildTIME_TZTYPE_SELECTED == buildTIME_TZTYPE_FOURCHARS)
 			// Now handle the TZ name if there, check to ensure max 4 chars all UCase
 			if (xstrverify(&psTSZ->pTZ->tzname[0], CHR_A, CHR_Z, configTIME_MAX_LEN_TZNAME) == erSUCCESS) {
-				Buffer[Len++]	= CHR_L_ROUND ;				// add separating ' ('
+				Buffer[Len++]	= CHR_L_ROUND ;			// add separating ' ('
 			// then complete with the TZ name
 				psXPC->f.minwid = 0 ;
 				while ((psXPC->f.minwid < configTIME_MAX_LEN_TZNAME) &&
@@ -793,8 +794,10 @@ void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 					psXPC->f.minwid++ ;
 				}
 				Len += psXPC->f.minwid ;
-				Buffer[Len++]	= CHR_R_ROUND ;							// and wrap it up...
+				Buffer[Len++]	= CHR_R_ROUND ;			// and wrap it up...
 			}
+#elif	(buildTIME_TZTYPE_SELECTED == buildTIME_TZTYPE_RFC3164)
+			// nothing added other than the time offset
 #endif
 		} else {
 			// Should never get here...
@@ -958,14 +961,6 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 	sXPC.f.lengths	= sXPC.f.limits = sXPC.f.flags = 0UL ;
 	sXPC.f.maxlen	= (BufSize > xpfMAXLEN_MAXVAL) ? xpfMAXLEN_MAXVAL : BufSize ;
 
-#if		(ESP32_PLATFORM == 1)
-	/* To accomodate logging from the ESP-IDF modules PRIOR to application startup
-	 * we need to check if the xEventStatus has been initialised, if not, do so... */
-	if (xEventStatus == 0) {
-		xEventStatus	= xEventGroupCreate() ;
-	}
-#endif
-
 	for (; *format != CHR_NUL; ++format) {
 	// start by expecting format indicator
 		if (*format == CHR_PERCENT) {
@@ -996,7 +991,7 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 				case 3:									// '*' indicate argument will supply field width
 					++format ;
 					uint32_t U32	= va_arg(vArgs, uint32_t) ;
-					myASSERT(U32 < xpfMINWID_MAXVAL) ;
+					IF_myASSERT(debugPARAM, U32 < xpfMINWID_MAXVAL) ;
 					sXPC.f.minwid	= U32 ;
 					sXPC.f.arg_width= 1 ;
 					break ;
@@ -1015,11 +1010,11 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 					sXPC.f.pad0		= 1 ;
 					break ;
 				default:
-					myASSERT(0 == 1) ;
+					myASSERT(0) ;
 				}
 			}
 		// handle pre and post decimal field width/precision indicators
-			if (*format == CHR_FULLSTOP || INRANGE(CHR_0, *format, CHR_9, char)) {
+			if ((*format == CHR_FULLSTOP) || INRANGE(CHR_0, *format, CHR_9, char)) {
 				cFmt = 0 ;
 				while (1) {
 					if (INRANGE(CHR_0, *format, CHR_9, char)) {
@@ -1027,20 +1022,20 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 						cFmt += *format - '0' ;
 						format++ ;
 					} else if (*format == CHR_FULLSTOP) {
-						myASSERT(sXPC.f.radix == 0)	// cannot have 2x radix '.'
-						sXPC.f.radix		= 1 ;		// flag radix as provided
+						IF_myASSERT(debugPARAM, sXPC.f.radix == 0)	// cannot have 2x radix '.'
+						sXPC.f.radix	= 1 ;			// flag radix as provided
 						format++ ;						// skip over radix char
 						if (cFmt > 0) {
-							myASSERT(sXPC.f.arg_width == 0) ;
+							IF_myASSERT(debugPARAM, sXPC.f.arg_width == 0) ;
 						// at this stage we MIGHT have parsed a minwid value, if so verify and store.
-							sXPC.f.minwid		= cFmt ;	// Save value parsed (maybe 0) as min_width
-							sXPC.f.arg_width	= 1 ;		// flag min_width as having been supplied
-							cFmt = 0 ;						// reset counter in case of precision following
+							sXPC.f.minwid	= cFmt ;	// Save value parsed (maybe 0) as min_width
+							sXPC.f.arg_width= 1 ;		// flag min_width as having been supplied
+							cFmt = 0 ;					// reset counter in case of precision following
 						}
 					} else if (*format == CHR_ASTERISK) {
 						format++ ; 						// skip over argument precision char
-						myASSERT(sXPC.f.radix == 1) ;	// Should not have '*' except after radix '.'
-						sXPC.f.precision	= va_arg(vArgs, uint32_t) ;
+						IF_myASSERT(debugPARAM, sXPC.f.radix == 1) ;	// Should not have '*' except after radix '.'
+						sXPC.f.precision= va_arg(vArgs, uint32_t) ;
 						sXPC.f.arg_prec	= 1 ;
 						cFmt = 0 ;						// reset counter just in case!!!
 					} else {
@@ -1050,9 +1045,9 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 			// Save possible parsed value in cFmt
 				if (cFmt > 0) {
 					if ((sXPC.f.arg_width == 0) && (sXPC.f.radix == 0)) {
-						sXPC.f.minwid		= cFmt ;
+						sXPC.f.minwid	= cFmt ;
 					} else if ((sXPC.f.arg_prec == 0) && (sXPC.f.radix == 1)) {
-						sXPC.f.precision	= cFmt ;
+						sXPC.f.precision= cFmt ;
 					} else {
 						myASSERT(0) ;
 					}
@@ -1171,7 +1166,7 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 #endif
 
 #if	(xpfSUPPORT_POINTER == 1)
-				case 'p':			// pointer value UC/lc
+				case 'p':								// pointer value UC/lc
 					vPrintPointer(&sXPC, va_arg(vArgs, uint32_t)) ;		// no provision for 64 bit pointers (yet)
 					break ;
 #endif
@@ -1244,6 +1239,7 @@ int 	xsprintf(char * pBuf, const char * format, ...) {
 
 // ################################### Destination = FILE PTR ######################################
 
+//static	int	xPrintToFile(xpc_t * psXPC, int cChr) { return putc(cChr, psXPC->stream) ; }
 static	int	xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
 
 int 	xvfprintf(FILE * stream, const char * format, va_list vArgs) {
@@ -1387,12 +1383,7 @@ void	cprintf_unlock(void) {
 
 static	int	xPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
 
-int 	vcprintf(const char * format, va_list vArgs) {
-//	cprintf_lock() ;
-	int iRV = xPrint(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
-//	cprintf_unlock() ;
-	return iRV ;
-}
+int 	vcprintf(const char * format, va_list vArgs) { return xPrint(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int 	cprintf(const char * format, ...) {
 	va_list vArgs ;

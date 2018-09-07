@@ -88,7 +88,6 @@
 #include	"x_definitions.h"
 #include	"x_sockets.h"
 #include	"x_ubuf.h"
-#include	"x_uubuf.h"
 
 #if		(ESP32_PLATFORM == 1)
 	#include	<regex.h>
@@ -281,8 +280,8 @@ int 	socprintf(sock_ctx_t *, const char *, ...) ;
 int     vuprintf(ubuf_t *, const char * , va_list) ;
 int     uprintf(ubuf_t *, const char * , ...) ;
 // ############################## LOW LEVEL DIRECT formatted output ################################
-void	cprintf_lock(void) ;
-void	cprintf_unlock(void) ;
+//void	cprintf_lock(void) ;
+//void	cprintf_unlock(void) ;
 int 	vcprintf(const char *, va_list) ;
 int 	cprintf(const char *, ...) ;
 int32_t	cprintf_noblock(const char *, ...) ;
