@@ -912,7 +912,7 @@ void	vPrintBinary(xpc_t * psXPC, uint64_t ullVal) {
  * 				'0'		Zero pad the individual numbers between the '.'
  */
 void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
-	psXPC->f.minwid = psXPC->f.ljust ? 0 : 3 ;
+	psXPC->f.minwid		= psXPC->f.ljust ? 0 : 3 ;
 	psXPC->f.signed_val	= 0 ;							// ensure interpreted as unsigned
 	psXPC->f.plus		= 0 ;							// and no sign to be shown
 	uint8_t * pChr = (uint8_t *) &Val ;
