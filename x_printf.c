@@ -131,26 +131,14 @@ static	const double round_nums[xpfMAXIMUM_DECIMALS+1] = {
 void	vPrintChar(xpc_t * psXPC, char cChr) {
 	if ((psXPC->f.maxlen == 0) || (psXPC->f.curlen < psXPC->f.maxlen)) {
 #if 	(xpfSUPPORT_FILTER_NUL == 1)
-		if (cChr == CHR_NUL) { return ; }
+		if (cChr == CHR_NUL) {
+			return ;
+		}
 #endif
-		if (psXPC->handler(psXPC, cChr) == cChr) { psXPC->f.curlen++ ; }	// adjust the count
+		if (psXPC->handler(psXPC, cChr) == cChr) {
+			psXPC->f.curlen++ ;							// adjust the count
+		}
 	}
-}
-
-/*
- * cPrintNibbleToChar()
- * \brief		returns a pointer to the hexadecimal character representing the value of the low order nibble
- * 				Based on the Flag, the pointer will be adjusted for UpperCase (if required)
- * \param[in]	Val = value in low order nibble, to be converted
- * \return		pointer to the correct character
- */
-char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
-	IF_myASSERT(debugPARAM, Value < 0x10) ;
-	char cChr = hexchars[Value] ;
-	if ((psXPC->f.Ucase == 0) && (Value > 9)) {
-		cChr += 0x20 ;									// convert to lower case
-	}
-	return cChr ;
 }
 
 /*
@@ -207,6 +195,22 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
 			vPrintChar(psXPC, padchar) ;				// do right pad
 		}
 	}
+}
+
+/*
+ * cPrintNibbleToChar()
+ * \brief		returns a pointer to the hexadecimal character representing the value of the low order nibble
+ * 				Based on the Flag, the pointer will be adjusted for UpperCase (if required)
+ * \param[in]	Val = value in low order nibble, to be converted
+ * \return		pointer to the correct character
+ */
+char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
+	IF_myASSERT(debugPARAM, Value < 0x10) ;
+	char cChr = hexchars[Value] ;
+	if ((psXPC->f.Ucase == 0) && (Value > 9)) {
+		cChr += 0x20 ;									// convert to lower case
+	}
+	return cChr ;
 }
 
 /*
@@ -1122,6 +1126,7 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 				case 'c':								// char passed an uint32_t
 					vPrintChar(&sXPC, va_arg(vArgs, int32_t)) ;
 					break ;
+
 				case 'd':								// signed decimal "[-]ddddd"
 				case 'i':								// signed integer (same as decimal ?)
 				case 'o':								// unsigned octal "ddddd"
@@ -1239,7 +1244,6 @@ int 	xsprintf(char * pBuf, const char * format, ...) {
 
 // ################################### Destination = FILE PTR ######################################
 
-//static	int	xPrintToFile(xpc_t * psXPC, int cChr) { return putc(cChr, psXPC->stream) ; }
 static	int	xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
 
 int 	xvfprintf(FILE * stream, const char * format, va_list vArgs) {
@@ -1323,10 +1327,10 @@ static	int	xPrintToSocket(xpc_t * psXPC, int cChr) {
 
 int 	vsocprintf(sock_ctx_t * psSock, const char * format, va_list vArgs) {
 	IF_myASSERT(debugPARAM, INRANGE_SRAM(psSock)) ;
-//	int	OldFlags	= psSock->flags ;
-//	psSock->flags	|= MSG_MORE ;
+	int	OldFlags	= psSock->flags ;
+	psSock->flags	|= MSG_MORE ;
 	int32_t iRetVal = xPrint(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
-//	psSock->flags	= OldFlags ;
+	psSock->flags	= OldFlags ;
 	return (psSock->error == 0) ? iRetVal : erFAILURE ;
 }
 
