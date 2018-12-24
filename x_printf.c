@@ -308,20 +308,20 @@ void	vPrintX64(xpc_t * psXPC, uint64_t Value) {
  * References:
  * 	http://git.musl-libc.org/cgit/musl/blob/src/stdio/vfprintf.c?h=v1.1.6
  */
-void	vPrintF64(xpc_t * psXPC, double dValue) {
+void	vPrintF64(xpc_t * psXPC, double f64Val) {
 	char	Buffer[xpfMAX_LEN_F64] ;
 	int32_t idx, Exponent, Len = 0 ;
-	psXPC->f.negvalue	= dValue < 0.0 ? 1 : 0 ;		// set negvalue if < 0.0
-	dValue				*= psXPC->f.negvalue ? -1.0 : 1.0 ;	// convert to positive number
+	psXPC->f.negvalue	= f64Val < 0.0 ? 1 : 0 ;		// set negvalue if < 0.0
+	f64Val				*= psXPC->f.negvalue ? -1.0 : 1.0 ;	// convert to positive number
 	xpf_t		xpf ;
 	xpf.limits			= psXPC->f.limits ;				// save original flags
 	xpf.flags			= psXPC->f.flags ;
-	x64_t x64Value ;
+	x64_t x64Value 		= { 0 } ;
 // if exponential format requested, calculate the exponent
 	Exponent = 0 ;
-	if (dValue != 0.0) {								// if not 0 and...
+	if (f64Val != 0.0) {								// if not 0 and...
 		if (psXPC->f.form != xpfFORMAT_1_F) {			// any of "eEgG" specified ?
-			x64Value.f64	= dValue ;
+			x64Value.f64	= f64Val ;
 			while (x64Value.f64 > 10.0) {				// if number is greater that 10.0
 				x64Value.f64 /= 10.0 ;					// re-adjust and
 				Exponent += 1 ;							// update exponent
@@ -331,8 +331,6 @@ void	vPrintF64(xpc_t * psXPC, double dValue) {
 				Exponent	-= 1 ;						// update exponent
 			}
 		}
-	} else {
-		x64Value.u64		= 0 ;
 	}
 
 // if 'g' or 'G' specified check the exponent range and select applicable mode.
@@ -348,11 +346,11 @@ void	vPrintF64(xpc_t * psXPC, double dValue) {
 	}
 // based on the format to be used, change the value if exponent format
 	if (psXPC->f.form == xpfFORMAT_2_E) {
-		dValue = x64Value.f64 ;							// change to exponent adjusted value
+		f64Val = x64Value.f64 ;							// change to exponent adjusted value
 	}
 // do rounding based on precision, only if addition of rounding value will NOT cause overflow.
-	if (dValue < (DBL_MAX - round_nums[psXPC->f.precision])) {
-		dValue += round_nums[psXPC->f.precision] ;		// round by adding .5LSB to the value
+	if (f64Val < (DBL_MAX - round_nums[psXPC->f.precision])) {
+		f64Val += round_nums[psXPC->f.precision] ;		// round by adding .5LSB to the value
 	}
 // building R to L, ensure buffer NULL-term
 	Buffer[xpfMAX_LEN_F64 - 1] = CHR_NUL ;
@@ -377,7 +375,7 @@ void	vPrintF64(xpc_t * psXPC, double dValue) {
 			mult *= 10 ;
 		}
 	// extract fractional component as integer from double
-		x64Value.f64		= dValue - (uint64_t) dValue ;		// STEP 1 - Isolate fraction as double
+		x64Value.f64		= f64Val - (uint64_t) f64Val ;		// STEP 1 - Isolate fraction as double
 		x64Value.f64		= x64Value.f64 * (double) mult ;	// STEP 2 -convert relevant fraction to integer
 		x64Value.u64		= (uint64_t) x64Value.f64 ;		// STEP the relevant integer portion, discard remaining fraction
 		if (isnan(x64Value.f64)) {
@@ -398,7 +396,7 @@ void	vPrintF64(xpc_t * psXPC, double dValue) {
 	}
 
 // extract and convert the whole number portions
-	x64Value.u64		= dValue ;
+	x64Value.u64		= f64Val ;
 	psXPC->f.limits		= xpf.limits ;					// restore original flags
 	psXPC->f.flags		= xpf.flags ;
 // adjust minwid to do padding (if required) based on string length after adding whole number
@@ -1597,20 +1595,20 @@ uint64_t	my_llong = 0x98765432 ;
 
 #if		(TEST_DATETIME == 1)
 	#if		defined(__TIME__) && defined(__DATE__)
-		PRINT("_DATE_TIME_ : %s %s\r\n", __DATE__, __TIME__) ;
+		PRINT("_DATE_TIME_ : %s %s\n", __DATE__, __TIME__) ;
 	#endif
 	#if		defined(__TIMESTAMP__)
-		PRINT("_TIMESTAMP_ : %s\r\n", __TIMESTAMP__) ;
+		PRINT("_TIMESTAMP_ : %s\n", __TIMESTAMP__) ;
 	#endif
 	#if		defined(__TIMESTAMP__ISO__)
-		PRINT("TimestampISO: %s\r\n", __TIMESTAMP__ISO__) ;
+		PRINT("TimestampISO: %s\n", __TIMESTAMP__ISO__) ;
 	#endif
-	PRINT("Normal  (S1): %Z\r\n", &CurSecs) ;
-	PRINT("Elapsed (S1): %!Z\r\n", &RunSecs) ;
-	PRINT("Normal  (S2): %'Z\r\n", &CurSecs) ;
-	PRINT("Elapsed (S2): %!'Z\r\n", &RunSecs) ;
-	PRINT("Normal Alt  : %#Z\r\n", &CurSecs) ;
-//	PRINT("Elapsed Alt: %!#Z\r\n", &RunSecs) ;		Invalid, CRASH !!!
+	PRINT("Normal  (S1): %Z\n", &CurSecs) ;
+	PRINT("Elapsed (S1): %!Z\n", &RunSecs) ;
+	PRINT("Normal  (S2): %'Z\n", &CurSecs) ;
+	PRINT("Elapsed (S2): %!'Z\n", &RunSecs) ;
+	PRINT("Normal Alt  : %#Z\n", &CurSecs) ;
+//	PRINT("Elapsed Alt: %!#Z\n", &RunSecs) ;		Invalid, CRASH !!!
 #endif
 
 #if		(TEST_HEXDUMP == 1)
