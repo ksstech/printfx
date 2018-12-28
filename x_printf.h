@@ -140,7 +140,9 @@ extern "C" {
 
 #define	xpfMAX_LEN_FRAC_SEC				(xpfMAX_DIGITS_FRAC_SEC + 3)
 #define	xpfMAX_LEN_TIME					(sizeof("12:34:56.") + xpfMAX_LEN_FRAC_SEC)
-#define	xpfMAX_LEN_DATE					sizeof("2015-04-01T")
+
+#define	xpfMAX_LEN_DATE					sizeof("Sun, 10 Sep 2017")	// was "2015-04-01T"
+
 #define	xpfMAX_LEN_DTZ					(xpfMAX_LEN_DATE + xpfMAX_LEN_TIME + configTIME_MAX_LEN_TZINFO)
 
 #define xpfMAX_LEN_X32					sizeof("+4,294,967,295")

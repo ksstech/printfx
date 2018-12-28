@@ -89,8 +89,10 @@
 #include	<math.h>									// isnan()
 #include	<float.h>									// DBL_MIN/MAX
 
-#define	debugFLAG				(0x0001)
-#define	debugPARAM				(debugFLAG & 0x0001)
+#define	debugFLAG				(0x4000)
+
+#define	debugPARAM				(debugFLAG & 0x4000)
+#define	debugRESULT				(debugFLAG & 0x8000)
 
 // ######################## Character and value translation & rounding tables ######################
 
@@ -167,7 +169,8 @@ int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
  */
 void	vPrintString (xpc_t * psXPC, char * pStr) {
 	int32_t Len = 0 ;
-	pStr = (pStr == NULL) ? STRING_NULL : INRANGE_MEM(pStr) ? pStr : STRING_OOR ;
+	pStr = (pStr == NULL) ? (char *) STRING_NULL :
+			INRANGE_MEM(pStr) ? pStr : (char *) STRING_OOR ;
 	for (char * ptr = pStr; *ptr ; ++ptr) {
 		Len++ ;											// calculate actual string length
 	}
@@ -227,8 +230,8 @@ char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
  * 				'0'		Zero pad to the left of the value to fill the field
  */
 int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize) {
+	IF_myASSERT(debugPARAM, INRANGE_SRAM(pBuffer) && (BufSize > 0)) ;
 	int32_t	Len, iTemp, Count ;
-	IF_myASSERT(debugPARAM, (pBuffer != NULL) && (BufSize != 0)) ;
 	// Set pointer to end of buffer
 	char * pTemp = pBuffer + BufSize - 1 ;
 	// convert to string starting at end of buffer from Least (R) to Most (L) significant digits
@@ -534,7 +537,7 @@ void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
  * \return		none
  */
 void	vPrintPointer(xpc_t * psXPC, uint32_t Address) {
-	xPrintChars(psXPC, "0x") ;
+	xPrintChars(psXPC, (char *) "0x") ;
 	vPrintHexU32(psXPC, Address) ;
 }
 
@@ -614,41 +617,39 @@ void	vPrintTime(xpc_t * psXPC, TSZ_t * psTSZ) {
 size_t	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid	= 0 ;
 	size_t Len = xPrintXxx(psXPC, (int64_t) (psTM->tm_year + (psXPC->f.abs_rel ? 0 : YEAR_BASE_MIN)), pBuffer, 4) ;
-	if (psXPC->f.alt_form) {
-		*(pBuffer + Len) = CHR_SPACE ;
-	} else {
-		*(pBuffer + Len) = (psXPC->f.form == xpfFORMAT_3) ? CHR_FWDSLASH : CHR_MINUS ;
+	if (psXPC->f.alt_form == 0) {						// no extra ' ' at end for alt_form
+		*(pBuffer + Len++) = (psXPC->f.form == xpfFORMAT_3) ? CHR_FWDSLASH : CHR_MINUS ;
 	}
 	psXPC->f.year_ok	= 1 ;
 	psXPC->f.pad0		= 1 ;
-	return Len + 1 ;									// length incl separator
+	return Len ;
 }
 
 size_t	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid	= 2 ;
 	size_t Len = xPrintXxx(psXPC, (int64_t) (psTM->tm_mon + (psXPC->f.abs_rel ? 0 : 1)), pBuffer, 2) ;
 	if (psXPC->f.alt_form) {
-		*(pBuffer + Len) = CHR_SPACE ;
+		*(pBuffer + Len++) = CHR_SPACE ;
 	} else {
-		*(pBuffer + Len) = (psXPC->f.form == xpfFORMAT_3) ? CHR_FWDSLASH : CHR_MINUS ;
+		*(pBuffer + Len++) = (psXPC->f.form == xpfFORMAT_3) ? CHR_FWDSLASH : CHR_MINUS ;
 	}
 	psXPC->f.mon_ok	= 1 ;
 	psXPC->f.pad0	= 1 ;
-	return Len + 1 ;									// length incl separator
+	return Len ;
 }
 
 size_t	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid = 2 ;
 	size_t Len = xPrintXxx(psXPC, (int64_t) psTM->tm_mday, pBuffer, 2) ;
 	if (psXPC->f.alt_form) {
-		*(pBuffer + Len) = CHR_SPACE ;
+		*(pBuffer + Len++) = CHR_SPACE ;
 	} else {
-		*(pBuffer + Len) = ((psXPC->f.form == xpfFORMAT_3) && psXPC->f.abs_rel) ? CHR_d :
+		*(pBuffer + Len++) = ((psXPC->f.form == xpfFORMAT_3) && psXPC->f.abs_rel) ? CHR_d :
 							(psXPC->f.form == xpfFORMAT_3) ? CHR_SPACE : CHR_T ;
 	}
 	psXPC->f.mday_ok	= 1 ;
 	psXPC->f.pad0		= 1 ;
-	return Len + 1 ;									// length incl separator
+	return Len ;
 }
 
 void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
@@ -661,15 +662,15 @@ void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
 	size_t	Len ;
 	char	Buffer[xpfMAX_LEN_DATE] ;
 	// Part 1: day of week (optional)
-	if (psXPC->f.alt_form) {
+	if (psXPC->f.alt_form) {							// "Sun, "
 		Len = xstrncpy(Buffer, (char *) xTime_GetDayName(sTM.tm_wday), 3) ;
-		Len += xstrncpy(&Buffer[Len], ", ", 2) ;
+		Len += xstrncpy(&Buffer[Len], (char *) ", ", 2) ;
 	} else {
 		Len = 0 ;
 	}
 
 	// Part 2:
-	if (psXPC->f.alt_form) {							// '#' format requested
+	if (psXPC->f.alt_form) {							// "Sun, 10 "
 		Len += xPrintDate_Day(psXPC, &sTM, &Buffer[Len]) ;
 	} else {
 		if (sTM.tm_year > 0 || psXPC->f.pad0) {
@@ -678,9 +679,9 @@ void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
 	}
 
 	// Part 3:
-	if (psXPC->f.alt_form) {							// '#' format requested
+	if (psXPC->f.alt_form) {							// "Sun, 10 Sep "
 		Len += xstrncpy(&Buffer[Len], (char *) xTime_GetMonthName(sTM.tm_mon), 3) ;
-		Len += xstrncpy(&Buffer[Len], " ", 1) ;
+		Len += xstrncpy(&Buffer[Len], (char *) " ", 1) ;
 	} else {
 		if (sTM.tm_mon > 0 || psXPC->f.pad0 || psXPC->f.year_ok) {
 			Len += xPrintDate_Month(psXPC, &sTM, &Buffer[Len]) ;
@@ -688,7 +689,7 @@ void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
 	}
 
 	// Part 4:
-	if (psXPC->f.alt_form) {							// '#' format requested
+	if (psXPC->f.alt_form) {							// "Sun, 10 Sep 2017"
 		Len += xPrintDate_Year(psXPC, &sTM, &Buffer[Len]) ;
 	} else {
 		if (Seconds >= SECONDS_IN_DAY || psXPC->f.pad0 || psXPC->f.mon_ok) {
@@ -757,7 +758,7 @@ void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 			Len = 1 ;
 
 		} else if (psXPC->f.alt_form == 1) {			// TZ info available but '#' format specified
-			Len = xstrncpy(Buffer, " GMT", 4) ;			// show as GMT (ie UTC)
+			Len = xstrncpy(Buffer, (char *) " GMT", 4) ;// show as GMT (ie UTC)
 
 		} else if (psXPC->f.plus) {						// TZ info available & '+x:xx(???)' format requested
 			psXPC->f.signed_val	= 1 ;					// TZ hours offset is a signed value
@@ -834,7 +835,7 @@ void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
 		if (psXPC->f.ljust == 0) {
 		// display absolute or relative address
 			vPrintPointer(psXPC, psXPC->f.abs_rel ? Idx : (uint32_t) (pStr + Idx)) ;
-			xPrintChars(psXPC, ": ") ;
+			xPrintChars(psXPC, (char *) ": ") ;
 		}
 
 	// then the actual series of values in 8-64 bit groups
@@ -857,7 +858,7 @@ void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
 			}
 			vPrintChar(psXPC, CHR_SPACE) ;
 		}
-		xPrintChars(psXPC, "\n") ;
+		xPrintChars(psXPC, (char *) "\n") ;
 	}
 }
 
@@ -957,6 +958,7 @@ void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
  */
 
 int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const char *format, va_list vArgs) {
+	IF_myASSERT(debugPARAM, INRANGE_FLASH(handler) && INRANGE_FLASH(format)) ;
 	xpc_t	sXPC ;
 	sXPC.handler	= handler ;
 	sXPC.pVoid		= pVoid ;
@@ -1208,6 +1210,7 @@ static	int	xPrintToString(xpc_t * psXPC, int cChr) {
 }
 
 int 	xvsnprintf(char * pBuf, size_t BufSize, const char * format, va_list vArgs) {
+	IF_myASSERT(debugPARAM, (pBuf == NULL) || INRANGE_SRAM(pBuf)) ;
 	if (pBuf && (BufSize == 1)) {						// buffer specified, but no space ?
 		*pBuf = CHR_NUL ;								// yes, terminate
 		return 0 ; 										// & return
@@ -1259,7 +1262,10 @@ int 	xfprintf(FILE * stream, const char * format, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-int 	xvnprintf(size_t count, const char * format, va_list vArgs) { return xPrint(xPrintToFile, stdout, count, format, vArgs) ; }
+int 	xvnprintf(size_t count, const char * format, va_list vArgs) {
+	IF_myASSERT(debugPARAM, INRANGE_SRAM(stdout)) ;
+	return xPrint(xPrintToFile, stdout, count, format, vArgs) ;
+}
 
 int 	xvprintf(const char * format, va_list vArgs) { return xvnprintf(xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
@@ -1287,7 +1293,10 @@ static	int	xPrintToHandle(xpc_t * psXPC, int cChr) {
 	return size == 1 ? cChr : size ;
 }
 
-int		xvdprintf(int32_t fd, const char * format, va_list vArgs) { return xPrint(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int		xvdprintf(int32_t fd, const char * format, va_list vArgs) {
+	IF_myASSERT(debugPARAM, fd >= 0) ;
+	return xPrint(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ;
+}
 
 int		xdprintf(int32_t fd, const char * format, ...) {
 	va_list	vArgs ;
@@ -1301,7 +1310,10 @@ int		xdprintf(int32_t fd, const char * format, ...) {
 
 static	int	xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
 
-int 	vdevprintf(int (* handler)(int ), const char * format, va_list vArgs) { return xPrint(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int 	vdevprintf(int (* handler)(int ), const char * format, va_list vArgs) {
+	IF_myASSERT(debugPARAM, INRANGE_FLASH(handler)) ;
+	return xPrint(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
+}
 
 int 	devprintf(int (* handler)(int ), const char * format, ...) {
 	va_list vArgs ;
@@ -1385,7 +1397,12 @@ void	cprintf_unlock(void) {
 
 static	int	xPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
 
-int 	vcprintf(const char * format, va_list vArgs) { return xPrint(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int 	vcprintf(const char * format, va_list vArgs) {
+	cprintf_lock() ;
+	int32_t iRV = xPrint(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	cprintf_unlock() ;
+	return iRV ;
+}
 
 int 	cprintf(const char * format, ...) {
 	va_list vArgs ;
