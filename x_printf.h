@@ -20,67 +20,6 @@
 
 /*
  *	x_printf.h
- *
- *	Valid formatting characters
- *	!#'*+-%0.0-9ABC D EFGHI J KL M O PQRS T U VWXYZ
- *	|||||||||\_/ab|c|defgh|i|jk|lmn|opqr|s|t|uvwxy|z
- *	||||||||| | ||||||||||||||||||||||||||||||||||||
- *	||||||||| | |||||||||||||||||||||||||||||||||||*----> UNUSED
- *	||||||||| | ||||||||||||||||||||||||||||||||||*-----> DTZ
- *	||||||||| | |||||||||||||||||||||||||||||||||*------> UNUSED
- *	||||||||| | ||||||||||||||||||||||||||||||||*---> HEX UC/lc value
- *	||||||||| | |||||||||||||||||||||||||||||||*--------> HEXDUMP, word (u32) sized values UC/lc
- *	||||||||| | ||||||||||||||||||||||||||||||*---------> UNUSED
- *	||||||||| | |||||||||||||||||||||||||||||*------> UNSIGNED number (uint32_t)
- *	||||||||| | ||||||||||||||||||||||||||||*-----------> UNUSED
- *	||||||||| | |||||||||||||||||||||||||||*--------> Not implemented
- *	||||||||| | ||||||||||||||||||||||||||*-------------> TIME
- *	||||||||| | |||||||||||||||||||||||||*----------> STRING null terminated ascii
- *	||||||||| | ||||||||||||||||||||||||*-----------> Not implemented
- *	||||||||| | |||||||||||||||||||||||*----------------> UNUSED
- *	||||||||| | ||||||||||||||||||||||*-----------------> UNUSED
- *	||||||||| | |||||||||||||||||||||*--------------> POINTER U32 address with 0x prefix
- *	||||||||| | ||||||||||||||||||||*---------------> OCTAL value
- *	||||||||| | |||||||||||||||||||*--------------------> UNUSED
- *	||||||||| | ||||||||||||||||||*-----------------> Not implemented
- *	||||||||| | |||||||||||||||||*----------------------> MAC address UC/lc
- *	||||||||| | ||||||||||||||||*-------------------> LLONG modifier
- *	||||||||| | |||||||||||||||*--------------------> Not implemented
- *	||||||||| | ||||||||||||||*-------------------------> UNUSED (future SI unit scaling)
- *	||||||||| | |||||||||||||*----------------------> Not implemented
- *	||||||||| | ||||||||||||*---------------------------> BINARY U32 string
- *	||||||||| | |||||||||||*------------------------> INTEGER same as 'd
- *	||||||||| | ||||||||||*-----------------------------> IP address
- *	||||||||| | |||||||||*------------------------------> HEXDUMP, halfword (u16) sized values UC/lc
- *	||||||||| | ||||||||*---------------------------> FLOAT best suited format
- *	||||||||| | |||||||*----------------------------> FLOAT fixed format
- *	||||||||| | ||||||*-----------------------------> FLOAT exponential format
- *	||||||||| | |||||*------------------------------> DECIMAL signed formatted long
- *	||||||||| | ||||*-----------------------------------> DATE formatted
- *	||||||||| | |||*--------------------------------> CHAR single U8
- *	||||||||| | ||*---------------------------------> Not implemented
- *	||||||||| | |*--------------------------------------> HEXDUMP, byte (u8) sized values UC/lc
- *	||||||||| | *-----------------------------------> Not implemented!!
- *	||||||||| *--> field width specifiers
- *	||||||||*----> FLOAT fractional field size separator
- *	|||||||*-----> PAD0 enable flag
- *	||||||*------> format specifier flag
- *	|||||*-------> LEFT justification, HEXDUMP remove address info
- *	||||*--------> SIGN leading '+' or '-',	DTZ=Add full TZ info, HEXDUMP add ASCII info
- *	|||*---------> Minwid or precision variable provided
- *	||*----------> DECIMAL 3 digits group	DTZ "::." -> "hms"	DUMP use '|-+'
- *	|*-----------> DTZ=alt form (Sun, 10 Sep 2017 20:50:37 GMT) IP=ntohl() Hex=Reverse order
- *	*------------> DTZ=elapsed time,	DUMP=relative addr,
- *
- * Examples:
- * "%'03llJ"			- print binary representation, optional separator, llong & field width modifiers
- * "%['!#+ll]{BbHhWw}"	- hexdump of memory area, USE 2 PARAMETERS FOR START AND LENGTH !!!!
- * 							MUST NOT specify "*" or "." or "*." or .*", this will screw up the parameter sequence
- * "%[-0]I"				- print IP address, justified left or right (pad 0 or ' ')
- * "%[']{Mm}"			- prints MAC address, optional ':' separator, upper/lower case
- * "%[!']D"				- POSIX [relative/altform] date (1 parameter, pointer to TSZ_t
- * "%[!']T"				- POSIX [relative/altform] time
- * "%[!']Z"				- POSIX [relative/altform] date, time & zone
  */
 
 #pragma once

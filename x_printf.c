@@ -43,36 +43,8 @@
  * History:
  * --------
  *	Originally used source as per George Menie and Daniel D Miller.
+ *	Converted to be used with the TI compiler for the CC3200
  *	Started complete rewrite mid 2014 when need for retargeting via ITM, UART or RTT was required.
- *
- * Changes:
- * --------
- *	#1	Converted to be used with the TI compiler for the CC3200
- *	#2	Allow > 8 digits of float display, some variables changed to long long
- *	#3	Rounding for max 15 float decimals added
- *	#4	Limit number of float decimals allowed to 15 to avoid wrap errors
- *	#5	Simplified and fixed the character output routine & character counters
- *	#6	For nprintf and snprintf return the actual (restricted) number of characters.
- *	#7	Converted to use stdarg va_list / va_start / va_arg functionality
- *	#8	Added nprintf function, same as snprintf, but length limited unbuffered output
- *	#9	Moved tracking (and control) of #chars (not) output to a single location
- *	#10 Made routines re-entrant, added local struct passed as parameter to house (ex) static variables.
- *	#11	Made primary xprint() more compact, removed unnecessary variables.
- *	#12 Consolidated 32 & 64 bit un/signed integer printing into single routine
- *	#13 Added %'d as 3 digit decimal group separator flag
- *	#14 Added %e %E %g and %G floating point convertion specifiers
- *	#15 Added '*.*' option(s) to specify field width and/or precision indirectly with arguments
- *	#16 Added formatted IP and MAC address display with  '0' or ' ' padding, left/right justified
- *	#17 Added formatted "debug" style memory dump, organised in byte, short, word or dword groups
- *	#18 Added pointer formatted output, can be combined with "debug" style to show address being dumped.
- *	#19 ISO/POSIX formatted %D (date) %T (time) or %Z (date+time+zone) output
- *	#20 Added checking and handling for "NaN", possibly not 100% complete
- *	#21 Extensive range checking on maxlen, minwid and precision values to ensure fit with fields sizes allowed
- *
- * AMM:
- * Add modifier (and OPTIONAL value specifier) to indicate that pointer to ARRAY of values provided
- * 		if the modifier provided, but no counter, then the pointer to be used to meet the content requirements of the number of specifiers
- * 		if the value specifier provided, then use/increment the pointer, using the SAME FORMAT specifier, for the number of times specified.
  */
 
 #include	"x_config.h"								// brings x_time.h with xTime_GMTime() function
@@ -469,7 +441,6 @@ void	vPrintHexU64(xpc_t * psXPC, uint64_t Value) {
  * @comment			Use the following modifier flags
  *					'`'	select grouping separators ':' (byte) '-' (short) ' ' (word) '|' (dword)
  *					'#' via alt_form select reverse order (little vs big endian) interpretation
- *
  */
 void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
 	IF_myASSERT(debugPARAM, (Num > 0) && INRANGE_MEM(pStr)) ;
@@ -482,22 +453,10 @@ void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
 	int32_t	Idx	= 0 ;
 	while (Idx < Num) {
 		switch (psXPC->f.size) {
-		case 0:
-			x64Val.u8[0] = *pStr ;
-			vPrintHexU8(psXPC, x64Val.u8[0]) ;
-			break ;
-		case 1:
-			x64Val.u16[0] = *((uint16_t *) pStr) ;
-			vPrintHexU16(psXPC, x64Val.u16[0]) ;
-			break ;
-		case 2:
-			x64Val.u32[0] = *((uint32_t *) pStr) ;
-			vPrintHexU32(psXPC, x64Val.u32[0]) ;
-			break ;
-		case 3:
-			x64Val.u64 = *((uint64_t *) pStr) ;
-			vPrintHexU64(psXPC, x64Val.u64) ;
-			break ;
+		case 0:	x64Val.u8[0] = *pStr ; 					vPrintHexU8(psXPC, x64Val.u8[0]) ; 		break ;
+		case 1:	x64Val.u16[0] = *((uint16_t *) pStr) ;	vPrintHexU16(psXPC, x64Val.u16[0]) ;	break ;
+		case 2:	x64Val.u32[0] = *((uint32_t *) pStr) ;	vPrintHexU32(psXPC, x64Val.u32[0]) ;	break ;
+		case 3:	x64Val.u64 = *((uint64_t *) pStr) ;		vPrintHexU64(psXPC, x64Val.u64) ; 		break ;
 		}
 	// step to the next 8/16/32/64 bit value
 		if (psXPC->f.alt_form) {						// '#' specified to invert order ?
@@ -544,8 +503,8 @@ void	vPrintPointer(xpc_t * psXPC, uint32_t Address) {
 seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 	// Get seconds value to use... (adjust for TZ if required/allowed)
 	seconds_t	Seconds ;
-	if ((psTSZ->pTZ) &&									// TZ info available
-		(psXPC->f.plus) &&								// display of TZ info requested
+	if ((psTSZ->pTZ != NULL) &&							// TZ info available
+		(psXPC->f.plus == 1) &&							// display of TZ info requested
 		(psXPC->f.abs_rel == 0) &&						// not working with relative time
 		(psXPC->f.alt_form == 0)) {						// not asking for alternative form output
 		Seconds = xTime_CalcLocalTimeSeconds(psTSZ) ;
@@ -721,7 +680,9 @@ void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
  * 		Altform Mon, 01 Jan 1970 00:00:00 GMT
  */
 void	vPrintDate(xpc_t * psXPC, TSZ_t * psTSZ) {
-	vPrintDateUSec(psXPC, xTimeMakeTimestamp(xPrintCalcSeconds(psXPC, psTSZ, NULL), psTSZ->usecs % MICROS_IN_SECOND)) ;
+	seconds_t Seconds = xPrintCalcSeconds(psXPC, psTSZ, NULL) ;
+	uint64_t TStamp = xTimeMakeTimestamp(Seconds, psTSZ->usecs % MICROS_IN_SECOND) ;
+	vPrintDateUSec(psXPC, TStamp) ;
 }
 
 void	vPrintDateTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
@@ -832,13 +793,12 @@ void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
 	int32_t	Size = 1 << psXPC->f.size ;
 	for (uint32_t Idx = 0; Idx < Len; Idx += xpfHEXDUMP_WIDTH) {
-		if (psXPC->f.ljust == 0) {
-		// display absolute or relative address
+		if (psXPC->f.ljust == 0) {						// display absolute or relative address
 			vPrintPointer(psXPC, psXPC->f.abs_rel ? Idx : (uint32_t) (pStr + Idx)) ;
 			xPrintChars(psXPC, (char *) ": ") ;
 		}
 
-	// then the actual series of values in 8-64 bit groups
+	// then the actual series of values in 8-32 bit groups
 		int32_t Width = ((Len - Idx) > xpfHEXDUMP_WIDTH) ? xpfHEXDUMP_WIDTH : Len - Idx ;
 		vPrintHexValues(psXPC, Width, pStr + Idx) ;
 	// handle values dumped as ASCII chars
@@ -852,13 +812,13 @@ void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
 		// handle same values dumped as ASCII characters
 			for (Count = 0; Count < Width; Count++) {
 				uint32_t cChr = *(pStr + Idx + Count) ;
-				vPrintChar(psXPC,   cChr < CHR_SPACE	||
-									cChr == CHR_DEL		||
-									cChr == 0xFF ? CHR_FULLSTOP : cChr) ;
+				vPrintChar(psXPC, (cChr<CHR_SPACE || cChr==CHR_DEL || cChr==0xFF) ? CHR_FULLSTOP : cChr) ;
 			}
 			vPrintChar(psXPC, CHR_SPACE) ;
 		}
-		xPrintChars(psXPC, (char *) "\n") ;
+		if (Idx < Len) {
+			xPrintChars(psXPC, (char *) "\n") ;
+		}
 	}
 }
 
@@ -875,8 +835,8 @@ void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
  */
 void	vPrintBinary(xpc_t * psXPC, uint64_t ullVal) {
 	int32_t		len ;
-	if (psXPC->f.minwid == 0) {						// not specified
-		len = (psXPC->f.llong == 1) ? 64 : 32 ;		// set to 32 or 64 ...
+	if (psXPC->f.minwid == 0) {							// not specified
+		len = (psXPC->f.llong == 1) ? 64 : 32 ;			// set to 32 or 64 ...
 	} else if (psXPC->f.llong == 1) {					// width specified, but check validity...
 		len = (psXPC->f.minwid > 64) ? 64 : psXPC->f.minwid ;
 	} else {
