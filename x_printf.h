@@ -45,6 +45,7 @@ extern "C" {
 #define	xpfSUPPORT_POINTER				1
 #define	xpfSUPPORT_DATETIME				1
 #define	xpfSUPPORT_IEEE754				1		// float point support in x_printf.c functions
+#define	xpfSUPPORT_SCALING				1		// scale number down by 10^3/10^6/10^9/10^12
 
 #define	xpfMAXIMUM_DECIMALS				15
 #define	xpfDEFAULT_DECIMALS				6
@@ -157,7 +158,7 @@ typedef	union xpf_u {
 		uint8_t		negvalue	: 1 ;					// if value < 0
 	// byte 2
 		uint8_t		form		: 2 ;					// format specifier in FLOAT & DUMP
-		uint8_t		signed_val	: 1 ;					// true = content is signed value
+		uint8_t		signval		: 1 ;					// true = content is signed value
 		uint8_t		plus		: 1 ;					// true = force use of '+' or '-' signed
 		uint8_t		arg_width	: 1 ;					// read arg for width
 		uint8_t		arg_prec	: 1 ;					// read arg for precision
@@ -225,7 +226,7 @@ int     uprintf(ubuf_t *, const char * , ...) ;
 //void	cprintf_unlock(void) ;
 int 	vcprintf(const char *, va_list) ;
 int 	cprintf(const char *, ...) ;
-int32_t	cprintf_noblock(const char *, ...) ;
+int		cprintf_noblock(const char *, ...) ;
 // ##################################### functional tests ##########################################
 
 #ifdef __cplusplus

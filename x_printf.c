@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-18 Andre M Maree / KSS Technologies (Pty) Ltd.
+  * Copyright 2014-19 Andre M Maree / KSS Technologies (Pty) Ltd.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -206,9 +206,35 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 	int32_t	Len, iTemp, Count ;
 	// Set pointer to end of buffer
 	char * pTemp = pBuffer + BufSize - 1 ;
+#if		(xpfSUPPORT_SCALING == 1)
+	uint8_t	ScaleChr = CHR_NUL ;
+#endif
 	// convert to string starting at end of buffer from Least (R) to Most (L) significant digits
 	if (ullVal) {
+#if		(xpfSUPPORT_SCALING == 1)
+		if (psXPC->f.alt_form) {
+			if (ullVal > 10000000000000ULL) {
+				ullVal		/= 1000000000000ULL ;
+				ScaleChr	= CHR_T ;
+			} else if (ullVal > 10000000000ULL) {
+				ullVal		/= 1000000000ULL ;
+				ScaleChr	= CHR_B ;
+			} else if (ullVal > 10000000ULL) {
+				ullVal		/= 1000000ULL ;
+				ScaleChr	= CHR_M ;
+			} else if (ullVal > 10000ULL) {
+				ullVal		/= 1000ULL ;
+				ScaleChr	= CHR_K ;
+			}
+		}
+#endif
 		Len = Count = 0 ;
+#if		(xpfSUPPORT_SCALING == 1)
+		if (psXPC->f.alt_form && (ScaleChr != CHR_NUL)) {
+			*pTemp-- = ScaleChr ;
+			++Len ;
+		}
+#endif
 		while (ullVal) {
 		// calculate the next remainder ie digit
 			iTemp = ullVal % psXPC->f.nbase ;
@@ -219,7 +245,7 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 			if (ullVal && psXPC->f.group) {
 				if ((++Count % 3) == 0) {
 					*pTemp-- = CHR_COMMA ;
-					Len++ ;
+					++Len ;
 					Count = 0 ;
 				}
 			}
@@ -229,7 +255,7 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 		Len = 1 ;
 	}
 // First check if ANY form of padding required
-	if (!psXPC->f.ljust) {								// right justified (ie pad left) ???
+	if (psXPC->f.ljust == 0) {							// right justified (ie pad left) ???
 	/* this section ONLY when value is RIGHT justified.
 	 * For ' ' padding format is [       -xxxxx]
 	 * whilst '0' padding it is  [-0000000xxxxx] */
@@ -248,7 +274,7 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 			}
 		}
 	// If we are padding with ' ' AND a sign is required (-value or +requested), do that first
-		if (psXPC->f.pad0 && (psXPC->f.negvalue || psXPC->f.plus)) {		// If a signed is required
+		if (psXPC->f.pad0 && (psXPC->f.negvalue || psXPC->f.plus)) {	// If +/- sign is required
 			if (*(pTemp+1) == CHR_SPACE || *(pTemp+1) == CHR_0) {
 				pTemp++ ;								// set overwrite last with '+' or '-'
 			} else {
@@ -332,9 +358,9 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 
 // If required, handle the exponent
 	if (psXPC->f.form == xpfFORMAT_2_E) {
-		psXPC->f.minwid	= 2 ;
+		psXPC->f.minwid		= 2 ;
 		psXPC->f.pad0		= 1 ;						// MUST left pad with '0'
-		psXPC->f.signed_val= 1 ;
+		psXPC->f.signval	= 1 ;
 		psXPC->f.ljust		= 0 ;
 		psXPC->f.negvalue	= (Exponent < 0) ? 1 : 0 ;
 		Exponent *= psXPC->f.negvalue ? -1LL : 1LL ;
@@ -362,7 +388,7 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 		psXPC->f.minwid		= psXPC->f.precision ;
 		psXPC->f.pad0		= 1 ;						// MUST left pad with '0'
 		psXPC->f.group		= 0 ;						// cannot group in fractional
-		psXPC->f.signed_val	= 0 ;						// always unsigned value
+		psXPC->f.signval	= 0 ;						// always unsigned value
 		psXPC->f.negvalue	= 0 ;
 		psXPC->f.plus		= 0 ;						// no leading +/- before fractional part
 		Len += xPrintXxx(psXPC, x64Value.u64, Buffer, (xpfMAX_LEN_F64 - 1) - Len) ;
@@ -501,8 +527,8 @@ void	vPrintPointer(xpc_t * psXPC, uint32_t Address) {
 }
 
 seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
-	// Get seconds value to use... (adjust for TZ if required/allowed)
 	seconds_t	Seconds ;
+	// Get seconds value to use... (adjust for TZ if required/allowed)
 	if ((psTSZ->pTZ != NULL) &&							// TZ info available
 		(psXPC->f.plus == 1) &&							// display of TZ info requested
 		(psXPC->f.abs_rel == 0) &&						// not working with relative time
@@ -530,8 +556,8 @@ void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
 	// Part 1: hours
 	if (sTM.tm_hour > 0 || psXPC->f.pad0 || psXPC->f.mday_ok) {
 		Len = xPrintXxx(psXPC, (uint64_t) sTM.tm_hour, Buffer, 2) ;
-		Buffer[Len++] = (psXPC->f.form == xpfFORMAT_3) ? CHR_h :  CHR_COLON ;
-		psXPC->f.hour_ok = 1 ;
+		Buffer[Len++]	= (psXPC->f.form == xpfFORMAT_3) ? CHR_h :  CHR_COLON ;
+		psXPC->f.hour_ok= 1 ;
 		psXPC->f.pad0	= 1 ;
 	} else {
 		Len = 0 ;
@@ -539,22 +565,23 @@ void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
 	// Part 2: minutes
 	if (sTM.tm_min > 0 || psXPC->f.pad0 || psXPC->f.hour_ok) {
 		Len += xPrintXxx(psXPC, (uint64_t) sTM.tm_min, &Buffer[Len], 2) ;
-		Buffer[Len++] = (psXPC->f.form == xpfFORMAT_3) ? CHR_m :  CHR_COLON ;
+		Buffer[Len++]	= (psXPC->f.form == xpfFORMAT_3) ? CHR_m :  CHR_COLON ;
 		psXPC->f.min_ok = 1 ;
 		psXPC->f.pad0	= 1 ;
 	}
 	// Part 3: seconds
 	Len += xPrintXxx(psXPC, (uint64_t) sTM.tm_sec, &Buffer[Len], 2) ;
-	psXPC->f.sec_ok = 1 ;							// not required, just to be correct
+	psXPC->f.sec_ok = 1 ;								// not required, just to be correct
 
 	// Part 4: 'Z': ".x[xxxxx]
 	uSecs %= MICROS_IN_SECOND ;
 	uSecs /= xpfTIME_FRAC_SEC_DIVISOR ;
 	if (psXPC->f.alt_form == 0) {
-		Buffer[Len++] = (psXPC->f.form == xpfFORMAT_3) ? CHR_s :  CHR_FULLSTOP ;
+		psXPC->f.alt_form = 0 ;							// clear so not to confuse xPrintXxx()
+		Buffer[Len++]		= (psXPC->f.form == xpfFORMAT_3) ? CHR_s :  CHR_FULLSTOP ;
 		psXPC->f.pad0		= 1 ;
-		psXPC->f.signed_val= 0 ;						// unsigned value
-		psXPC->f.minwid	= xpfMAX_DIGITS_FRAC_SEC ;
+		psXPC->f.signval	= 0 ;						// unsigned value
+		psXPC->f.minwid		= xpfMAX_DIGITS_FRAC_SEC ;
 		Len += xPrintXxx(psXPC, uSecs, Buffer + Len, xpfMAX_DIGITS_FRAC_SEC) ;
 	}
 
@@ -722,14 +749,14 @@ void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 			Len = xstrncpy(Buffer, (char *) " GMT", 4) ;// show as GMT (ie UTC)
 
 		} else if (psXPC->f.plus) {						// TZ info available & '+x:xx(???)' format requested
-			psXPC->f.signed_val	= 1 ;					// TZ hours offset is a signed value
+			psXPC->f.signval	= 1 ;					// TZ hours offset is a signed value
 			psXPC->f.plus		= 1 ;					// force display of sign
 			psXPC->f.pad0		= 1 ;
 			Len = xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXPC->f.minwid = 3) ;
 		// insert separating ':' or 'h'
 			Buffer[Len++]	= psXPC->f.form ? CHR_h : CHR_COLON ;
 		// add the minutes
-			psXPC->f.signed_val	= 0 ;					// TZ offset minutes unsigned
+			psXPC->f.signval	= 0 ;					// TZ offset minutes unsigned
 			psXPC->f.plus		= 0 ;
 			psXPC->f.pad0		= 1 ;
 			Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXPC->f.minwid = 2) ;
@@ -876,10 +903,11 @@ void	vPrintBinary(xpc_t * psXPC, uint64_t ullVal) {
  */
 void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
 	psXPC->f.minwid		= psXPC->f.ljust ? 0 : 3 ;
-	psXPC->f.signed_val	= 0 ;							// ensure interpreted as unsigned
+	psXPC->f.signval	= 0 ;							// ensure interpreted as unsigned
 	psXPC->f.plus		= 0 ;							// and no sign to be shown
 	uint8_t * pChr = (uint8_t *) &Val ;
 	if (psXPC->f.alt_form) {							// '#' specified to invert order ?
+		psXPC->f.alt_form = 0 ;							// clear so not to confuse xPrintXxx()
 		uint8_t temp ;
 		temp		= *pChr ;
 		*pChr		= *(pChr+3) ;
@@ -917,8 +945,8 @@ void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
  * \return	void (other than updated info in the original structure passed by reference
  */
 
-int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const char *format, va_list vArgs) {
-	IF_myASSERT(debugPARAM, INRANGE_FLASH(handler) && INRANGE_FLASH(format)) ;
+int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const char * format, va_list vArgs) {
+	IF_myASSERT(debugPARAM, INRANGE_MEM(handler) && INRANGE_MEM(format)) ;
 	xpc_t	sXPC ;
 	sXPC.handler	= handler ;
 	sXPC.pVoid		= pVoid ;
@@ -1099,13 +1127,13 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 						sXPC.f.group = 0 ;
 					}
 				// set signed form based on conversion specifier
-					sXPC.f.signed_val	= (cFmt == CHR_d || cFmt == CHR_i) ? 1 : 0 ;
+					sXPC.f.signval	= (cFmt == CHR_d || cFmt == CHR_i) ? 1 : 0 ;
 				// fetch 64 bit value from stack, or 32 bit & convert to 64 bit
 					x64_t	x64Val ;
-					if (sXPC.f.signed_val) {
+					if (sXPC.f.signval) {
 						x64Val.i64		= sXPC.f.llong ? va_arg(vArgs, int64_t) : va_arg(vArgs, int32_t) ;
 						sXPC.f.negvalue	= (x64Val.i64 < 0) ? 1 : 0 ;	// set the negvalue form as required.
-						x64Val.i64 		*= sXPC.f.negvalue ? -1 : 1 ; // convert the value to unsigned
+						x64Val.i64 		*= sXPC.f.negvalue ? -1 : 1 ; 	// convert the value to unsigned
 					} else {
 						x64Val.u64	= sXPC.f.llong ? va_arg(vArgs, uint64_t) : va_arg(vArgs, uint32_t) ;
 					}
@@ -1120,12 +1148,13 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 					sXPC.f.form++ ;
 					/* no break */
 				case 'g':
-					sXPC.f.signed_val		= 1 ;		// float always signed value.
+					sXPC.f.signval	= 1 ;				// float always signed value.
 					if (sXPC.f.radix) {
 						sXPC.f.precision	= (sXPC.f.precision > xpfMAXIMUM_DECIMALS) ? xpfMAXIMUM_DECIMALS : sXPC.f.precision ;
 					} else {
 						sXPC.f.precision	= xpfDEFAULT_DECIMALS ;
 					}
+					IF_myASSERT(debugPARAM, sXPC.f.alt_form == 0) ;		// MUST not use '#' modifier
 					vPrintF64(&sXPC, va_arg(vArgs, double)) ;
 					break ;
 #endif

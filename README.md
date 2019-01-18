@@ -8,6 +8,10 @@
   Size can be scaled down by excluding support for various formats, both standard and extensions, at compile time.
 
 # Extensions:
+  Numeric output scaling
+  	#	Alternate format will scale value downwards and adding SI indicator based on thresholds being
+  		10^3=K  10^6=M  10^9=G  10^12=T
+  		
   Date and/or time output in POSIX or other formats.
     !	modifier to change treatment absolute->relative time
     #	modifier to select ALTernative (HTTP header style) format output
@@ -83,8 +87,8 @@
   |||||*-------> LEFT justification, HEXDUMP remove address info
   ||||*--------> SIGN leading '+' or '-',	DTZ=Add full TZ info, HEXDUMP add ASCII info
   |||*---------> Minwid or precision variable provided
-  ||*----------> DECIMAL 3 digits group	DTZ "::." -> "hms"	DUMP use '|-+'
-  |*-----------> DTZ=alt form (Sun, 10 Sep 2017 20:50:37 GMT) IP=ntohl() Hex=Reverse order
+  ||*----------> Xxx=3 digits group, DTZ "::." -> "hms"	DUMP use '|-+'
+  |*-----------> Xxx=Scaling, DTZ=alt form (Sun, 10 Sep 2017 20:50:37 GMT) IP=ntohl() Hex=Reverse order
   *------------> DTZ=elapsed time,	DUMP=relative addr,
 
 # Examples:
