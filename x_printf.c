@@ -53,6 +53,7 @@
 #include	"x_string_general.h"						// xinstring function
 #include	"x_errors_events.h"
 #include	"x_retarget.h"
+#include	"x_values_to_string.h"
 
 #include	"hal_nvic.h"
 
@@ -61,14 +62,16 @@
 #include	<math.h>									// isnan()
 #include	<float.h>									// DBL_MIN/MAX
 
-#define	debugFLAG				(0x4000)
+#define	debugFLAG				(0x4001)
+
+#define	debugSIZES				(debugFLAG & 0x0001)
 
 #define	debugPARAM				(debugFLAG & 0x4000)
 #define	debugRESULT				(debugFLAG & 0x8000)
 
 // ######################## Character and value translation & rounding tables ######################
 
-const char vPrintStr1[] = {
+const char vPrintStr1[] = {						// table of characters where lc/UC is applicable
 		'X',									// hex formatted 'x' or 'X' values, always there
 #if		(xpfSUPPORT_HEXDUMP == 1)
 		'B', 'H', 'W',							// byte, half and word UC/LC formatting
@@ -80,7 +83,7 @@ const char vPrintStr1[] = {
 		'E', 'G',
 #endif
 #if		(xpfSUPPORT_POINTER == 1)
-		'P',
+		'P',									// Pointer lc/0x or UC/0X
 #endif
 		'\0' } ;								// terminated
 
@@ -200,18 +203,17 @@ char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
  * 				'-'		Left align the individual numbers between the '.'
  * 				'+'		Force a '+' or '-' sign on the left
  * 				'0'		Zero pad to the left of the value to fill the field
+ * Protection against buffer overflow is based on the correct sized buffer
+ * being allocated in the calling function
  */
 int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize) {
-	IF_myASSERT(debugPARAM, INRANGE_SRAM(pBuffer) && (BufSize > 0)) ;
+	IF_myASSERT(debugPARAM, INRANGE_SRAM(pBuffer) && (BufSize > 1)) ;
 	int32_t	Len, iTemp, Count ;
-	// Set pointer to end of buffer
-	char * pTemp = pBuffer + BufSize - 1 ;
-#if		(xpfSUPPORT_SCALING == 1)
-	uint8_t	ScaleChr = CHR_NUL ;
-#endif
-	// convert to string starting at end of buffer from Least (R) to Most (L) significant digits
+	char * pTemp = pBuffer + BufSize - 1 ;				// Set pointer to end of buffer
+	Len = Count = 0 ;
 	if (ullVal) {
 #if		(xpfSUPPORT_SCALING == 1)
+		uint8_t	ScaleChr = CHR_NUL ;
 		if (psXPC->f.alt_form) {
 			if (ullVal > 10000000000000ULL) {
 				ullVal		/= 1000000000000ULL ;
@@ -226,20 +228,18 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 				ullVal		/= 1000ULL ;
 				ScaleChr	= CHR_K ;
 			}
+			if (ScaleChr != CHR_NUL) {
+				*pTemp-- = ScaleChr ;
+				++Len ;
+			}
 		}
 #endif
-		Len = Count = 0 ;
-#if		(xpfSUPPORT_SCALING == 1)
-		if (psXPC->f.alt_form && (ScaleChr != CHR_NUL)) {
-			*pTemp-- = ScaleChr ;
-			++Len ;
-		}
-#endif
+		// convert to string starting at end of buffer from Least (R) to Most (L) significant digits
 		while (ullVal) {
 		// calculate the next remainder ie digit
 			iTemp = ullVal % psXPC->f.nbase ;
 			*pTemp-- = cPrintNibbleToChar(psXPC, iTemp) ;
-			Len++ ;
+			++Len ;
 			ullVal /= psXPC->f.nbase ;
 		// handle digit grouping, if required
 			if (ullVal && psXPC->f.group) {
@@ -262,12 +262,12 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 		Count = (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0 ;
 	// If we are padding with ' ' and a signed is required, do that first
 		if ((psXPC->f.pad0 == 0) && (psXPC->f.negvalue || psXPC->f.plus)) {	// If a sign is required
-			*pTemp-- = psXPC->f.negvalue ? CHR_MINUS : CHR_PLUS ;				// start by prepend of '+' or '-'
-			Count-- ;
-			Len++ ;
+			*pTemp-- = psXPC->f.negvalue ? CHR_MINUS : CHR_PLUS ;			// start by prepend of '+' or '-'
+			--Count ;
+			++Len ;
 		}
 		if (Count > 0) {								// If any space left to pad
-			iTemp = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;// define applicable padding char
+			iTemp = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;	// define applicable padding char
 			Len += Count ;								// Now do the actual padding
 			while (Count--) {
 				*pTemp-- = iTemp ; ;
@@ -278,14 +278,14 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 			if (*(pTemp+1) == CHR_SPACE || *(pTemp+1) == CHR_0) {
 				pTemp++ ;								// set overwrite last with '+' or '-'
 			} else {
-				Len++ ;									// set to add extra '+' or '-'
+				++Len ;									// set to add extra '+' or '-'
 			}
 			*pTemp = psXPC->f.negvalue ? CHR_MINUS : CHR_PLUS ;
 		}
 	} else {
 		if (psXPC->f.negvalue || psXPC->f.plus) {		// If a sign is required
 			*pTemp = psXPC->f.negvalue ? CHR_MINUS : CHR_PLUS ;	// just prepend '+' or '-'
-			Len++ ;
+			++Len ;
 		}
 	}
 	return Len ;
@@ -338,10 +338,10 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 	if (psXPC->f.form == xpfFORMAT_0_G) {
 		idx = (psXPC->f.precision == 0) ? 1 : psXPC->f.precision ;
 		if ((idx > Exponent) && (Exponent >= -4)) {
-			psXPC->f.form = xpfFORMAT_1_F ;			// force to fixed point format
+			psXPC->f.form = xpfFORMAT_1_F ;				// force to fixed point format
 			psXPC->f.precision = idx - (Exponent + 1) ;
 		} else {
-			psXPC->f.form = xpfFORMAT_2_E ;			// force to exponential format
+			psXPC->f.form = xpfFORMAT_2_E ;				// force to exponential format
 			psXPC->f.precision = idx - 1 ;
 		}
 	}
@@ -934,6 +934,33 @@ void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_IP - 1 - Len)) ;
 }
 
+void	vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
+	char * 	pTmp, Buffer[xpfMAX_LEN_SGR] ;
+	sgr_info_t sSGR ;
+	sSGR.u32 = Val ;
+	pTmp	= Buffer ;
+	*pTmp++	= CHR_ESC ;
+	*pTmp++	= CHR_L_SQUARE ;
+	IF_myASSERT(debugPARAM, INRANGE(colourFG_BLACK, (sSGR.a & 0x3F), colourBG_WHITE, uint8_t)) ;
+	pTmp	+= xU32ToDecStr(sSGR.a & ansiBRIGHT ? 1 : 0 , pTmp) ;
+	*pTmp++	= CHR_SEMICOLON ;
+	pTmp	+= xU32ToDecStr(sSGR.a & 0x3F, pTmp) ;
+	for (int32_t Idx = 2; Idx >= 0; --Idx) {
+		if (sSGR.u8[Idx]) {
+			IF_myASSERT(debugPARAM, INRANGE(colourFG_BLACK, (sSGR.u8[Idx] & 0x3F), colourBG_WHITE, uint8_t)) ;
+			*pTmp++	= CHR_SEMICOLON ;
+			pTmp	+= xU32ToDecStr(sSGR.u8[Idx] & ansiBRIGHT ? 1 : 0 , pTmp) ;
+			*pTmp++	= CHR_SEMICOLON ;
+			pTmp	+= xU32ToDecStr(sSGR.u8[Idx] & 0x3F, pTmp) ;
+//			IF_myASSERT(debugSIZES, pTmp < &Buffer[xpfMAX_LEN_SGR]) ;
+		}
+	}
+	*pTmp++ = CHR_m ;
+	*pTmp	= CHR_NUL ;									// terminate
+//	IF_myASSERT(debugSIZES, pTmp < &Buffer[xpfMAX_LEN_SGR]) ;
+	xPrintChars(psXPC, Buffer) ;
+}
+
 /* ################################# The HEART of the XPRINTF matter ###############################
  * xprintf - common routine for formatted print functionality
  * \brief	parse the format string and interpret the conversions, flags and modifiers
@@ -1061,6 +1088,12 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 			}
 		// At this stage the format specifiers used in UC & LC to denote output case has been changed to all lower case
 			switch (cFmt) {
+#if		(xpfSUPPORT_SGR == 1)
+			case CHR_C:
+				vPrintSetGraphicRendition(&sXPC, va_arg(vArgs, uint32_t)) ;
+				break ;
+#endif
+
 #if		(xpfSUPPORT_DATETIME == 1)
 				case 'D':								// DATE
 					vPrintDate(&sXPC, va_arg(vArgs, TSZ_t *)) ;			// para =  SysTime

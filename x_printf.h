@@ -46,6 +46,7 @@ extern "C" {
 #define	xpfSUPPORT_DATETIME				1
 #define	xpfSUPPORT_IEEE754				1		// float point support in x_printf.c functions
 #define	xpfSUPPORT_SCALING				1		// scale number down by 10^3/10^6/10^9/10^12
+#define	xpfSUPPORT_SGR					1		// Set Graphics Rendition FG & BG colors only
 
 #define	xpfMAXIMUM_DECIMALS				15
 #define	xpfDEFAULT_DECIMALS				6
@@ -97,6 +98,8 @@ extern "C" {
 #define	xpfMAX_LEN_IP					sizeof("123.456.789.012")
 #define	xpfMAX_LEN_MAC					sizeof("01:23:45:67:89:ab")
 
+#define	xpfMAX_LEN_SGR					sizeof("\033[?;??;?;??;?;??;?;??m\000")
+
 #define	xpfNULL_STRING					"'null'"
 
 #define	xpfFLAGS_NONE					((xpf_t) 0ULL)
@@ -128,6 +131,22 @@ extern "C" {
 #define	xpfPRECIS_BITS					16			// Number of bits in field(s)
 #define	xpfPRECIS_MAXVAL				((1 << xpfPRECIS_BITS) - 1)
 #define	xpfPRECIS_MINVAL				0
+
+#define	MK_SGR(a,b,c,d)					(((uint8_t) a << 24) + ((uint8_t) b << 16) + ((uint8_t) c << 8) + (uint8_t) d)
+
+/* https://en.wikipedia.org/wiki/ANSI_escape_code#Escape_sequences
+ * http://www.termsys.demon.co.uk/vtansi.htm#colors
+ */
+typedef union {
+	struct {
+		uint8_t		d ;
+		uint8_t		c ;
+		uint8_t		b ;
+		uint8_t		a ;
+	} ;
+	uint8_t		u8[sizeof(uint32_t)] ;
+	uint32_t	u32 ;
+} sgr_info_t ;
 
 typedef	union xpf_u {
 	struct {
