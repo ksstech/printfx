@@ -4,7 +4,7 @@
 # Key features:
   Does not do ANY dynamic memory allocation.
   All functions are fully re-entrant
-  Minimal stack usage, only the absolute minimum size (depending on the specifc format being processed) is allocated.
+  Minimal stack usage, only the absolute minimum size (based on specific format being processed) is allocated.
   Size can be scaled down by excluding support for various formats, both standard and extensions, at compile time.
 
 # Extensions:
@@ -41,7 +41,10 @@
 		Support 32 and 64 bit values
   
   ANSI Set Graphics Rendition (SGR) support
-  
+
+  URL encoding format
+  	U	format specified
+  	  
 # Valid formatting characters:
   !#'*+-%0.0-9ABC D EFGHI J KL MNO PQRS T U VWXYZ
   |||||||||\_/ab|c|defgh|i|jk|lmn|opqr|s|t|uvwxy|z

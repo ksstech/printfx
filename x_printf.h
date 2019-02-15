@@ -47,6 +47,7 @@ extern "C" {
 #define	xpfSUPPORT_IEEE754				1		// float point support in x_printf.c functions
 #define	xpfSUPPORT_SCALING				1		// scale number down by 10^3/10^6/10^9/10^12
 #define	xpfSUPPORT_SGR					1		// Set Graphics Rendition FG & BG colors only
+#define	xpfSUPPORT_URL					1		// URL encoding
 
 #define	xpfMAXIMUM_DECIMALS				15
 #define	xpfDEFAULT_DECIMALS				6
@@ -132,7 +133,7 @@ extern "C" {
 #define	xpfPRECIS_MAXVAL				((1 << xpfPRECIS_BITS) - 1)
 #define	xpfPRECIS_MINVAL				0
 
-#define	MK_SGR(a,b,c,d)					(((uint8_t) a << 24) + ((uint8_t) b << 16) + ((uint8_t) c << 8) + (uint8_t) d)
+#define	xpfSGR(a,b,c,d)					(((uint8_t) a << 24) + ((uint8_t) b << 16) + ((uint8_t) c << 8) + (uint8_t) d)
 
 /* https://en.wikipedia.org/wiki/ANSI_escape_code#Escape_sequences
  * http://www.termsys.demon.co.uk/vtansi.htm#colors
