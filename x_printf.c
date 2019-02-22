@@ -96,7 +96,7 @@ static	const double round_nums[xpfMAXIMUM_DECIMALS+1] = {
 
 // ############################# Foundation character and string output ############################
 
-/*
+/**
  * vPrintChar
  * \brief	output a single character using/via the preselected function
  * 			before output verify against specified width
@@ -118,7 +118,7 @@ void	vPrintChar(xpc_t * psXPC, char cChr) {
 	}
 }
 
-/*
+/**
  * xPrintChars()
  * \brief	perform a RAW string output to the selected "stream"
  * \brief	Does not perform ANY padding, justification or length checking
@@ -135,7 +135,7 @@ int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
 	return len ;
 }
 
-/*
+/**
  * vPrintString
  * \brief	perform formatted output of a string to the preselected device/string/buffer/file
  * \param	psXPC - pointer to xprintf_t structure controlling the operation
@@ -175,7 +175,7 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
 	}
 }
 
-/*
+/**
  * cPrintNibbleToChar()
  * \brief		returns a pointer to the hexadecimal character representing the value of the low order nibble
  * 				Based on the Flag, the pointer will be adjusted for UpperCase (if required)
@@ -191,7 +191,7 @@ char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
 	return cChr ;
 }
 
-/*
+/**
  * xPrintXxx() convert uint64_t value to a formatted string
  * \param	psXPC - pointer to control structure
  * 			ullVal - uint64_t value to convert & output
@@ -299,7 +299,7 @@ void	vPrintX64(xpc_t * psXPC, uint64_t Value) {
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_X64 - 1 - Len)) ;
 }
 
-/*
+/**
  * vPrintF64()
  * \brief	convert double value based on flags supplied and output via control structure
  * \param[in]	psXPC - pointer to xprintf control structure
@@ -411,7 +411,7 @@ done:
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64 - 1 - Len)) ;
 }
 
-/*
+/**
  * vPrintHexU8()
  * \brief		write char value as 2 hex chars to the buffer, always NULL terminated
  * \param[in]	psXPC - pointer to xprintf control structure
@@ -423,7 +423,7 @@ void	vPrintHexU8(xpc_t * psXPC, uint8_t Value) {
 	vPrintChar(psXPC, cPrintNibbleToChar(psXPC, Value & 0x0F)) ;
 }
 
-/*
+/**
  * vPrintHexU16()
  * \brief		write uint16_t value as 4 hex chars to the buffer, always NULL terminated
  * \param[in]	psXPC - pointer to xprintf control structure
@@ -435,7 +435,7 @@ void	vPrintHexU16(xpc_t * psXPC, uint16_t Value) {
 	vPrintHexU8(psXPC, Value & 0x000000FF) ;
 }
 
-/*
+/**
  * vPrintHexU32()
  * \brief		write uint32_t value as 8 hex chars to the buffer, always NULL terminated
  * \param[in]	psXPC - pointer to xprintf control structure
@@ -447,7 +447,7 @@ void	vPrintHexU32(xpc_t * psXPC, uint32_t Value) {
 	vPrintHexU16(psXPC, Value & 0x0000FFFF) ;
 }
 
-/*
+/**
  * vPrintHexU64()
  * \brief		write uint64_t value as 16 hex chars to the buffer, always NULL terminated
  * \param[in]	psXPC - pointer to xprintf control structure
@@ -513,7 +513,7 @@ void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
 
 // ############################### Proprietary extensions to printf() ##############################
 
-/*
+/**
  * vPrintPointer() - display a 32 bit hexadecimal number as address
  * \brief		Currently 64 bit addresses not supported ...
  * \param[in]	psXPC - pointer to print control structure
@@ -690,7 +690,7 @@ void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
 	vPrintString(psXPC, Buffer) ;
 }
 
-/*
+/**
  * vPrintDate()
  * \brief		Prints to date in POSIX format to destination
  * \brief		CRITICAL : This function absorbs 2 parameters on the stack
@@ -720,7 +720,7 @@ void	vPrintDateTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
 	}
 }
 
-/*
+/**
  * vPrintDateTimeZone()
  * \brief		Prints to Date, Time [& TZ] info in POSIX format to destination
  * \brief		CRITICAL : This function absorbs 3 parameters on the stack
@@ -820,7 +820,7 @@ void	vPrintURL(xpc_t * psXPC, uint8_t * pString) {
 	}
 }
 
-/*
+/**
  * vPrintHexDump()
  * \brief		Dumps a block of memory in debug style format. depending on options output can be
  * 				formatted as 8/16/32 or 64 bit variables, optionally with no, absolute or relative address
@@ -868,7 +868,7 @@ void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
 	}
 }
 
-/*
+/**
  * vPrintBinary()
  * \brief		convert unsigned 32/64 bit value to 1/0 ASCI string
  * 				field width specifier is applied as mask starting from LSB to MSB
@@ -908,7 +908,7 @@ void	vPrintBinary(xpc_t * psXPC, uint64_t ullVal) {
 	}
 }
 
-/*
+/**
  * vPrintIpAddress()
  * \brief		Print DOT formatted IP address to destination
  * \param[in]	psXPC - pointer to output & format control structure
@@ -953,6 +953,11 @@ void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_IP - 1 - Len)) ;
 }
 
+/**
+ * vPrintSetGraphicRendition() - set starting and ending fore/background colors
+ * @param psXPC
+ * @param Val	U32 value treated as 4x U8 being SGR color/attribute codes
+ */
 void	vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
 	char * 	pTmp, Buffer[xpfMAX_LEN_SGR] ;
 	sgr_info_t sSGR ;
@@ -1123,7 +1128,7 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 				break ;
 #endif
 
-#if	(xpfSUPPORT_BINARY == 1)
+#if		(xpfSUPPORT_BINARY == 1)
 			case CHR_J:
 				vPrintBinary(&sXPC, sXPC.f.llong ? va_arg(vArgs, uint64_t) : (uint64_t) va_arg(vArgs, uint32_t)) ;
 				break ;
@@ -1135,7 +1140,7 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 				break ;
 
 			case CHR_T:								// TIME
-				vPrintTime(&sXPC, va_arg(vArgs, TSZ_t *)) ;				// para =  SysTime
+				vPrintTime(&sXPC, va_arg(vArgs, TSZ_t *)) ;				// para =  pointer to TSZ_t structure
 				break ;
 #endif
 #if		(xpfSUPPORT_URL == 1)
@@ -1168,6 +1173,8 @@ int		xPrint(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const cha
 
 #if		(xpfSUPPORT_MAC_ADDR == 1)
 			case CHR_m:								// MAC address UC/LC format ??:??:??:??:??:??
+				sXPC.f.size = 0 ;
+				sXPC.f.llong = 0 ;					// force interpretation as sequence of U8 values
 				sXPC.f.form	= sXPC.f.group ? xpfFORMAT_1_F : xpfFORMAT_0_G ;
 				vPrintHexValues(&sXPC, configMAC_ADDRESS_LENGTH, va_arg(vArgs, char *)) ;
 				break ;

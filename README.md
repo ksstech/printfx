@@ -13,37 +13,46 @@
   		10^3=K  10^6=M  10^9=G  10^12=T
   		
   Date and/or time output in POSIX or other formats.
-    !	modifier to change treatment absolute->relative time
+  	D	date using pointer to TSZ_t structure
+  	T	time   "      "     "   "       "
+  	Z	d+t+z  "      "     "   "       "
+  	R	d+t  using U64 (uSec) value
+    !	modifier to change interpretation of uSec value as absolute->relative time
     #	modifier to select ALTernative (HTTP header style) format output
     +	modifier to enable TZ information being output
     
   Hexdump (debug style) in byte, short, word or double word formats
+    ?/?	format specifier selectable upper/lower case output (bhw vs BHW).
   	b/B	Byte (8 bit) width display
   	h/H	Half word (16 bit) width display
   	w/W	Word (32 bit) width display
-    ?/?	Selectable upper/lower case output (bhw vs BHW).
     !	modifier to change absolute -> relative address preceding each line of hexdump output.
     -	modifier to remove the default address preceding each line of output
-    '	modifier to enable seperator characters between groups of byte/short/word/llong
-    	output using '|: -' for 32/16/8/4 bit boundaries
+    '	modifier to enable seperators between byte/short/word/llong values using '|: -' on 32/16/8/4 bit boundaries
     +	modifier to enable addition of ASCII character display at end of each line.
+    	PLEASE NOTE: Requires 2 parameters being LENGTH and POINTER
     
   IP address output:
-    # 	modifier for big/little endian inversion.
+  	I	format specifier
+    # 	alt format modifier for big/little endian inversion.
     -	modifier for left alignment
+    0	modifier for leading zero output
   	  	Leading padding, none, space or zero through field width specifiers
     
   MAC address output with optional separator characters
-    j/J Selectable upper/lower case output.
+    m/M format specifier selectable upper/lower case output.
+    # 	alt format modifier for sequence inversion.
+    '	modifier to enable ':' seperator characters between bytes
 
   BINARY format output
+	J	format specifier taking U32 or U64 value as input
     '	modifier to enable seperator character using '|: -' for 32/16/8/4 bit boundaries
-		Support 32 and 64 bit values
   
   ANSI Set Graphics Rendition (SGR) support
-
+	C	format specifier, takes U32 as 4x U8 values
+	
   URL encoding format
-  	U	format specified
+  	U	format specifier
   	  
 # Valid formatting characters:
   !#'*+-%0.0-9ABC D EFGHI J KL MNO PQRS T U VWXYZ
