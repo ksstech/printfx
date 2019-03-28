@@ -99,7 +99,7 @@ extern "C" {
 #define	xpfMAX_LEN_IP					sizeof("123.456.789.012")
 #define	xpfMAX_LEN_MAC					sizeof("01:23:45:67:89:ab")
 
-#define	xpfMAX_LEN_SGR					sizeof("\033[?;??;?;??;?;??;?;??m\000")
+#define	xpfMAX_LEN_SGR					sizeof("\033[???;???;???;???m\000")
 
 #define	xpfNULL_STRING					"'null'"
 
@@ -136,8 +136,7 @@ extern "C" {
 #define	xpfSGR(a,b,c,d)					(((uint8_t) a << 24) + ((uint8_t) b << 16) + ((uint8_t) c << 8) + (uint8_t) d)
 
 /* https://en.wikipedia.org/wiki/ANSI_escape_code#Escape_sequences
- * http://www.termsys.demon.co.uk/vtansi.htm#colors
- */
+ * http://www.termsys.demon.co.uk/vtansi.htm#colors */
 typedef union {
 	struct {
 		uint8_t		d ;

@@ -965,18 +965,10 @@ void	vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
 	pTmp	= Buffer ;
 	*pTmp++	= CHR_ESC ;
 	*pTmp++	= CHR_L_SQUARE ;
-	IF_myASSERT(debugPARAM, INRANGE(colourFG_BLACK, (sSGR.a & 0x3F), colourBG_WHITE, uint8_t)) ;
-	pTmp	+= xU32ToDecStr(sSGR.a & ansiBRIGHT ? 1 : 0 , pTmp) ;
-	*pTmp++	= CHR_SEMICOLON ;
-	pTmp	+= xU32ToDecStr(sSGR.a & 0x3F, pTmp) ;
-	for (int32_t Idx = 2; Idx >= 0; --Idx) {
-		if (sSGR.u8[Idx]) {
-			IF_myASSERT(debugPARAM, INRANGE(colourFG_BLACK, (sSGR.u8[Idx] & 0x3F), colourBG_WHITE, uint8_t)) ;
-			*pTmp++	= CHR_SEMICOLON ;
-			pTmp	+= xU32ToDecStr(sSGR.u8[Idx] & ansiBRIGHT ? 1 : 0 , pTmp) ;
-			*pTmp++	= CHR_SEMICOLON ;
-			pTmp	+= xU32ToDecStr(sSGR.u8[Idx] & 0x3F, pTmp) ;
-		}
+	pTmp	+= xU32ToDecStr(sSGR.a, pTmp) ;
+	for (int32_t Idx = 2; sSGR.u8[Idx] && Idx >= 0; --Idx) {
+		*pTmp++	= CHR_SEMICOLON ;
+		pTmp	+= xU32ToDecStr(sSGR.u8[Idx], pTmp) ;
 	}
 	*pTmp++ = CHR_m ;
 	*pTmp	= CHR_NUL ;									// terminate
