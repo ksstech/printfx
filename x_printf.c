@@ -1330,6 +1330,16 @@ int 	xprintf(const char * format, ...) {
 	return iRetVal ;
 }
 
+static	int	xPrintReTarget(xpc_t * psXPC, int cChr) { return xStdOutPutC(cChr) ; }
+
+int 	xprintf_nolock(const char * format, ...) {
+	va_list vArgs ;
+	va_start(vArgs, format) ;
+	int iRetVal = xPrint(xPrintReTarget, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	va_end(vArgs) ;
+	return iRetVal ;
+}
+
 // ################################### Destination = HANDLE ########################################
 
 static	int	xPrintToHandle(xpc_t * psXPC, int cChr) {
