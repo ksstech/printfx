@@ -230,8 +230,8 @@ int 	xnprintf(size_t, const char *, ...) ;
 int		xprintf(const char *, ...) ;
 int 	xprintf_nolock(const char *, ...) ;
 // ################################### Destination = HANDLE ########################################
-int		xvdprintf(int , const char * , va_list ) ;
-int		xdprintf(int , const char * , ...) ;
+int		xvdprintf(int , const char *, va_list ) ;
+int		xdprintf(int , const char *, ...) ;
 // ################################### Destination = DEVICE ########################################
 int 	vdevprintf(int (* handler)(int ), const char *, va_list) ;
 int 	devprintf(int (* handler)(int), const char *, ...) ;
