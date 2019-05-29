@@ -228,7 +228,9 @@ int 	xvnprintf(size_t, const char *, va_list) ;
 int 	xvprintf(const char * , va_list) ;
 int 	xnprintf(size_t, const char *, ...) ;
 int		xprintf(const char *, ...) ;
+
 int 	xprintf_nolock(const char *, ...) ;
+int 	xprintf_lock(const char *, ...) ;
 // ################################### Destination = HANDLE ########################################
 int		xvdprintf(int , const char *, va_list ) ;
 int		xdprintf(int , const char *, ...) ;

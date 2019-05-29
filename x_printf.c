@@ -54,6 +54,7 @@
 #include	"x_errors_events.h"
 #include	"x_retarget.h"
 #include	"x_values_to_string.h"
+#include	"x_utilities.h"
 
 #include	"hal_nvic.h"
 
@@ -1332,10 +1333,30 @@ int 	xprintf(const char * format, ...) {
 
 static	int	xPrintReTarget(xpc_t * psXPC, int cChr) { return xStdOutPutC(cChr) ; }
 
+/**
+ * xprintf_nolock() - specifically for syslog() in case called from ISR or RTOS not yet started
+ * @param	format
+ * @return	number of characters printed, excluding the terminating NUL
+ */
 int 	xprintf_nolock(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
 	int iRetVal = xPrint(xPrintReTarget, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	va_end(vArgs) ;
+	return iRetVal ;
+}
+
+/**
+ * xprintf_lock() -
+ * @param format
+ * @return
+ */
+int 	xprintf_lock(const char * format, ...) {
+	va_list vArgs ;
+	va_start(vArgs, format) ;
+	xUtilLockResource(&sBufStdOut.mux, portMAX_DELAY) ;
+	int iRetVal = xPrint(xPrintReTarget, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	xUtilLockResource(&sBufStdOut.mux, portMAX_DELAY) ;
 	va_end(vArgs) ;
 	return iRetVal ;
 }
