@@ -839,6 +839,7 @@ void	vPrintURL(xpc_t * psXPC, uint8_t * pString) {
  */
 void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
 	int32_t	Size = 1 << psXPC->f.size ;
+	uint32_t	Count ;
 	for (uint32_t Idx = 0; Idx < Len; Idx += xpfHEXDUMP_WIDTH) {
 		if (psXPC->f.ljust == 0) {						// display absolute or relative address
 			vPrintPointer(psXPC, psXPC->f.abs_rel ? Idx : (uint32_t) (pStr + Idx)) ;
@@ -848,22 +849,21 @@ void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
 	// then the actual series of values in 8-32 bit groups
 		int32_t Width = ((Len - Idx) > xpfHEXDUMP_WIDTH) ? xpfHEXDUMP_WIDTH : Len - Idx ;
 		vPrintHexValues(psXPC, Width, pStr + Idx) ;
-	// handle values dumped as ASCII chars
-		if (psXPC->f.plus == 1) {
+
+		if (psXPC->f.plus == 1) {						// handle values dumped as ASCII chars
 		// handle space padding for ASCII dump to line up
-			uint32_t Count = ((xpfHEXDUMP_WIDTH - Width) / Size) * ((Size * 2) + (psXPC->f.form ? 1 : 0)) ;
-			Count++ ;										// allow for default 1x space
+			Count = (Len > xpfHEXDUMP_WIDTH) ? ((xpfHEXDUMP_WIDTH - Width) / Size) * ((Size * 2) + (psXPC->f.form ? 1 : 0)) + 1 : 1 ;
 			while (Count--) {
 				vPrintChar(psXPC, CHR_SPACE) ;
 			}
 		// handle same values dumped as ASCII characters
-			for (Count = 0; Count < Width; Count++) {
+			for (Count = 0; Count < Width; ++Count) {
 				uint32_t cChr = *(pStr + Idx + Count) ;
-				vPrintChar(psXPC, (cChr<CHR_SPACE || cChr==CHR_DEL || cChr==0xFF) ? CHR_FULLSTOP : cChr) ;
+				vPrintChar(psXPC, (cChr < CHR_SPACE || cChr == CHR_DEL || cChr == 0xFF) ? CHR_FULLSTOP : cChr) ;
 			}
 			vPrintChar(psXPC, CHR_SPACE) ;
 		}
-		if (Idx < Len) {
+		if (Idx < Len && Len > xpfHEXDUMP_WIDTH) {
 			xPrintChars(psXPC, (char *) "\n") ;
 		}
 	}
