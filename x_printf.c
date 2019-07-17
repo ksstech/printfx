@@ -1409,7 +1409,7 @@ static	int	xPrintToSocket(xpc_t * psXPC, int cChr) {
 	return cChr ;
 }
 
-int 	vsocprintf(sock_ctx_t * psSock, const char * format, va_list vArgs) {
+int 	vsocprintf(netx_t * psSock, const char * format, va_list vArgs) {
 	IF_myASSERT(debugPARAM, INRANGE_SRAM(psSock)) ;
 	int	OldFlags	= psSock->flags ;
 	psSock->flags	|= MSG_MORE ;
@@ -1418,7 +1418,7 @@ int 	vsocprintf(sock_ctx_t * psSock, const char * format, va_list vArgs) {
 	return (psSock->error == 0) ? iRetVal : erFAILURE ;
 }
 
-int 	socprintf(sock_ctx_t * psSock, const char * format, ...) {
+int 	socprintf(netx_t * psSock, const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
 	int count = vsocprintf(psSock, format, vArgs) ;

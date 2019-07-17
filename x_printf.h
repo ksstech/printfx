@@ -198,16 +198,19 @@ typedef	union xpf_u {
 	} ;
 } xpf_t ;
 
+struct	ubuf_s ;
+struct	netx_s ;
+
 typedef	struct xpc_s {
 	int 	(*handler)(struct xpc_s * , int ) ;
 	union {
-		void *		pVoid ;
-		char *		pStr ;
-		FILE *		stream ;
-		sock_ctx_t * psSock ;						// socket context pointer
-		ubuf_t *	psUBuf ;
-		int			fd ;							// file descriptor/handle
-		int 		(*DevPutc)(int ) ;
+		void *			pVoid ;
+		char *			pStr ;
+		FILE *			stream ;
+		struct netx_s *	psSock ;						// socket context pointer
+		struct ubuf_s *	psUBuf ;
+		int				fd ;							// file descriptor/handle
+		int 			(*DevPutc)(int ) ;
 	} ;
 	xpf_t	f ;
 } xpc_t ;
@@ -240,11 +243,11 @@ int		xdprintf(int , const char *, ...) ;
 int 	vdevprintf(int (* handler)(int ), const char *, va_list) ;
 int 	devprintf(int (* handler)(int), const char *, ...) ;
 // #################################### Destination : SOCKET #######################################
-int 	vsocprintf(sock_ctx_t *, const char *, va_list) ;
-int 	socprintf(sock_ctx_t *, const char *, ...) ;
+int 	vsocprintf(struct netx_s *, const char *, va_list) ;
+int 	socprintf(struct netx_s *, const char *, ...) ;
 // #################################### Destination : UBUF #########################################
-int     vuprintf(ubuf_t *, const char * , va_list) ;
-int     uprintf(ubuf_t *, const char * , ...) ;
+int     vuprintf(struct ubuf_s *, const char * , va_list) ;
+int     uprintf(struct ubuf_s *, const char * , ...) ;
 // ############################## LOW LEVEL DIRECT formatted output ################################
 //void	cprintf_lock(void) ;
 //void	cprintf_unlock(void) ;
