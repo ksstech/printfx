@@ -940,7 +940,7 @@ void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
 
 	// then convert the IP address, LSB first
 	size_t	Idx, Len ;
-	for (Idx = 0, Len = 0; Idx < 4; Idx++) {
+	for (Idx = 0, Len = 0; Idx < sizeof(Val); ++Idx) {
 		uint64_t u64Val = (uint8_t) pChr[Idx] ;
 		Len += xPrintXxx(psXPC, u64Val, Buffer + (xpfMAX_LEN_IP - 5 - Len), 4) ;
 		if (Idx < 3) {
