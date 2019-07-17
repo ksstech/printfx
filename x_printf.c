@@ -47,18 +47,16 @@
  *	Started complete rewrite mid 2014 when need for retargeting via ITM, UART or RTT was required.
  */
 
-#include	"x_config.h"								// brings x_time.h with xTime_GMTime() function
+#include	"x_debug.h"									// need ASSERT
 #include	"x_printf.h"
-#include	"x_debug.h"									// need ASSERT, bring x_printf with
 #include	"x_string_general.h"						// xinstring function
 #include	"x_errors_events.h"
-#include	"x_retarget.h"
 #include	"x_values_to_string.h"
 #include	"x_utilities.h"
+#include	"x_sockets.h"
 
 #include	"hal_nvic.h"
 
-#include	<stdlib.h>
 #include	<string.h>
 #include	<math.h>									// isnan()
 #include	<float.h>									// DBL_MIN/MAX

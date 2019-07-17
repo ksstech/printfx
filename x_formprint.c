@@ -25,10 +25,11 @@
  * 2015/01/17	1.00	AMM		Original version split from x_circbuf
   */
 
-#include "x_formprint.h"
+#include 	"x_formprint.h"
 
 #include	"x_config.h"
 #include	"x_debug.h"
+#include	"x_printf.h"
 #include	"x_terminal.h"
 
 #include	"hal_timer.h"
@@ -123,7 +124,6 @@ va_list args ;
     	vLogPostPend(flag) ;
     }
 }
-
 
 int32_t	xI8ArrayPrint(const char * pHeader, uint8_t * pArray, int32_t ArraySize) {
 	int32_t iRV = 0 ;

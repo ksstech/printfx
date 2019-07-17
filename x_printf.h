@@ -25,8 +25,10 @@
 #pragma once
 
 #include	"x_definitions.h"
-#include	"x_sockets.h"
-#include	"x_ubuf.h"
+
+#include	<stdio.h>
+#include	<stdint.h>
+#include	<stdarg.h>
 
 #if		(ESP32_PLATFORM == 1)
 	#include	<regex.h>
