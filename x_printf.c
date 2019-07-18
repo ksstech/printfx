@@ -1451,7 +1451,7 @@ int		uprintf(ubuf_t * psUBuf, const char * format, ...) {
 SemaphoreHandle_t	usartSemaphore = NULL ;
 
 void	cprintf_lock(void) {
-	if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+	if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
 		if (usartSemaphore == NULL) {
 			usartSemaphore = xSemaphoreCreateMutex() ;
 		}
@@ -1462,7 +1462,7 @@ void	cprintf_lock(void) {
 }
 
 void	cprintf_unlock(void) {
-	if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+	if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
 		if (halNVIC_CalledFromISR() == 0) {
 			xSemaphoreGive(usartSemaphore) ;
 		}
