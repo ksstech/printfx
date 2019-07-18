@@ -52,20 +52,20 @@ void	vLogPrePend(uint32_t flag) {
 	}
 // Insert the PREpend options
     if (flag & FLAG_CB_PRE_CL) {
-    	xprintf("%c", CHR_CR) ;
-    	xprintf("%c", CHR_LF) ;
+    	printfx("%c", CHR_CR) ;
+    	printfx("%c", CHR_LF) ;
     }
 	if (flag & FLAG_CB_PRE_UPSECS) {
-		xprintf("%'T: ", RunTime) ;
+		printfx("%'T: ", RunTime) ;
 	}
 	if (flag & FLAG_CB_PRE_DATE) {
-		xprintf("%D ", &sTSZ) ;
+		printfx("%D ", &sTSZ) ;
 	}
 	if (flag & FLAG_CB_PRE_TIME) {
-		xprintf("%T ", &sTSZ) ;
+		printfx("%T ", &sTSZ) ;
 	}
     if (flag & FLAG_CB_PRE_SPC) {
-    	xprintf("%c", CHR_SPACE) ;
+    	printfx("%c", CHR_SPACE) ;
     }
 }
 
@@ -86,17 +86,17 @@ void	vLogPostPend(uint32_t flag) {
 	}
 // Insert the POSTpend options
     if (flag & FLAG_CB_POST_COMMA) {
-    	xprintf("%c", CHR_COMMA) ;
+    	printfx("%c", CHR_COMMA) ;
     }
     if (flag & FLAG_CB_POST_SPC) {
-    	xprintf("%c", CHR_SPACE) ;
+    	printfx("%c", CHR_SPACE) ;
     }
     if (flag & FLAG_CB_POST_TAB) {
-    	xprintf("%c", CHR_TAB) ;
+    	printfx("%c", CHR_TAB) ;
     }
     if (flag & FLAG_CB_POST_CL) {
-    	xprintf("%c", CHR_CR) ;
-    	xprintf("%c", CHR_LF) ;
+    	printfx("%c", CHR_CR) ;
+    	printfx("%c", CHR_LF) ;
     }
 }
 
@@ -117,7 +117,7 @@ va_list args ;
 	}
 // output the actual formatted message
     va_start(args, format) ;
-    xvprintf(format, args) ;
+    vprintfx(format, args) ;
     va_end(args) ;
 // POSTpend handling
     if (flag) {
@@ -128,11 +128,11 @@ va_list args ;
 int32_t	xI8ArrayPrint(const char * pHeader, uint8_t * pArray, int32_t ArraySize) {
 	int32_t iRV = 0 ;
 	if (pHeader) {
-		iRV += xprintf(pHeader) ;
+		iRV += printfx(pHeader) ;
 	}
 	for (int32_t Idx = 0; Idx < ArraySize; ++Idx) {
-		iRV += xprintf("  #%d=%d", Idx, pArray[Idx]) ;
+		iRV += printfx("  #%d=%d", Idx, pArray[Idx]) ;
 	}
-	iRV += xprintf("\n") ;
+	iRV += printfx("\n") ;
 	return iRV ;
 }

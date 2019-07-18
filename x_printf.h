@@ -219,41 +219,48 @@ typedef	struct xpc_s {
  * Public function prototypes for extended functionality version of stdio supplied functions
  * These names MUST be used if any of the extended functionality is used in a format string
  */
-int		xPrint(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list) ;
-// ##################################### Destination = STRING ######################################
-int 	xvsnprintf(char * , size_t , const char * , va_list ) ;
-int 	xsnprintf(char * , size_t , const char * , ...) ;
-int 	xvsprintf(char * , const char * , va_list ) ;
-int		xsprintf(char * , const char * , ...) ;
-// ################################### Destination = FILE PTR ######################################
-int		xvfprintf(FILE * , const char * , va_list ) ;
-int		xfprintf(FILE * , const char * , ...) ;
-// ################################### Destination = STDOUT ########################################
-int 	xvnprintf(size_t, const char *, va_list) ;
-int 	xvprintf(const char * , va_list) ;
-int 	xnprintf(size_t, const char *, ...) ;
-int		xprintf(const char *, ...) ;
+int		PrintFX(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list) ;
 
-int 	xprintf_nolock(const char *, ...) ;
-int 	xprintf_lock(const char *, ...) ;
+// ##################################### Destination = STRING ######################################
+int 	vsnprintfx(char * , size_t , const char * , va_list ) ;
+int 	snprintfx(char * , size_t , const char * , ...) ;
+int 	vsprintfx(char * , const char * , va_list ) ;
+int		sprintfx(char * , const char * , ...) ;
+
+// ################################### Destination = FILE PTR ######################################
+int		vfprintfx(FILE * , const char * , va_list ) ;
+int		fprintfx(FILE * , const char * , ...) ;
+
+// ################################### Destination = STDOUT ########################################
+int 	vnprintfx(size_t, const char *, va_list) ;
+int 	vprintfx(const char * , va_list) ;
+int 	nprintfx(size_t, const char *, ...) ;
+int		printfx(const char *, ...) ;
+
+// ############################# Destination = Retargeted Buffer ###################################
+int 	rprintfx(const char *, ...) ;
+
 // ################################### Destination = HANDLE ########################################
-int		xvdprintf(int , const char *, va_list ) ;
-int		xdprintf(int , const char *, ...) ;
+int		vdprintfx(int , const char *, va_list ) ;
+int		dprintfx(int , const char *, ...) ;
+
 // ################################### Destination = DEVICE ########################################
-int 	vdevprintf(int (* handler)(int ), const char *, va_list) ;
-int 	devprintf(int (* handler)(int), const char *, ...) ;
+int 	vdevprintfx(int (* handler)(int ), const char *, va_list) ;
+int 	devprintfx(int (* handler)(int), const char *, ...) ;
+
 // #################################### Destination : SOCKET #######################################
-int 	vsocprintf(struct netx_s *, const char *, va_list) ;
-int 	socprintf(struct netx_s *, const char *, ...) ;
+int 	vsocprintfx(struct netx_s *, const char *, va_list) ;
+int 	socprintfx(struct netx_s *, const char *, ...) ;
+
 // #################################### Destination : UBUF #########################################
-int     vuprintf(struct ubuf_s *, const char * , va_list) ;
-int     uprintf(struct ubuf_s *, const char * , ...) ;
+int     vuprintfx(struct ubuf_s *, const char * , va_list) ;
+int     uprintfx(struct ubuf_s *, const char * , ...) ;
+
 // ############################## LOW LEVEL DIRECT formatted output ################################
-//void	cprintf_lock(void) ;
-//void	cprintf_unlock(void) ;
-int 	vcprintf(const char *, va_list) ;
-int 	cprintf(const char *, ...) ;
-int		cprintf_noblock(const char *, ...) ;
+int 	vcprintfx(const char *, va_list) ;
+int 	cprintfx(const char *, ...) ;
+int		nbcprintfx(const char *, ...) ;
+
 // ##################################### functional tests ##########################################
 
 #ifdef __cplusplus
