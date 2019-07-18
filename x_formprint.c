@@ -56,7 +56,7 @@ void	vLogPrePend(uint32_t flag) {
     	xprintf("%c", CHR_LF) ;
     }
 	if (flag & FLAG_CB_PRE_UPSECS) {
-		xprintf("%'T: ", halTIMER_ReadRunMicros()) ;
+		xprintf("%'T: ", RunTime) ;
 	}
 	if (flag & FLAG_CB_PRE_DATE) {
 		xprintf("%D ", &sTSZ) ;
