@@ -54,6 +54,7 @@
 #include	"x_values_to_string.h"
 #include	"x_utilities.h"
 #include	"x_sockets.h"
+#include	"x_retarget.h"
 
 #include	"hal_nvic.h"
 
@@ -63,8 +64,7 @@
 
 #define	debugFLAG				(0x4000)
 
-#define	debugTRACK				(debugFLAG & 0x0001)
-
+#define	debugTRACK				(debugFLAG & 0x2000)
 #define	debugPARAM				(debugFLAG & 0x4000)
 #define	debugRESULT				(debugFLAG & 0x8000)
 
@@ -857,7 +857,11 @@ void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
 		// handle same values dumped as ASCII characters
 			for (Count = 0; Count < Width; ++Count) {
 				uint32_t cChr = *(pStr + Idx + Count) ;
+			#if 0										// Device supports characters in range 0x80 to 0xFE
 				vPrintChar(psXPC, (cChr < CHR_SPACE || cChr == CHR_DEL || cChr == 0xFF) ? CHR_FULLSTOP : cChr) ;
+			#else										// Device does NOT support ANY characters > 0x7E
+				vPrintChar(psXPC, (cChr < CHR_SPACE || cChr >= CHR_DEL) ? CHR_FULLSTOP : cChr) ;
+			#endif
 			}
 			vPrintChar(psXPC, CHR_SPACE) ;
 		}
@@ -1260,14 +1264,14 @@ int 	vsnprintfx(char * pBuf, size_t BufSize, const char * format, va_list vArgs)
 		*pBuf = CHR_NUL ;								// yes, terminate
 		return 0 ; 										// & return
 	}
-	int count = PrintFX(xPrintToString, pBuf, BufSize, format, vArgs) ;
-	if (pBuf && (count == BufSize)) {					// buffer specified and FULL?
-		count-- ; 										// yes, adjust the length for terminator
+	int iRV = PrintFX(xPrintToString, pBuf, BufSize, format, vArgs) ;
+	if (pBuf && (iRV == BufSize)) {					// buffer specified and FULL?
+		iRV-- ; 										// yes, adjust the length for terminator
 	}
 	if (pBuf) {											// buffer specified ?
-		pBuf[count] = CHR_NUL ; 						// yes, terminate
+		pBuf[iRV] = CHR_NUL ; 						// yes, terminate
 	}
-	return count ;
+	return iRV ;
 }
 
 int 	snprintfx(char * pBuf, size_t BufSize, const char * format, ...) {
@@ -1307,31 +1311,29 @@ int 	fprintfx(FILE * stream, const char * format, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-int 	vnprintfx(size_t count, const char * format, va_list vArgs) {
-	return PrintFX(xPrintToFile, stdout, count, format, vArgs) ;
-}
+int		xPrintToStdOut(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
+
+int 	vnprintfx(size_t count, const char * format, va_list vArgs) { return PrintFX(xPrintToStdOut, NULL, count, format, vArgs) ; }
 
 int 	vprintfx(const char * format, va_list vArgs) { return vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int 	nprintfx(size_t count, const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int iRetVal = vnprintfx(count, format, vArgs) ;
+	int iRV = vnprintfx(count, format, vArgs) ;
 	va_end(vArgs) ;
-	return iRetVal ;
+	return iRV ;
 }
 
 int 	printfx(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int iRetVal = vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs) ;
+	int iRV = vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs) ;
 	va_end(vArgs) ;
-	return iRetVal ;
+	return iRV ;
 }
 
 // ############################# Destination = Retargeted Buffer ###################################
-
-#include	"x_retarget.h"
 
 int		xPrintReTarget(xpc_t * psXPC, int cChr) { return xStdOutPutC(cChr) ; }
 
@@ -1343,9 +1345,9 @@ int		xPrintReTarget(xpc_t * psXPC, int cChr) { return xStdOutPutC(cChr) ; }
 int 	rprintfx(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int iRetVal = PrintFX(xPrintReTarget, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	int iRV = PrintFX(xPrintReTarget, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
 	va_end(vArgs) ;
-	return iRetVal ;
+	return iRV ;
 }
 
 // ################################### Destination = HANDLE ########################################
@@ -1381,9 +1383,9 @@ int 	vdevprintfx(int (* handler)(int ), const char * format, va_list vArgs) {
 int 	devprintfx(int (* handler)(int ), const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int iRetVal = PrintFX(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	int iRV = PrintFX(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
 	va_end(vArgs) ;
-	return iRetVal ;
+	return iRV ;
 }
 
 /* #################################### Destination : SOCKET #######################################
@@ -1402,9 +1404,9 @@ int 	vsocprintfx(netx_t * psSock, const char * format, va_list vArgs) {
 	IF_myASSERT(debugPARAM, INRANGE_SRAM(psSock)) ;
 	int	OldFlags	= psSock->flags ;
 	psSock->flags	|= MSG_MORE ;
-	int32_t iRetVal = PrintFX(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	int32_t iRV = PrintFX(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
 	psSock->flags	= OldFlags ;
-	return (psSock->error == 0) ? iRetVal : erFAILURE ;
+	return (psSock->error == 0) ? iRV : erFAILURE ;
 }
 
 int 	socprintfx(netx_t * psSock, const char * format, ...) {
@@ -1463,17 +1465,17 @@ int 	vcprintfx(const char * format, va_list vArgs) {
 int 	cprintfx(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int iRetVal = vcprintfx(format, vArgs) ;
+	int iRV = vcprintfx(format, vArgs) ;
 	va_end(vArgs) ;
-	return iRetVal ;
+	return iRV ;
 }
 
 int32_t	nbcprintfx(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int32_t iRetVal = PrintFX(xPrintToStdoutNoBlock, NULL, 128, format, vArgs) ;
+	int32_t iRV = PrintFX(xPrintToStdoutNoBlock, NULL, 128, format, vArgs) ;
 	va_end(vArgs) ;
-	return iRetVal ;
+	return iRV ;
 }
 
 // ############################# Aliases for NEW/STDLIB supplied functions #########################
