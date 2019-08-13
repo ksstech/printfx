@@ -25,10 +25,8 @@
  * 2015/01/17	1.00	AMM		Original version split from x_circbuf
   */
 
-#include 	"x_formprint.h"
-
 #include	"x_config.h"
-#include	"x_debug.h"
+#include 	"x_formprint.h"
 #include	"x_printf.h"
 #include	"x_terminal.h"
 
@@ -52,20 +50,20 @@ void	vLogPrePend(uint32_t flag) {
 	}
 // Insert the PREpend options
     if (flag & FLAG_CB_PRE_CL) {
-    	printfx("%c", CHR_CR) ;
-    	printfx("%c", CHR_LF) ;
+    	PRINT("%c", CHR_CR) ;
+    	PRINT("%c", CHR_LF) ;
     }
 	if (flag & FLAG_CB_PRE_UPSECS) {
-		printfx("%'T: ", RunTime) ;
+		PRINT("%'T: ", RunTime) ;
 	}
 	if (flag & FLAG_CB_PRE_DATE) {
-		printfx("%D ", &sTSZ) ;
+		PRINT("%D ", &sTSZ) ;
 	}
 	if (flag & FLAG_CB_PRE_TIME) {
-		printfx("%T ", &sTSZ) ;
+		PRINT("%T ", &sTSZ) ;
 	}
     if (flag & FLAG_CB_PRE_SPC) {
-    	printfx("%c", CHR_SPACE) ;
+    	PRINT("%c", CHR_SPACE) ;
     }
 }
 
@@ -86,17 +84,17 @@ void	vLogPostPend(uint32_t flag) {
 	}
 // Insert the POSTpend options
     if (flag & FLAG_CB_POST_COMMA) {
-    	printfx("%c", CHR_COMMA) ;
+    	PRINT("%c", CHR_COMMA) ;
     }
     if (flag & FLAG_CB_POST_SPC) {
-    	printfx("%c", CHR_SPACE) ;
+    	PRINT("%c", CHR_SPACE) ;
     }
     if (flag & FLAG_CB_POST_TAB) {
-    	printfx("%c", CHR_TAB) ;
+    	PRINT("%c", CHR_TAB) ;
     }
     if (flag & FLAG_CB_POST_CL) {
-    	printfx("%c", CHR_CR) ;
-    	printfx("%c", CHR_LF) ;
+    	PRINT("%c", CHR_CR) ;
+    	PRINT("%c", CHR_LF) ;
     }
 }
 
@@ -128,11 +126,11 @@ va_list args ;
 int32_t	xI8ArrayPrint(const char * pHeader, uint8_t * pArray, int32_t ArraySize) {
 	int32_t iRV = 0 ;
 	if (pHeader) {
-		iRV += printfx(pHeader) ;
+		iRV += PRINT(pHeader) ;
 	}
 	for (int32_t Idx = 0; Idx < ArraySize; ++Idx) {
-		iRV += printfx("  #%d=%d", Idx, pArray[Idx]) ;
+		iRV += PRINT("  #%d=%d", Idx, pArray[Idx]) ;
 	}
-	iRV += printfx("\n") ;
+	iRV += PRINT("\n") ;
 	return iRV ;
 }

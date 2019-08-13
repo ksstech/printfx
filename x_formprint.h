@@ -115,7 +115,7 @@ void		vLogPrePend(uint32_t flag) ;
 void		vLogPostPend(uint32_t flag) ;
 void 		vLogPrintf(uint32_t flag, const char * format, ...) ;
 
-int32_t	xI8ArrayPrint(const char * pHeader, uint8_t * pArray, int32_t ArraySize) ;
+int32_t		xI8ArrayPrint(const char * pHeader, uint8_t * pArray, int32_t ArraySize) ;
 
 #ifdef __cplusplus
 }
