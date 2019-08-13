@@ -1438,27 +1438,18 @@ int		uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 }
 
 /* ################################## Destination = UART/TELNET ####################################
- * Output directly to the UART, no Telnet redirection, no FreeRTOS required
+ * Output directly to the [possibly redirected] stdout/UART channel
  */
+
 SemaphoreHandle_t	usartSemaphore = NULL ;
-static	int	xPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
 static	int	xPrintToStdoutNoBlock(xpc_t * psXPC, int cChr) { return putchar_stdout_noblock(cChr) ; }
 
+int		xPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
+
 int 	vcprintfx(const char * format, va_list vArgs) {
-	if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
-		if (usartSemaphore == NULL) {
-			usartSemaphore = xSemaphoreCreateMutex() ;
-		}
-		if (halNVIC_CalledFromISR() == 0) {
-			xSemaphoreTake(usartSemaphore, portMAX_DELAY) ;
-		}
-	}
+	xUtilLockResource(usartSemaphore, portMAX_DELAY) ;
 	int32_t iRV = PrintFX(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
-		if (halNVIC_CalledFromISR() == 0) {
-			xSemaphoreGive(usartSemaphore) ;
-		}
-	}
+	xUtilUnlockResource(usartSemaphore) ;
 	return iRV ;
 }
 
