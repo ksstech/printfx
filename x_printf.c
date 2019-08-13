@@ -1447,7 +1447,6 @@ int		uprintfx(ubuf_t * psUBuf, const char * format, ...) {
  */
 
 SemaphoreHandle_t	usartSemaphore = NULL ;
-static	int	xPrintToStdoutNoBlock(xpc_t * psXPC, int cChr) { return putchar_stdout_noblock(cChr) ; }
 
 int		xPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
 
@@ -1465,6 +1464,8 @@ int 	cprintfx(const char * format, ...) {
 	va_end(vArgs) ;
 	return iRV ;
 }
+
+int		xPrintToStdoutNoBlock(xpc_t * psXPC, int cChr) { return putchar_stdout_noblock(cChr) ; }
 
 int32_t	nbcprintfx(const char * format, ...) {
 	va_list vArgs ;
@@ -1486,7 +1487,7 @@ int32_t	nbcprintfx(const char * format, ...) {
  *
  * 	Alternative is to ensure that the x_printf.obj is specified at the start to be linked with !!
  */
-#if		(xpfSUPPORT_ALIASES == 1)		// standard library printf functions
+#if		(xpfSUPPORT_ALIASES == 1)		// standard library [?]printf functions
 	int		printf(const char * format, ...) __attribute__((alias("printfx"), unused)) ;
 	int		printf_r(const char * format, ...) __attribute__((alias("printfx"), unused)) ;
 

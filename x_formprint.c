@@ -108,18 +108,17 @@ void	vLogPostPend(uint32_t flag) {
  * \return	None
  */
 void 	vLogPrintf(uint32_t flag, const char * format, ...) {
-va_list args ;
-// PREpend handling
+	va_list args ;
 	if (flag) {
-		vLogPrePend(flag) ;
+		vLogPrePend(flag) ;								// PREpend handling
 	}
-// output the actual formatted message
+
     va_start(args, format) ;
-    vprintfx(format, args) ;
+    vprintfx(format, args) ;							// output the actual formatted message
     va_end(args) ;
-// POSTpend handling
+
     if (flag) {
-    	vLogPostPend(flag) ;
+    	vLogPostPend(flag) ;						    // POSTpend handling
     }
 }
 
