@@ -1311,9 +1311,7 @@ int 	fprintfx(FILE * stream, const char * format, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-int		xPrintToStdOut(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
-
-int 	vnprintfx(size_t count, const char * format, va_list vArgs) { return PrintFX(xPrintToStdOut, NULL, count, format, vArgs) ; }
+int 	vnprintfx(size_t count, const char * format, va_list vArgs) { return PrintFX(xPrintToFile, stdout, count, format, vArgs) ; }
 
 int 	vprintfx(const char * format, va_list vArgs) { return vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
