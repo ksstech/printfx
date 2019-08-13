@@ -47,7 +47,6 @@
  *	Started complete rewrite mid 2014 when need for retargeting via ITM, UART or RTT was required.
  */
 
-#include	"x_debug.h"									// need ASSERT
 #include	"x_printf.h"
 #include	"x_string_general.h"						// xinstring function
 #include	"x_errors_events.h"
@@ -56,6 +55,7 @@
 #include	"x_sockets.h"
 #include	"x_retarget.h"
 
+#include	"hal_debug.h"								// need ASSERT
 #include	"hal_nvic.h"
 
 #include	<string.h>
@@ -1331,19 +1331,26 @@ int 	printfx(const char * format, ...) {
 	return iRV ;
 }
 
-// ############################# Destination = Retargeted Buffer ###################################
+// ############################## Destination = STDOUT (Buffered) ##################################
 
-int		xPrintReTarget(xpc_t * psXPC, int cChr) { return xStdOutPutC(cChr) ; }
+int		xPrintBuffer(xpc_t * psXPC, int cChr) { return xStdOutPutC(cChr) ; }
 
-/**
- * rprintfx() - specifically for syslog() in case called from ISR or RTOS not yet started
- * @param	format
- * @return	number of characters printed, excluding the terminating NUL
- */
-int 	rprintfx(const char * format, ...) {
+int 	vnbprintfx(size_t count, const char * format, va_list vArgs) { return PrintFX(xPrintBuffer, NULL, count, format, vArgs) ; }
+
+int 	bprintfx(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int iRV = PrintFX(xPrintReTarget, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	int iRV = PrintFX(xPrintBuffer, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	va_end(vArgs) ;
+	return iRV ;
+}
+
+int 	lbprintfx(const char * format, ...) {
+	va_list vArgs ;
+	va_start(vArgs, format) ;
+	xStdOutLock(portMAX_DELAY) ;
+	int iRV = PrintFX(xPrintBuffer, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	xStdOutUnLock() ;
 	va_end(vArgs) ;
 	return iRV ;
 }
