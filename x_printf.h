@@ -38,6 +38,23 @@
 extern "C" {
 #endif
 
+// #################################################################################################
+
+#define	PRINT(f, ...)					bprintfx(f, ##__VA_ARGS__)
+#define	LPRINT(f, ...)					lbprintfx(f, ##__VA_ARGS__)
+#define	CPRINT(f, ...)					cprintfx(f, ##__VA_ARGS__)
+
+#define	IF_PRINT(T,f, ...)				if (T) bprintfx(f, ##__VA_ARGS__)
+#define	IF_LPRINT(T,f, ...)				if (T) lbprintfx(f, ##__VA_ARGS__)
+#define	IF_CPRINT(T,f, ...)				if (T) cprintfx(f, ##__VA_ARGS__)
+
+#define	_TRACK_(f)						"@%d %s() " f "\n", __LINE__, __FUNCTION__
+#define	TRACK(f, ...)					bprintfx(_TRACK_(f), ##__VA_ARGS__)
+#define	CTRACK(f, ...)					cprintfx(_TRACK_(f), ##__VA_ARGS__)
+#define	IF_TRACK(T,f, ...)				if (T) bprintfx(_TRACK_(f), ##__VA_ARGS__)
+#define	IF_CTRACK(T,f, ...)				if (T) cprintfx(_TRACK_(f), ##__VA_ARGS__)
+
+
 // ###################### control functionality included in xprintf.c ##############################
 
 #define	xpfSUPPORT_BINARY				1
@@ -231,14 +248,16 @@ int		sprintfx(char * , const char * , ...) ;
 int		vfprintfx(FILE * , const char * , va_list ) ;
 int		fprintfx(FILE * , const char * , ...) ;
 
-// ################################### Destination = STDOUT ########################################
+// ##################################### Destination = STDOUT ######################################
 int 	vnprintfx(size_t, const char *, va_list) ;
 int 	vprintfx(const char * , va_list) ;
 int 	nprintfx(size_t, const char *, ...) ;
 int		printfx(const char *, ...) ;
 
-// ############################# Destination = Retargeted Buffer ###################################
-int 	rprintfx(const char *, ...) ;
+// ############################## Destination = STDOUT (Buffered) ##################################
+int 	vnbprintfx(size_t count, const char * format, va_list vArgs) ;
+int 	bprintfx(const char * format, ...) ;
+int 	lbprintfx(const char * format, ...) ;
 
 // ################################### Destination = HANDLE ########################################
 int		vdprintfx(int , const char *, va_list ) ;
