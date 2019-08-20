@@ -1106,6 +1106,12 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 		// At this stage the format specifiers used in UC & LC to denote output case has been changed to all lower case
 			switch (cFmt) {
 #if		(xpfSUPPORT_SGR == 1)
+			/* TODO: Since we are using the same command handler to process requests (UART, HTTP & TNET) and
+			 * since we are embedding colour ESC sequences into the formatted output (to mae it pretty); and
+			 * since the colour ESC sequences are not understood by the HTTP protocol (but handled by UART & TNET); hence
+			 * we must try to filter out the possible output produced by the ESC sequences if the output is going
+			 * to a socket, and this we must try to do, one way or another.
+			 */
 			case CHR_C:
 				vPrintSetGraphicRendition(&sXPC, va_arg(vArgs, uint32_t)) ;
 				break ;
@@ -1138,11 +1144,13 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				vPrintTime(&sXPC, va_arg(vArgs, TSZ_t *)) ;				// para =  pointer to TSZ_t structure
 				break ;
 #endif
+
 #if		(xpfSUPPORT_URL == 1)
 			case CHR_U:
 				vPrintURL(&sXPC, va_arg(vArgs, uint8_t *)) ;			// para = pointer to string to be encoded
 				break ;
 #endif
+
 #if		(xpfSUPPORT_DATETIME == 1)
 			case CHR_Z:								// DATE, TIME, ZONE
 				vPrintDateTimeZone(&sXPC, va_arg(vArgs, TSZ_t *)) ;		// para =  SysTime
