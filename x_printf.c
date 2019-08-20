@@ -1451,9 +1451,9 @@ SemaphoreHandle_t	usartSemaphore = NULL ;
 int		xPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
 
 int 	vcprintfx(const char * format, va_list vArgs) {
-	xUtilLockResource(usartSemaphore, portMAX_DELAY) ;
+	xUtilLockResource(&usartSemaphore, portMAX_DELAY) ;
 	int32_t iRV = PrintFX(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	xUtilUnlockResource(usartSemaphore) ;
+	xUtilUnlockResource(&usartSemaphore) ;
 	return iRV ;
 }
 
