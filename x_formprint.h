@@ -56,9 +56,9 @@ extern "C" {
 
 // PrePend flags
 #define		FLAG_CB_PRE_CL					0x00800000
-#define		FLAG_CB_PRE_UPSECS				0x00400000
-#define		FLAG_CB_PRE_DATE				0x00200000
-#define		FLAG_CB_PRE_TIME				0x00100000
+//#define		FLAG_CB_PRE_UPSECS				0x00400000
+//#define		FLAG_CB_PRE_DATE				0x00200000
+//#define		FLAG_CB_PRE_TIME				0x00100000
 #define		FLAG_CB_PRE_SPC					0x00080000
 // spare 40000-00800
 #define		FLAG_CB_MID_ADDR				0x00000400			// include pointer/addres value

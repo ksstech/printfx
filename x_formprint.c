@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-18 AM Maree/KSS Technologies (Pty) Ltd.
+ * Copyright 2014-19 AM Maree/KSS Technologies (Pty) Ltd.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -25,12 +25,11 @@
  * 2015/01/17	1.00	AMM		Original version split from x_circbuf
   */
 
-#include	"x_config.h"
 #include 	"x_formprint.h"
 #include	"x_printf.h"
 #include	"x_terminal.h"
 
-#include	"hal_timer.h"
+//#include	"hal_timer.h"
 
 /*
  *	vLogPrePend - process all options to prepend info
@@ -53,15 +52,6 @@ void	vLogPrePend(uint32_t flag) {
     	PRINT("%c", CHR_CR) ;
     	PRINT("%c", CHR_LF) ;
     }
-	if (flag & FLAG_CB_PRE_UPSECS) {
-		PRINT("%'T: ", RunTime) ;
-	}
-	if (flag & FLAG_CB_PRE_DATE) {
-		PRINT("%D ", &sTSZ) ;
-	}
-	if (flag & FLAG_CB_PRE_TIME) {
-		PRINT("%T ", &sTSZ) ;
-	}
     if (flag & FLAG_CB_PRE_SPC) {
     	PRINT("%c", CHR_SPACE) ;
     }
