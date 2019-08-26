@@ -44,16 +44,19 @@ extern "C" {
 #define	LPRINT(f, ...)					lbprintfx(f, ##__VA_ARGS__)
 #define	CPRINT(f, ...)					cprintfx(f, ##__VA_ARGS__)
 
-#define	IF_PRINT(T,f, ...)				if (T) bprintfx(f, ##__VA_ARGS__)
-#define	IF_LPRINT(T,f, ...)				if (T) lbprintfx(f, ##__VA_ARGS__)
-#define	IF_CPRINT(T,f, ...)				if (T) cprintfx(f, ##__VA_ARGS__)
+#define	IF_PRINT(T,f, ...)				if (T) PRINT(f,##__VA_ARGS__)
+#define	IF_LPRINT(T,f, ...)				if (T) LPRINT(f, ##__VA_ARGS__)
+#define	IF_CPRINT(T,f, ...)				if (T) CPRINT(f, ##__VA_ARGS__)
 
-#define	_TRACK_(f)						"@%d %s() " f "\n", __LINE__, __FUNCTION__
+extern uint64_t RunTime ;
+#define	_TRACK_(f)						"%!R: %s(%d) " f "\n", RunTime, __FUNCTION__, __LINE__
 #define	TRACK(f, ...)					bprintfx(_TRACK_(f), ##__VA_ARGS__)
 #define	CTRACK(f, ...)					cprintfx(_TRACK_(f), ##__VA_ARGS__)
-#define	IF_TRACK(T,f, ...)				if (T) bprintfx(_TRACK_(f), ##__VA_ARGS__)
-#define	IF_CTRACK(T,f, ...)				if (T) cprintfx(_TRACK_(f), ##__VA_ARGS__)
+#define	IF_TRACK(T,f, ...)				if (T) TRACK(f,##__VA_ARGS__)
+#define	IF_CTRACK(T,f, ...)				if (T) CTRACK(f,##__VA_ARGS__)
 
+//#define	IF_TRACK(T,f, ...)				if (T) bprintfx(_TRACK_(f), ##__VA_ARGS__)
+//#define	IF_CTRACK(T,f, ...)				if (T) cprintfx(_TRACK_(f), ##__VA_ARGS__)
 
 // ###################### control functionality included in xprintf.c ##############################
 

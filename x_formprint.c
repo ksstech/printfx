@@ -29,8 +29,6 @@
 #include	"x_printf.h"
 #include	"x_terminal.h"
 
-//#include	"hal_timer.h"
-
 /*
  *	vLogPrePend - process all options to prepend info
  *	\brief	prepend all the characters as per the flag in the specific sequence
