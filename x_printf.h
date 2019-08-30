@@ -49,14 +49,11 @@ extern "C" {
 #define	IF_CPRINT(T,f, ...)				if (T) CPRINT(f, ##__VA_ARGS__)
 
 extern uint64_t RunTime ;
-#define	_TRACK_(f)						"%!R: %s(%d) " f "\n", RunTime, __FUNCTION__, __LINE__
+#define	_TRACK_(f)						"%!R: %s:%d " f "\n", RunTime, __FUNCTION__, __LINE__
 #define	TRACK(f, ...)					bprintfx(_TRACK_(f), ##__VA_ARGS__)
 #define	CTRACK(f, ...)					cprintfx(_TRACK_(f), ##__VA_ARGS__)
 #define	IF_TRACK(T,f, ...)				if (T) TRACK(f,##__VA_ARGS__)
 #define	IF_CTRACK(T,f, ...)				if (T) CTRACK(f,##__VA_ARGS__)
-
-//#define	IF_TRACK(T,f, ...)				if (T) bprintfx(_TRACK_(f), ##__VA_ARGS__)
-//#define	IF_CTRACK(T,f, ...)				if (T) cprintfx(_TRACK_(f), ##__VA_ARGS__)
 
 // ###################### control functionality included in xprintf.c ##############################
 

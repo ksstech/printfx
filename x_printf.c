@@ -51,7 +51,6 @@
 #include	"x_string_general.h"						// xinstring function
 #include	"x_errors_events.h"
 #include	"x_values_to_string.h"
-#include	"x_utilities.h"
 #include	"x_sockets.h"
 #include	"x_retarget.h"
 
@@ -1459,9 +1458,9 @@ SemaphoreHandle_t	usartSemaphore = NULL ;
 int		xPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
 
 int 	vcprintfx(const char * format, va_list vArgs) {
-	xUtilLockResource(&usartSemaphore, portMAX_DELAY) ;
+	xRtosSemaphoreTake(&usartSemaphore, portMAX_DELAY) ;
 	int32_t iRV = PrintFX(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	xUtilUnlockResource(&usartSemaphore) ;
+	xRtosSemaphoreGive(&usartSemaphore) ;
 	return iRV ;
 }
 
