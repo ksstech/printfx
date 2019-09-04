@@ -1026,7 +1026,9 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				case 3:									// '*' indicate argument will supply field width
 					++format ;
 					uint32_t U32	= va_arg(vArgs, uint32_t) ;
-					IF_myASSERT(debugPARAM, U32 < xpfMINWID_MAXVAL) ;
+					if (U32 >= xpfMINWID_MAXVAL) {		// if value out of range, limit...
+						U32 = xpfMINWID_MAXVAL - 1 ;
+					}
 					sXPC.f.minwid	= U32 ;
 					sXPC.f.arg_width= 1 ;
 					break ;
@@ -1045,7 +1047,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 					sXPC.f.pad0		= 1 ;
 					break ;
 				default:
-					IF_myASSERT(debugTRACK, 0) ;
+					myASSERT(0) ;
 				}
 			}
 		// handle pre and post decimal field width/precision indicators
@@ -1055,21 +1057,21 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 					if (INRANGE(CHR_0, *format, CHR_9, char)) {
 						cFmt *= 10 ;
 						cFmt += *format - '0' ;
-						format++ ;
+						++format ;
 					} else if (*format == CHR_FULLSTOP) {
-						IF_myASSERT(debugTRACK, sXPC.f.radix == 0)	// cannot have 2x radix '.'
+						myASSERT(sXPC.f.radix == 0)		// cannot have 2x radix '.'
+						++format ;						// skip over radix char
 						sXPC.f.radix	= 1 ;			// flag radix as provided
-						format++ ;						// skip over radix char
 						if (cFmt > 0) {
-							IF_myASSERT(debugTRACK, sXPC.f.arg_width == 0) ;
-						// at this stage we MIGHT have parsed a minwid value, if so verify and store.
+							myASSERT(sXPC.f.arg_width == 0) ;
+							// at this stage we MIGHT have parsed a minwid value, if so verify and store.
 							sXPC.f.minwid	= cFmt ;	// Save value parsed (maybe 0) as min_width
 							sXPC.f.arg_width= 1 ;		// flag min_width as having been supplied
 							cFmt = 0 ;					// reset counter in case of precision following
 						}
 					} else if (*format == CHR_ASTERISK) {
-						format++ ; 						// skip over argument precision char
-						IF_myASSERT(debugTRACK, sXPC.f.radix == 1) ;	// Should not have '*' except after radix '.'
+						myASSERT(sXPC.f.radix == 1) ;	// Should not have '*' except after radix '.'
+						++format ; 						// skip over argument precision char
 						sXPC.f.precision= va_arg(vArgs, uint32_t) ;
 						sXPC.f.arg_prec	= 1 ;
 						cFmt = 0 ;						// reset counter just in case!!!
@@ -1084,7 +1086,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 					} else if ((sXPC.f.arg_prec == 0) && (sXPC.f.radix == 1)) {
 						sXPC.f.precision= cFmt ;
 					} else {
-						IF_myASSERT(debugTRACK, 0) ;
+						myASSERT(0) ;
 					}
 				}
 			}
@@ -1212,26 +1214,26 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				break ;
 
 #if	(xpfSUPPORT_IEEE754 == 1)
-			case CHR_e:								// treat same as 'f' for now, need to implement...
+			case CHR_e:									// treat same as 'f' for now, need to implement...
 				sXPC.f.form++ ;
 				/* no break */
-			case CHR_f:								// floating point format
+			case CHR_f:									// floating point format
 				sXPC.f.form++ ;
 				/* no break */
 			case CHR_g:
-				sXPC.f.signval	= 1 ;				// float always signed value.
+				sXPC.f.signval	= 1 ;					// float always signed value.
 				if (sXPC.f.radix) {
 					sXPC.f.precision	= (sXPC.f.precision > xpfMAXIMUM_DECIMALS) ? xpfMAXIMUM_DECIMALS : sXPC.f.precision ;
 				} else {
 					sXPC.f.precision	= xpfDEFAULT_DECIMALS ;
 				}
-				IF_myASSERT(debugTRACK, sXPC.f.alt_form == 0) ;		// MUST not use '#' modifier
+				myASSERT(sXPC.f.alt_form == 0) ;		// MUST not use '#' modifier
 				vPrintF64(&sXPC, va_arg(vArgs, double)) ;
 				break ;
 #endif
 
 #if	(xpfSUPPORT_POINTER == 1)
-			case CHR_p:								// pointer value UC/lc
+			case CHR_p:									// pointer value UC/lc
 				vPrintPointer(&sXPC, va_arg(vArgs, uint32_t)) ;		// no provision for 64 bit pointers (yet)
 				break ;
 #endif
