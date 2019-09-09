@@ -477,10 +477,10 @@ void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
 	int32_t	Idx	= 0 ;
 	while (Idx < Num) {
 		switch (psXPC->f.size) {
-		case 0:	x64Val.u8[0] = *pStr ; 					vPrintHexU8(psXPC, x64Val.u8[0]) ; 		break ;
+		case 0:	x64Val.u8[0]  = *((uint8_t *) pStr) ; 	vPrintHexU8(psXPC, x64Val.u8[0]) ; 		break ;
 		case 1:	x64Val.u16[0] = *((uint16_t *) pStr) ;	vPrintHexU16(psXPC, x64Val.u16[0]) ;	break ;
 		case 2:	x64Val.u32[0] = *((uint32_t *) pStr) ;	vPrintHexU32(psXPC, x64Val.u32[0]) ;	break ;
-		case 3:	x64Val.u64 = *((uint64_t *) pStr) ;		vPrintHexU64(psXPC, x64Val.u64) ; 		break ;
+		case 3:	x64Val.u64	  = *((uint64_t *) pStr) ;	vPrintHexU64(psXPC, x64Val.u64) ; 		break ;
 		}
 	// step to the next 8/16/32/64 bit value
 		if (psXPC->f.alt_form) {						// '#' specified to invert order ?
@@ -497,13 +497,13 @@ void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
 			vPrintChar(psXPC, CHR_COLON) ;
 		} else if (psXPC->f.form == xpfFORMAT_3) {
 			if ((Idx % 8) == 0) {
-				vPrintChar(psXPC, CHR_VERT_BAR) ;
-			} else if ((Idx % 4) == 0) {
 				vPrintChar(psXPC, CHR_SPACE) ;
+			} else if ((Idx % 4) == 0) {
+				vPrintChar(psXPC, CHR_VERT_BAR) ;
 			} else if ((Idx % 2) == 0) {
-				vPrintChar(psXPC, CHR_COLON) ;
-			} else {
 				vPrintChar(psXPC, CHR_MINUS) ;
+			} else {
+				vPrintChar(psXPC, CHR_COLON) ;
 			}
 		}
 	}
