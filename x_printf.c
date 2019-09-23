@@ -61,7 +61,7 @@
 #include	<math.h>									// isnan()
 #include	<float.h>									// DBL_MIN/MAX
 
-#define	debugFLAG				(0x4000)
+#define	debugFLAG				(0xC000)
 
 #define	debugTRACK				(debugFLAG & 0x2000)
 #define	debugPARAM				(debugFLAG & 0x4000)
@@ -1268,7 +1268,6 @@ int		xPrintToString(xpc_t * psXPC, int cChr) {
 }
 
 int 	vsnprintfx(char * pBuf, size_t BufSize, const char * format, va_list vArgs) {
-	IF_myASSERT(debugPARAM, (pBuf == NULL) || INRANGE_SRAM(pBuf)) ;
 	if (pBuf && (BufSize == 1)) {						// buffer specified, but no space ?
 		*pBuf = CHR_NUL ;								// yes, terminate
 		return 0 ; 										// & return
@@ -1306,7 +1305,6 @@ int 	sprintfx(char * pBuf, const char * format, ...) {
 int		xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
 
 int 	vfprintfx(FILE * stream, const char * format, va_list vArgs) {
-	IF_myASSERT(debugPARAM, INRANGE_SRAM(stream)) ;
 	return PrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
 }
 
@@ -1373,7 +1371,6 @@ int		xPrintToHandle(xpc_t * psXPC, int cChr) {
 }
 
 int		vdprintfx(int32_t fd, const char * format, va_list vArgs) {
-	IF_myASSERT(debugPARAM, fd >= 0) ;
 	return PrintFX(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ;
 }
 
@@ -1390,7 +1387,6 @@ int		dprintfx(int32_t fd, const char * format, ...) {
 int		xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
 
 int 	vdevprintfx(int (* handler)(int ), const char * format, va_list vArgs) {
-	IF_myASSERT(debugPARAM, INRANGE_FLASH(handler)) ;
 	return PrintFX(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
 }
 
@@ -1415,7 +1411,6 @@ int		xPrintToSocket(xpc_t * psXPC, int cChr) {
 }
 
 int 	vsocprintfx(netx_t * psSock, const char * format, va_list vArgs) {
-	IF_myASSERT(debugPARAM, INRANGE_SRAM(psSock)) ;
 	int	OldFlags	= psSock->flags ;
 	psSock->flags	|= MSG_MORE ;
 	int32_t iRV = PrintFX(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
@@ -1436,7 +1431,6 @@ int 	socprintfx(netx_t * psSock, const char * format, ...) {
 int		xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr) ; }
 
 int		vuprintfx(ubuf_t * psUBuf, const char * format, va_list vArgs) {
-	IF_myASSERT(debugPARAM, INRANGE_SRAM(psUBuf)) ;
 	if (xUBufSpace(psUBuf) == 0) {						// if no space left
 		return 0 ;										// return
 	}
