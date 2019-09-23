@@ -40,19 +40,19 @@ extern "C" {
 
 // #################################################################################################
 
-#define	PRINT(f, ...)					bprintfx(f, ##__VA_ARGS__)
-#define	LPRINT(f, ...)					lbprintfx(f, ##__VA_ARGS__)
-#define	CPRINT(f, ...)					cprintfx(f, ##__VA_ARGS__)
-
-#define	IF_PRINT(T,f, ...)				if (T) PRINT(f,##__VA_ARGS__)
-#define	IF_LPRINT(T,f, ...)				if (T) LPRINT(f, ##__VA_ARGS__)
-#define	IF_CPRINT(T,f, ...)				if (T) CPRINT(f, ##__VA_ARGS__)
-
 extern uint64_t RunTime ;
 #define	_TRACK_(f)						"%!R: %s:%d " f "\n", RunTime, __FUNCTION__, __LINE__
-#define	TRACK(f, ...)					bprintfx(_TRACK_(f), ##__VA_ARGS__)
-#define	CTRACK(f, ...)					cprintfx(_TRACK_(f), ##__VA_ARGS__)
+
+#define	PRINT(f, ...)					printfx(f, ##__VA_ARGS__)
+#define	TRACK(f, ...)					printfx(_TRACK_(f), ##__VA_ARGS__)
+#define	IF_PRINT(T,f, ...)				if (T) PRINT(f, ##__VA_ARGS__)
 #define	IF_TRACK(T,f, ...)				if (T) TRACK(f,##__VA_ARGS__)
+
+/* The direct output functions must ONLY be used to debug tasks that work with redirected
+ * STDOUT such as the HTTP and TelNET tasks */
+#define	CPRINT(f, ...)					cprintfx(f, ##__VA_ARGS__)
+#define	CTRACK(f, ...)					cprintfx(_TRACK_(f), ##__VA_ARGS__)
+#define	IF_CPRINT(T,f, ...)				if (T) CPRINT(f, ##__VA_ARGS__)
 #define	IF_CTRACK(T,f, ...)				if (T) CTRACK(f,##__VA_ARGS__)
 
 // ###################### control functionality included in xprintf.c ##############################
@@ -253,11 +253,6 @@ int 	vnprintfx(size_t, const char *, va_list) ;
 int 	vprintfx(const char * , va_list) ;
 int 	nprintfx(size_t, const char *, ...) ;
 int		printfx(const char *, ...) ;
-
-// ############################## Destination = STDOUT (Buffered) ##################################
-int 	vnbprintfx(size_t count, const char * format, va_list vArgs) ;
-int 	bprintfx(const char * format, ...) ;
-int 	lbprintfx(const char * format, ...) ;
 
 // ################################### Destination = HANDLE ########################################
 int		vdprintfx(int , const char *, va_list ) ;
