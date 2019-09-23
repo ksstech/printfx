@@ -1338,30 +1338,6 @@ int 	printfx(const char * format, ...) {
 	return iRV ;
 }
 
-// ############################## Destination = STDOUT (Buffered) ##################################
-
-int		xPrintBuffer(xpc_t * psXPC, int cChr) { return xStdOutPutC(cChr) ; }
-
-int 	vnbprintfx(size_t count, const char * format, va_list vArgs) { return PrintFX(xPrintBuffer, NULL, count, format, vArgs) ; }
-
-int 	bprintfx(const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int iRV = PrintFX(xPrintBuffer, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	va_end(vArgs) ;
-	return iRV ;
-}
-
-int 	lbprintfx(const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	xStdOutLock(portMAX_DELAY) ;
-	int iRV = PrintFX(xPrintBuffer, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	xStdOutUnLock() ;
-	va_end(vArgs) ;
-	return iRV ;
-}
-
 // ################################### Destination = HANDLE ########################################
 
 int		xPrintToHandle(xpc_t * psXPC, int cChr) {
