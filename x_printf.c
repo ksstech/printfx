@@ -1273,11 +1273,11 @@ int 	vsnprintfx(char * pBuf, size_t BufSize, const char * format, va_list vArgs)
 		return 0 ; 										// & return
 	}
 	int iRV = PrintFX(xPrintToString, pBuf, BufSize, format, vArgs) ;
-	if (pBuf && (iRV == BufSize)) {					// buffer specified and FULL?
+	if (pBuf && (iRV == BufSize)) {						// buffer specified and FULL?
 		iRV-- ; 										// yes, adjust the length for terminator
 	}
 	if (pBuf) {											// buffer specified ?
-		pBuf[iRV] = CHR_NUL ; 						// yes, terminate
+		pBuf[iRV] = CHR_NUL ; 							// yes, terminate
 	}
 	return iRV ;
 }
@@ -1304,9 +1304,7 @@ int 	sprintfx(char * pBuf, const char * format, ...) {
 
 int		xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
 
-int 	vfprintfx(FILE * stream, const char * format, va_list vArgs) {
-	return PrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int 	vfprintfx(FILE * stream, const char * format, va_list vArgs) { return PrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int 	fprintfx(FILE * stream, const char * format, ...) {
 	va_list vArgs ;
@@ -1346,9 +1344,7 @@ int		xPrintToHandle(xpc_t * psXPC, int cChr) {
 	return size == 1 ? cChr : size ;
 }
 
-int		vdprintfx(int32_t fd, const char * format, va_list vArgs) {
-	return PrintFX(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int		vdprintfx(int32_t fd, const char * format, va_list vArgs) { return PrintFX(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int		dprintfx(int32_t fd, const char * format, ...) {
 	va_list	vArgs ;
@@ -1362,9 +1358,7 @@ int		dprintfx(int32_t fd, const char * format, ...) {
 
 int		xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
 
-int 	vdevprintfx(int (* handler)(int ), const char * format, va_list vArgs) {
-	return PrintFX(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int 	vdevprintfx(int (* handler)(int ), const char * format, va_list vArgs) { return PrintFX(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int 	devprintfx(int (* handler)(int ), const char * format, ...) {
 	va_list vArgs ;
