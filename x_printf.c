@@ -142,8 +142,8 @@ int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
  */
 void	vPrintString (xpc_t * psXPC, char * pStr) {
 	int32_t Len = 0 ;
-	pStr = (pStr == NULL) ? (char *) STRING_NULL :
-			INRANGE_MEM(pStr) ? pStr : (char *) STRING_OOR ;
+//	pStr = (pStr == NULL) ? (char *) STRING_NULL : INRANGE_MEM(pStr) ? pStr : (char *) STRING_OOR ;
+	pStr = (pStr == NULL) ? (char *) STRING_NULL : pStr ;
 	for (char * ptr = pStr; *ptr ; ++ptr) {
 		Len++ ;											// calculate actual string length
 	}
@@ -467,7 +467,7 @@ void	vPrintHexU64(xpc_t * psXPC, uint64_t Value) {
  *					'#' via alt_form select reverse order (little vs big endian) interpretation
  */
 void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
-	IF_myASSERT(debugPARAM, (Num > 0) && INRANGE_MEM(pStr)) ;
+//	IF_myASSERT(debugPARAM, (Num > 0) && INRANGE_MEM(pStr)) ;
 	int32_t	Size = 1 << psXPC->f.size ;
 	if (psXPC->f.alt_form) {							// '#' specified to invert order ?
 		pStr += Num - Size ;							// working backwards so point to last
@@ -989,7 +989,7 @@ void	vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
  */
 
 int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const char * format, va_list vArgs) {
-	IF_myASSERT(debugPARAM, INRANGE_MEM(handler) && INRANGE_MEM(format)) ;
+//	IF_myASSERT(debugPARAM, INRANGE_MEM(handler) && INRANGE_MEM(format)) ;
 	xpc_t	sXPC ;
 	sXPC.handler	= handler ;
 	sXPC.pVoid		= pVoid ;
