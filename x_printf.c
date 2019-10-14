@@ -332,14 +332,13 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 		}
 	}
 
-		idx = (psXPC->f.precision == 0) ? 1 : psXPC->f.precision ;
-		if ((idx > Exponent) && (Exponent >= -4)) {
-			psXPC->f.form = xpfFORMAT_1_F ;				// force to fixed point format
-			psXPC->f.precision = idx - (Exponent + 1) ;
 	if (psXPC->f.form == xpfFORMAT_0_G) {				// if 'gG' specified check exponent range and select applicable mode.
+		// if explicit precision is '0' take it as '1' (https://pubs.opengroup.org/onlinepubs/007908799/xsh/fprintf.html)
+		psXPC->f.precision = psXPC->f.precision ? psXPC->f.precision : 1 ;
+		if ((Exponent < -4) || (Exponent >= psXPC->f.precision)) {
+			psXPC->f.form = xpfFORMAT_2_E ;				// force 'eE' format
 		} else {
-			psXPC->f.form = xpfFORMAT_2_E ;				// force to exponential format
-			psXPC->f.precision = idx - 1 ;
+			psXPC->f.form = xpfFORMAT_1_F ;				// force 'f' format
 		}
 	}
 
@@ -350,43 +349,40 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 	if (f64Val < (DBL_MAX - round_nums[psXPC->f.precision])) {	// if addition of rounding value will NOT cause overflow.
 		f64Val += round_nums[psXPC->f.precision] ;		// round by adding .5LSB to the value
 	}
-// building R to L, ensure buffer NULL-term
-	Buffer[xpfMAX_LEN_F64 - 1] = CHR_NUL ;
 
-// If required, handle the exponent
-	if (psXPC->f.form == xpfFORMAT_2_E) {
+	Buffer[xpfMAX_LEN_F64 - 1] = CHR_NUL ;				// building R to L, ensure buffer NULL-term
+
+	if (psXPC->f.form == xpfFORMAT_2_E) {				// If required, handle the exponent
 		psXPC->f.minwid		= 2 ;
 		psXPC->f.pad0		= 1 ;						// MUST left pad with '0'
 		psXPC->f.signval	= 1 ;
 		psXPC->f.ljust		= 0 ;
 		psXPC->f.negvalue	= (Exponent < 0) ? 1 : 0 ;
 		Exponent *= psXPC->f.negvalue ? -1LL : 1LL ;
-		Len += xPrintXxx(psXPC, Exponent, Buffer, (xpfMAX_LEN_F64 - 1)) ;
-		*(Buffer + (xpfMAX_LEN_F64 - 2 - Len++))	= psXPC->f.Ucase ? 'E' : 'e' ;
+		Len += xPrintXxx(psXPC, Exponent, Buffer, (xpfMAX_LEN_F64-1)) ;
+		Buffer[xpfMAX_LEN_F64-2 -Len++] = psXPC->f.Ucase ? 'E' : 'e' ;
 	}
 
-// convert the fractional component, if required.
-	if (psXPC->f.precision > 0)	{					// Any decimal digits requested?
-	// determine the multiplicant to be used to convert the fractional portion into a whole number
-		uint64_t	mult ;
-		for (idx = 0, mult = 1 ; idx < psXPC->f.precision ; idx++) {
-			mult *= 10 ;
+	if (psXPC->f.precision > 0)	{						// if decimal digits requested, convert fractional portion?
+		uint64_t	m ;									// calc multiplicant to convert fractional portion to whole number
+		int32_t		i ;
+		x64Value.f64	= f64Val - (uint64_t)f64Val ;	// isolate fraction as double
+		for (i = 0, m = 1 ; i < psXPC->f.precision ; i++) {
+			m *= 10 ;
 		}
-	// extract fractional component as integer from double
-		x64Value.f64		= f64Val - (uint64_t) f64Val ;		// STEP 1 - Isolate fraction as double
-		x64Value.f64		= x64Value.f64 * (double) mult ;	// STEP 2 -convert relevant fraction to integer
-		x64Value.u64		= (uint64_t) x64Value.f64 ;		// STEP the relevant integer portion, discard remaining fraction
+		x64Value.f64	= x64Value.f64 * (double)m ;	// convert fraction to integer [+fraction]
+		x64Value.u64	= (uint64_t)x64Value.f64 ;		// extract integer portion, discard remaining fraction of "fraction"
+
+		if (x64Value.u64 || psXPC->f.radix) {			// if fraction<>0 or radix specified, something to be displayed...
+			psXPC->f.minwid		= psXPC->f.precision ;	// do the (now decimal) fractional portion
+			psXPC->f.pad0		= 1 ;					// MUST left pad with '0'
+			psXPC->f.group		= 0 ;					// cannot group in fractional
+			psXPC->f.signval	= 0 ;					// always unsigned value
+			psXPC->f.negvalue	= 0 ;					// and never negative
+			psXPC->f.plus		= 0 ;					// no leading +/- before fractional part
+			Len += xPrintXxx(psXPC, x64Value.u64, Buffer, xpfMAX_LEN_F64-1 -Len) ;
+			Buffer[xpfMAX_LEN_F64-2 -Len++] = CHR_FULLSTOP ;	// handle the separator
 		}
-	// now do the decimal (fractional) portion
-		psXPC->f.minwid		= psXPC->f.precision ;
-		psXPC->f.pad0		= 1 ;						// MUST left pad with '0'
-		psXPC->f.group		= 0 ;						// cannot group in fractional
-		psXPC->f.signval	= 0 ;						// always unsigned value
-		psXPC->f.negvalue	= 0 ;
-		psXPC->f.plus		= 0 ;						// no leading +/- before fractional part
-		Len += xPrintXxx(psXPC, x64Value.u64, Buffer, (xpfMAX_LEN_F64 - 1) - Len) ;
-	// handle the separator
-		*(Buffer + (xpfMAX_LEN_F64 - 2 - Len++))	= CHR_FULLSTOP ;
 	}
 
 	x64Value.u64		= f64Val ;						// extract and convert the whole number portions
@@ -1494,7 +1490,7 @@ int32_t	nbcprintfx(const char * format, ...) {
 
 #define		TEST_INTEGER	0
 #define		TEST_STRING		0
-#define		TEST_FLOAT		0
+#define		TEST_FLOAT		2
 #define		TEST_BINARY		0
 #define		TEST_ADDRESS	0
 #define		TEST_DATETIME	0
