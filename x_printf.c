@@ -190,7 +190,7 @@ char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
 }
 
 /**
- * xPrintXxx() convert uint64_t value to a formatted string
+ * xPrintXxx() convert uint64_t value to a formatted string (right to left, L <- R)
  * \param	psXPC - pointer to control structure
  * 			ullVal - uint64_t value to convert & output
  * 			pBuffer - pointer to buffer for converted string storage
@@ -201,8 +201,7 @@ char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
  * 				'-'		Left align the individual numbers between the '.'
  * 				'+'		Force a '+' or '-' sign on the left
  * 				'0'		Zero pad to the left of the value to fill the field
- * Protection against buffer overflow is based on the correct sized buffer
- * being allocated in the calling function
+ * Protection against buffer overflow based on correct sized buffer being allocated in calling function
  */
 int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize) {
 	IF_myASSERT(debugPARAM, INRANGE_SRAM(pBuffer) && (BufSize > 1)) ;
@@ -310,15 +309,15 @@ void	vPrintX64(xpc_t * psXPC, uint64_t Value) {
 void	vPrintF64(xpc_t * psXPC, double f64Val) {
 	if (isnan(f64Val)) { vPrintString(psXPC, (char *)"{NaN}") ; return ; }
 	char	Buffer[xpfMAX_LEN_F64] ;
-	int32_t idx, Exponent, Len = 0 ;
+	int32_t Len = 0 ;
 	psXPC->f.negvalue	= f64Val < 0.0 ? 1 : 0 ;		// set negvalue if < 0.0
 	f64Val				*= psXPC->f.negvalue ? -1.0 : 1.0 ;	// convert to positive number
 	xpf_t		xpf ;
 	xpf.limits			= psXPC->f.limits ;				// save original flags
 	xpf.flags			= psXPC->f.flags ;
 	x64_t x64Value 		= { 0 } ;
-// if exponential format requested, calculate the exponent
-	Exponent = 0 ;
+
+	int32_t	Exponent = 0 ;								// if exponential format requested, calculate the exponent
 	if (f64Val != 0.0) {								// if not 0 and...
 		if (psXPC->f.form != xpfFORMAT_1_F) {			// any of "eEgG" specified ?
 			x64Value.f64	= f64Val ;
@@ -333,23 +332,22 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 		}
 	}
 
-// if 'g' or 'G' specified check the exponent range and select applicable mode.
-	if (psXPC->f.form == xpfFORMAT_0_G) {
 		idx = (psXPC->f.precision == 0) ? 1 : psXPC->f.precision ;
 		if ((idx > Exponent) && (Exponent >= -4)) {
 			psXPC->f.form = xpfFORMAT_1_F ;				// force to fixed point format
 			psXPC->f.precision = idx - (Exponent + 1) ;
+	if (psXPC->f.form == xpfFORMAT_0_G) {				// if 'gG' specified check exponent range and select applicable mode.
 		} else {
 			psXPC->f.form = xpfFORMAT_2_E ;				// force to exponential format
 			psXPC->f.precision = idx - 1 ;
 		}
 	}
-// based on the format to be used, change the value if exponent format
-	if (psXPC->f.form == xpfFORMAT_2_E) {
+
+	if (psXPC->f.form == xpfFORMAT_2_E) {				// based on format change value if exponent format
 		f64Val = x64Value.f64 ;							// change to exponent adjusted value
 	}
-// do rounding based on precision, only if addition of rounding value will NOT cause overflow.
-	if (f64Val < (DBL_MAX - round_nums[psXPC->f.precision])) {
+
+	if (f64Val < (DBL_MAX - round_nums[psXPC->f.precision])) {	// if addition of rounding value will NOT cause overflow.
 		f64Val += round_nums[psXPC->f.precision] ;		// round by adding .5LSB to the value
 	}
 // building R to L, ensure buffer NULL-term
@@ -391,18 +389,16 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 		*(Buffer + (xpfMAX_LEN_F64 - 2 - Len++))	= CHR_FULLSTOP ;
 	}
 
-// extract and convert the whole number portions
-	x64Value.u64		= f64Val ;
-	psXPC->f.limits		= xpf.limits ;					// restore original flags
+	x64Value.u64		= f64Val ;						// extract and convert the whole number portions
+	psXPC->f.limits		= xpf.limits ;					// restore original limits & flags
 	psXPC->f.flags		= xpf.flags ;
 // adjust minwid to do padding (if required) based on string length after adding whole number
-	psXPC->f.minwid		= (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0 ;
-	Len += xPrintXxx(psXPC, x64Value.u64, Buffer, (xpfMAX_LEN_F64 - 1) - Len) ;
-	psXPC->f.limits		= xpf.limits ;					// restore original flags
+	psXPC->f.minwid		= psXPC->f.minwid > Len ? psXPC->f.minwid -Len : 0 ;
+	Len += xPrintXxx(psXPC, x64Value.u64, Buffer, xpfMAX_LEN_F64-1 -Len) ;
+	psXPC->f.limits		= xpf.limits ;					// restore original limits & flags
 	psXPC->f.flags		= xpf.flags ;
 	psXPC->f.precision	= 0 ;							// enable full string to be output (subject to minwid padding on right)
-// then send the formatted output to the correct stream
-	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64 - 1 - Len)) ;
+	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64-1 -Len)) ;
 }
 
 /**
