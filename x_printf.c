@@ -308,6 +308,7 @@ void	vPrintX64(xpc_t * psXPC, uint64_t Value) {
  * 	http://git.musl-libc.org/cgit/musl/blob/src/stdio/vfprintf.c?h=v1.1.6
  */
 void	vPrintF64(xpc_t * psXPC, double f64Val) {
+	if (isnan(f64Val)) { vPrintString(psXPC, (char *)"{NaN}") ; return ; }
 	char	Buffer[xpfMAX_LEN_F64] ;
 	int32_t idx, Exponent, Len = 0 ;
 	psXPC->f.negvalue	= f64Val < 0.0 ? 1 : 0 ;		// set negvalue if < 0.0
@@ -377,10 +378,6 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 		x64Value.f64		= f64Val - (uint64_t) f64Val ;		// STEP 1 - Isolate fraction as double
 		x64Value.f64		= x64Value.f64 * (double) mult ;	// STEP 2 -convert relevant fraction to integer
 		x64Value.u64		= (uint64_t) x64Value.f64 ;		// STEP the relevant integer portion, discard remaining fraction
-		if (isnan(x64Value.f64)) {
-			strcpy(Buffer + xpfMAX_LEN_F64 - sizeof("{NaN}"), "{NaN}") ;
-			Len += 5 ;
-			goto done ;
 		}
 	// now do the decimal (fractional) portion
 		psXPC->f.minwid		= psXPC->f.precision ;
@@ -401,7 +398,6 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 // adjust minwid to do padding (if required) based on string length after adding whole number
 	psXPC->f.minwid		= (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0 ;
 	Len += xPrintXxx(psXPC, x64Value.u64, Buffer, (xpfMAX_LEN_F64 - 1) - Len) ;
-done:
 	psXPC->f.limits		= xpf.limits ;					// restore original flags
 	psXPC->f.flags		= xpf.flags ;
 	psXPC->f.precision	= 0 ;							// enable full string to be output (subject to minwid padding on right)
