@@ -1,4 +1,4 @@
-# printf
+# printfx
   New enhanced replacement for variants of printf() - optimized for embedded system
 
 # Key features:
@@ -106,7 +106,7 @@
   *------------> DTZ=elapsed time,	DUMP=relative addr,
 
 # Examples:
-   "%'03llJ"			- print binary representation, optional separator, llong & field width modifiers
+	"%'03llJ"			- print binary representation, optional separator, llong & field width modifiers
 	"%['!#+ll]{BbHhWw}"	- hexdump of memory area, USE 2 PARAMETERS FOR START AND LENGTH !!!!
  						MUST NOT specify "*" or "." or "*." or .*", this will screw up the parameter sequence
 	"%[-0]I"			- print IP address, justified left or right (pad 0 or ' ')
@@ -123,6 +123,7 @@
 # What is NOT supported:
   locale, radix fixed to '.'
   *n*th argument in the form of %n$
+  'b' additional conversion specifier
   'n' conversion character
   'h' flag as applied to 'diouxX' to specify source value being short [un]signed int
   'l' flag as applied to 'diouxX' to specify source value being long [un]signed int
