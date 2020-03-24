@@ -45,15 +45,15 @@ extern uint64_t RunTime ;
 
 #define	PRINT(f, ...)					printfx(f, ##__VA_ARGS__)
 #define	TRACK(f, ...)					printfx(_TRACK_(f), ##__VA_ARGS__)
-#define	IF_PRINT(T,f, ...)				if (T) PRINT(f, ##__VA_ARGS__)
-#define	IF_TRACK(T,f, ...)				if (T) TRACK(f,##__VA_ARGS__)
+#define	IF_PRINT(T, f, ...)				if (T) PRINT(f, ##__VA_ARGS__)
+#define	IF_TRACK(T, f, ...)				if (T) TRACK(f, ##__VA_ARGS__)
 
 /* The direct output functions must ONLY be used to debug tasks that work with redirected
  * STDOUT such as the HTTP and TelNET tasks */
 #define	CPRINT(f, ...)					cprintfx(f, ##__VA_ARGS__)
 #define	CTRACK(f, ...)					cprintfx(_TRACK_(f), ##__VA_ARGS__)
-#define	IF_CPRINT(T,f, ...)				if (T) CPRINT(f, ##__VA_ARGS__)
-#define	IF_CTRACK(T,f, ...)				if (T) CTRACK(f,##__VA_ARGS__)
+#define	IF_CPRINT(T, f, ...)			if (T) CPRINT(f, ##__VA_ARGS__)
+#define	IF_CTRACK(T, f, ...)			if (T) CTRACK(f, ##__VA_ARGS__)
 
 // ###################### control functionality included in xprintf.c ##############################
 
