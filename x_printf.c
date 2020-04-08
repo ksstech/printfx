@@ -768,11 +768,14 @@ void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
  * @param psXPC
  * @param pString
  */
-void	vPrintURL(xpc_t * psXPC, uint8_t * pString) {
-	uint8_t cIn ;
-	while ((cIn = *pString++) != CHR_NUL) {
-		if (INRANGE(CHR_A, cIn, CHR_Z, uint8_t) || INRANGE(CHR_a, cIn, CHR_z, uint8_t) || INRANGE(CHR_0, cIn, CHR_9, uint8_t) ||
-			cIn == CHR_MINUS || cIn == CHR_UNDERSCORE || cIn == CHR_FULLSTOP || cIn == CHR_TILDE) {
+void	vPrintURL(xpc_t * psXPC, char * pStr) {
+	char cIn ;
+	pStr = (pStr == NULL) ? STRING_NULL : INRANGE_MEM(pStr) ? pStr : STRING_OOR ;
+	while ((cIn = *pStr++) != CHR_NUL) {
+		if (INRANGE(CHR_A, cIn, CHR_Z, char) ||
+			INRANGE(CHR_a, cIn, CHR_z, char) ||
+			INRANGE(CHR_0, cIn, CHR_9, char) ||
+			cIn == CHR_MINUS || cIn == CHR_FULLSTOP || cIn == CHR_UNDERSCORE || cIn == CHR_TILDE) {
 			vPrintChar(psXPC, cIn) ;
 		} else {
 			vPrintChar(psXPC, CHR_PERCENT) ;
@@ -1112,7 +1115,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 
 #if		(xpfSUPPORT_URL == 1)
 			case CHR_U:
-				vPrintURL(&sXPC, va_arg(vArgs, uint8_t *)) ;			// para = pointer to string to be encoded
+				vPrintURL(&sXPC, va_arg(vArgs, char *)) ;			// para = pointer to string to be encoded
 				break ;
 #endif
 
