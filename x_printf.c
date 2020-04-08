@@ -141,35 +141,24 @@ int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
  * \return	number of ACTUAL characters output.
  */
 void	vPrintString (xpc_t * psXPC, char * pStr) {
-	int32_t Len = 0 ;
-//	pStr = (pStr == NULL) ? (char *) STRING_NULL : INRANGE_MEM(pStr) ? pStr : (char *) STRING_OOR ;
-	pStr = (pStr == NULL) ? (char *) STRING_NULL : pStr ;
-	for (char * ptr = pStr; *ptr ; ++ptr) {
-		Len++ ;											// calculate actual string length
-	}
-	int32_t PadLen ;
-	if (psXPC->f.minwid > Len) {
-		PadLen = psXPC->f.minwid - Len ;				// calc required number of padding chars
-	} else {
-		PadLen = 0 ;
-	}
+	pStr = (pStr == NULL) ? STRING_NULL : INRANGE_MEM(pStr) ? pStr : STRING_OOR ;
+
+	int32_t PadLen, Len = 0 ;
+	for (char * ptr = pStr; *ptr ; ++ptr, ++Len) ;					// calc actual string length
+	PadLen = (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0 ;	// calc required number of padding chars
+
 	// handle padding on left (ie right justified)
 	int32_t padchar = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
 	if ((psXPC->f.ljust == 0) && PadLen) {				// If right justified & we must pad
-		while (PadLen--) {
-			vPrintChar(psXPC, padchar) ;				// do left pad
-		}
+		while (PadLen--) vPrintChar(psXPC, padchar) ;	// do left pad
 	}
 	// output the actual string
 	psXPC->f.precision = psXPC->f.precision ? psXPC->f.precision : Len ;
-	while (*pStr && psXPC->f.precision--) {
-		vPrintChar(psXPC, *pStr++) ;
-	}
+	while (*pStr && psXPC->f.precision--) vPrintChar(psXPC, *pStr++) ;
+
 	// handle padding on right (ie left justified)
 	if ((psXPC->f.ljust == 1) && PadLen) {				// If left justified & we must pad
-		while (PadLen--) {
-			vPrintChar(psXPC, padchar) ;				// do right pad
-		}
+		while (PadLen--) vPrintChar(psXPC, padchar) ;	// do right pad
 	}
 }
 
