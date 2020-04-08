@@ -622,42 +622,29 @@ void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
 	psXPC->f.pad0	= psXPC->f.abs_rel ? 0 : 1 ;
 	size_t	Len ;
 	char	Buffer[xpfMAX_LEN_DATE] ;
-	// Part 1: day of week (optional)
-	if (psXPC->f.alt_form) {							// "Sun, "
-		Len = xstrncpy(Buffer, (char *) xTime_GetDayName(sTM.tm_wday), 3) ;
-		Len += xstrncpy(&Buffer[Len], (char *) ", ", 2) ;
-	} else {
-		Len = 0 ;
+	if (psXPC->f.alt_form && psXPC->f.abs_rel) {		// cannot have Alt form with relative value
+		psXPC->f.alt_form = 0 ;							// force to normal format output.
 	}
 
-	// Part 2:
-	if (psXPC->f.alt_form) {							// "Sun, 10 "
-		Len += xPrintDate_Day(psXPC, &sTM, &Buffer[Len]) ;
+	if (psXPC->f.alt_form) {
+		Len = xstrncpy(Buffer, (char *) xTimeGetDayName(sTM.tm_wday), 3) ;			// "Sun"
+		Len += xstrncpy(&Buffer[Len], (char *) ", ", 2) ;							// "Sun, "
+		Len += xPrintDate_Day(psXPC, &sTM, &Buffer[Len]) ;							// "Sun, 10 "
+		Len += xstrncpy(&Buffer[Len], (char *) xTimeGetMonthName(sTM.tm_mon), 3) ;	// "Sun, 10 Sep"
+		Len += xstrncpy(&Buffer[Len], (char *) " ", 1) ;							// "Sun, 10 Sep "
+		Len += xPrintDate_Year(psXPC, &sTM, &Buffer[Len]) ;							// "Sun, 10 Sep 2017"
 	} else {
+		Len = 0 ;
 		if (sTM.tm_year > 0 || psXPC->f.pad0) {
 			Len += xPrintDate_Year(psXPC, &sTM, &Buffer[Len]) ;
 		}
-	}
-
-	// Part 3:
-	if (psXPC->f.alt_form) {							// "Sun, 10 Sep "
-		Len += xstrncpy(&Buffer[Len], (char *) xTime_GetMonthName(sTM.tm_mon), 3) ;
-		Len += xstrncpy(&Buffer[Len], (char *) " ", 1) ;
-	} else {
 		if (sTM.tm_mon > 0 || psXPC->f.pad0 || psXPC->f.year_ok) {
 			Len += xPrintDate_Month(psXPC, &sTM, &Buffer[Len]) ;
 		}
-	}
-
-	// Part 4:
-	if (psXPC->f.alt_form) {							// "Sun, 10 Sep 2017"
-		Len += xPrintDate_Year(psXPC, &sTM, &Buffer[Len]) ;
-	} else {
 		if (Seconds >= SECONDS_IN_DAY || psXPC->f.pad0 || psXPC->f.mon_ok) {
 			Len += xPrintDate_Day(psXPC, &sTM, &Buffer[Len]) ;
 		}
 	}
-
 // converted L to R, so terminate
 	Buffer[Len] = CHR_NUL ;
 // then send the formatted output to the correct stream
