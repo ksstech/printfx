@@ -504,8 +504,6 @@ void	vPrintPointer(xpc_t * psXPC, uint32_t Address) {
 seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 	seconds_t	Seconds ;
 	// Get seconds value to use... (adjust for TZ if required/allowed)
-		(psXPC->f.plus == 1) &&							// display of TZ info requested
-		(psXPC->f.abs_rel == 0) &&						// not working with relative time
 	if (psTSZ->pTZ &&									// TZ info available
 		psXPC->f.plus &&								// output not going to show TZ info
 		!psXPC->f.alt_form &&							// alt_form always GMT/UTC
