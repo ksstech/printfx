@@ -1283,7 +1283,12 @@ int 	fprintfx(FILE * stream, const char * format, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-int 	vnprintfx(size_t count, const char * format, va_list vArgs) { return PrintFX(xPrintToFile, stdout, count, format, vArgs) ; }
+int		xPrintStdOut(xpc_t * psXPC, int cChr) {
+	if (cChr == CHR_LF)			xStdOutPutC(CHR_CR) ;
+	return xStdOutPutC(cChr) ;
+}
+
+int 	vnprintfx(size_t count, const char * format, va_list vArgs) { return PrintFX(xPrintStdOut, stdout, count, format, vArgs) ; }
 
 int 	vprintfx(const char * format, va_list vArgs) { return vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
