@@ -508,21 +508,21 @@ seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 		(psXPC->f.plus == 1) &&							// display of TZ info requested
 		(psXPC->f.abs_rel == 0) &&						// not working with relative time
 		(psXPC->f.alt_form == 0)) {						// not asking for alternative form output
-		Seconds = xTime_CalcLocalTimeSeconds(psTSZ) ;
+		Seconds = xTimeCalcLocalTimeSeconds(psTSZ) ;
 	} else {
 		Seconds = xTimeStampAsSeconds(psTSZ->usecs) ;
 	}
 
 // convert seconds into components
 	if (psTM) {
-		xTime_GMTime(Seconds, psTM, psXPC->f.abs_rel) ;
+		xTimeGMTime(Seconds, psTM, psXPC->f.abs_rel) ;
 	}
 	return Seconds ;
 }
 
 void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
 	struct	tm 	sTM ;
-	xTime_GMTime(xTimeStampAsSeconds(uSecs), &sTM, psXPC->f.abs_rel) ;
+	xTimeGMTime(xTimeStampAsSeconds(uSecs), &sTM, psXPC->f.abs_rel) ;
 	psXPC->f.plus	= 0 ;								// ensure no '+' sign printed
 	psXPC->f.form	= psXPC->f.group ? xpfFORMAT_3 : xpfFORMAT_0_G ;
 	psXPC->f.minwid = 2 ;
@@ -616,7 +616,7 @@ size_t	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
 	struct tm 	sTM ;
 	seconds_t Seconds ;
-	xTime_GMTime(Seconds = xTimeStampAsSeconds(uSecs), &sTM, psXPC->f.abs_rel) ;
+	xTimeGMTime(Seconds = xTimeStampAsSeconds(uSecs), &sTM, psXPC->f.abs_rel) ;
 	psXPC->f.plus	= 0 ;								// ensure no '+' sign printed
 	psXPC->f.form	= psXPC->f.group ? xpfFORMAT_3 : xpfFORMAT_0_G ;
 	psXPC->f.pad0	= psXPC->f.abs_rel ? 0 : 1 ;
