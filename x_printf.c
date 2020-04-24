@@ -1000,7 +1000,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 					sXPC.f.arg_width= 1 ;
 					break ;
 				case 4:									// '+' force leading +/- signed
-					++format ;							// or HEXDUMP add ASCII char dump
+					++format ;							// or HEXDUMP add ASCII char dump, TIME add TZ info
 					sXPC.f.plus		= 1 ;				// or Zone info with time
 					break ;
 				case 5:									// '-' Left justify modifier
