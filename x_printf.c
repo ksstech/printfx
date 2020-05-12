@@ -48,11 +48,13 @@
  */
 
 #include	"x_printf.h"
+#include	"FreeRTOS_Support.h"
 #include	"x_string_general.h"						// xinstring function
 #include	"x_errors_events.h"
 #include	"x_values_to_string.h"
 #include	"x_sockets.h"
 #include	"x_retarget.h"
+#include	"x_struct_union.h"
 
 #include	"hal_debug.h"								// need ASSERT
 #include	"hal_nvic.h"
@@ -296,7 +298,10 @@ void	vPrintX64(xpc_t * psXPC, uint64_t Value) {
  * 	http://git.musl-libc.org/cgit/musl/blob/src/stdio/vfprintf.c?h=v1.1.6
  */
 void	vPrintF64(xpc_t * psXPC, double f64Val) {
-	if (isnan(f64Val)) { vPrintString(psXPC, (char *)"{NaN}") ; return ; }
+	if (isnan(f64Val)) {
+		vPrintString(psXPC, (char *)"{NaN}") ;
+		return ;
+	}
 	char	Buffer[xpfMAX_LEN_F64] ;
 	int32_t Len = 0 ;
 	psXPC->f.negvalue	= f64Val < 0.0 ? 1 : 0 ;		// set negvalue if < 0.0
@@ -1075,7 +1080,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 			switch (cFmt) {
 #if		(xpfSUPPORT_SGR == 1)
 			/* TODO: Since we are using the same command handler to process requests (UART, HTTP & TNET) and
-			 * since we are embedding colour ESC sequences into the formatted output (to mae it pretty); and
+			 * since we are embedding colour ESC sequences into the formatted output (to make it pretty) and
 			 * since the colour ESC sequences are not understood by the HTTP protocol (but handled by UART & TNET); hence
 			 * we must try to filter out the possible output produced by the ESC sequences if the output is going
 			 * to a socket, and this we must try to do, one way or another.
@@ -1183,10 +1188,10 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 #if	(xpfSUPPORT_IEEE754 == 1)
 			case CHR_e:									// treat same as 'f' for now, need to implement...
 				sXPC.f.form++ ;
-				/* no break */
+				/* FALLTHRU */
 			case CHR_f:									// floating point format
 				sXPC.f.form++ ;
-				/* no break */
+				/* FALLTHRU */
 			case CHR_g:
 				sXPC.f.signval	= 1 ;					// float always signed value.
 				if (sXPC.f.radix) {
