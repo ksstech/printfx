@@ -1079,7 +1079,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 		// At this stage the format specifiers used in UC & LC to denote output case has been changed to all lower case
 			switch (cFmt) {
 #if		(xpfSUPPORT_SGR == 1)
-			/* TODO: Since we are using the same command handler to process requests (UART, HTTP & TNET) and
+			/* XXX: Since we are using the same command handler to process requests (UART, HTTP & TNET) and
 			 * since we are embedding colour ESC sequences into the formatted output (to make it pretty) and
 			 * since the colour ESC sequences are not understood by the HTTP protocol (but handled by UART & TNET); hence
 			 * we must try to filter out the possible output produced by the ESC sequences if the output is going
