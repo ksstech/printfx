@@ -1188,10 +1188,10 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 #if	(xpfSUPPORT_IEEE754 == 1)
 			case CHR_e:									// treat same as 'f' for now, need to implement...
 				sXPC.f.form++ ;
-				/* FALLTHRU */
+				/* FALLTHRU */ /* no break */
 			case CHR_f:									// floating point format
 				sXPC.f.form++ ;
-				/* FALLTHRU */
+				/* FALLTHRU */ /* no break */
 			case CHR_g:
 				sXPC.f.signval	= 1 ;					// float always signed value.
 				if (sXPC.f.radix) {
@@ -1422,6 +1422,25 @@ int32_t	nbcprintfx(const char * format, ...) {
 	va_start(vArgs, format) ;
 	int32_t iRV = PrintFX(xPrintToStdoutNoBlock, NULL, 128, format, vArgs) ;
 	va_end(vArgs) ;
+	return iRV ;
+}
+
+/* ################################# Destination - String buffer or STDOUT #########################
+ *
+ */
+int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
+	va_list vArgs ;
+	va_start(vArgs, pcFormat) ;
+	int32_t iRV ;
+	if (*ppcBuf && (*pSize > 1)) {
+		iRV = vsnprintfx(*ppcBuf, *pSize, pcFormat, vArgs) ;
+		if (iRV > 0) {
+			*ppcBuf	+= iRV ;
+			*pSize	-= iRV ;
+		}
+	} else {
+		iRV = vprintfx(pcFormat, vArgs) ;
+	}
 	return iRV ;
 }
 

@@ -26,13 +26,9 @@
 
 #include	"x_definitions.h"
 
-#include	<stdio.h>
-#include	<stdint.h>
 #include	<stdarg.h>
-
-#if		(ESP32_PLATFORM == 1)
-	#include	<regex.h>
-#endif
+#include	<stdint.h>
+#include	<stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -158,8 +154,8 @@ extern uint64_t RunTime ;
 
 /* https://en.wikipedia.org/wiki/ANSI_escape_code#Escape_sequences
  * http://www.termsys.demon.co.uk/vtansi.htm#colors */
-typedef union {
-	struct {
+typedef union __attribute__((packed)) {
+	struct __attribute__((packed)) {
 		uint8_t		d ;
 		uint8_t		c ;
 		uint8_t		b ;
@@ -168,14 +164,15 @@ typedef union {
 	uint8_t		u8[sizeof(uint32_t)] ;
 	uint32_t	u32 ;
 } sgr_info_t ;
+DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4) ;
 
 typedef	union xpf_u {
-	struct {
+	struct __attribute__((packed)) {
 		uint32_t	lengths ;							// maxlen & curlen ;
 		uint32_t	limits ;							// minwid & precision
 		uint32_t	flags ;								// rest of flags
 	} ;
-	struct {
+	struct __attribute__((packed)) {
 	/* Be careful about changing the size of the next 4 fields since the 16bits each
 	 * align directly with the uint32_t fields "limits and "flags" above. The "flags" field is
 	 * used to reset the flags in the man vPrint routine */
@@ -216,11 +213,12 @@ typedef	union xpf_u {
 		uint8_t		spare		: 1 ;
 	} ;
 } xpf_t ;
+DUMB_STATIC_ASSERT(sizeof(xpf_t) == 12) ;
 
 struct	ubuf_s ;
 struct	netx_s ;
 
-typedef	struct xpc_s {
+typedef	struct __attribute__((packed)) xpc_s {
 	int 	(*handler)(struct xpc_s * , int ) ;
 	union {
 		void *			pVoid ;
@@ -233,6 +231,7 @@ typedef	struct xpc_s {
 	} ;
 	xpf_t	f ;
 } xpc_t ;
+DUMB_STATIC_ASSERT(sizeof(xpc_t) == 20) ;
 
 /*
  * Public function prototypes for extended functionality version of stdio supplied functions
@@ -276,6 +275,8 @@ int     uprintfx(struct ubuf_s *, const char * , ...) ;
 int 	vcprintfx(const char *, va_list) ;
 int 	cprintfx(const char *, ...) ;
 int		nbcprintfx(const char *, ...) ;
+
+int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) ;
 
 // ##################################### functional tests ##########################################
 
