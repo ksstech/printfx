@@ -1,5 +1,5 @@
 /*
-  * Copyright 2014-19 Andre M Maree / KSS Technologies (Pty) Ltd.
+  * Copyright 2014-20 Andre M Maree / KSS Technologies (Pty) Ltd.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -53,6 +53,7 @@
 #include	"x_errors_events.h"
 #include	"x_values_to_string.h"
 #include	"x_sockets.h"
+#include	"x_ubuf.h"
 #include	"x_retarget.h"
 #include	"x_struct_union.h"
 
