@@ -1426,7 +1426,9 @@ int32_t	nbcprintfx(const char * format, ...) {
 }
 
 /* ################################# Destination - String buffer or STDOUT #########################
- *
+ * * Based on the values (pre) initialised for buffer start and size
+ * a) walk through the buffer on successive calls, concatenating output; or
+ * b) output directly to stdout if buffer pointer/size not initialized
  */
 int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
 	va_list vArgs ;
