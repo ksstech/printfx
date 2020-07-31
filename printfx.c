@@ -1301,8 +1301,8 @@ int 	fprintfx(FILE * stream, const char * format, ...) {
 
 int		xPrintStdOut(xpc_t * psXPC, int cChr) {
 	if (cChr == CHR_LF)
-		xRetargetPutChar(configSTDIO_UART_CHAN, CHR_CR) ;
-	return xRetargetPutChar(configSTDIO_UART_CHAN, cChr) ;
+		x_uputc(configSTDIO_UART_CHAN, CHR_CR) ;
+	return x_uputc(configSTDIO_UART_CHAN, cChr) ;
 }
 
 int 	vnprintfx(size_t count, const char * format, va_list vArgs) {
@@ -1418,7 +1418,11 @@ int		uprintfx(ubuf_t * psUBuf, const char * format, ...) {
  * Output directly to the [possibly redirected] stdout/UART channel
  */
 
-int		xPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
+int		xPrintToStdout(xpc_t * psXPC, int cChr) {
+	while (x_putchar(cChr) == EOF)
+		taskYIELD() ;
+	return cChr ;
+}
 
 int 	vcprintfx(const char * format, va_list vArgs) {
 	return PrintFX(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
