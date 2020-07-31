@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-18 Andre M Maree / KSS Technologies (Pty) Ltd.
+ * Copyright 2014-20 Andre M Maree / KSS Technologies (Pty) Ltd.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include	"FreeRTOS_Support.h"
 #include	"x_definitions.h"
 
 #include	<stdarg.h>
@@ -38,18 +39,16 @@ extern "C" {
 
 extern uint64_t RunTime ;
 #define	_TRACK_(f)						"%!R: %s:%d " f "\n", RunTime, __FUNCTION__, __LINE__
-
 #define	TRACK(f, ...)					printfx(_TRACK_(f), ##__VA_ARGS__)
 #define	IF_TRACK(T, f, ...)				if (T) TRACK(f, ##__VA_ARGS__)
-/* The direct output functions must ONLY be used to debug tasks that work with redirected
- * STDOUT such as the HTTP and TelNET tasks */
-#define	CTRACK(f, ...)					cprintfx(_TRACK_(f), ##__VA_ARGS__)
-#define	IF_CTRACK(T, f, ...)			if (T) CTRACK(f, ##__VA_ARGS__)
-
 #define	PRINT(f, ...)					printfx(f, ##__VA_ARGS__)
 #define	IF_PRINT(T, f, ...)				if (T) PRINT(f, ##__VA_ARGS__)
+
 /* The direct output functions must ONLY be used to debug tasks that work with redirected
  * STDOUT such as the HTTP and TelNET tasks */
+//#define	CTRACK(f, ...)					ets_printf("%s:%d " f "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define	CTRACK(f, ...)					cprintfx(_TRACK_(f), ##__VA_ARGS__)
+#define	IF_CTRACK(T, f, ...)			if (T) CTRACK(f, ##__VA_ARGS__)
 #define	CPRINT(f, ...)					cprintfx(f, ##__VA_ARGS__)
 #define	IF_CPRINT(T, f, ...)			if (T) CPRINT(f, ##__VA_ARGS__)
 
@@ -153,7 +152,11 @@ extern uint64_t RunTime ;
 #define	xpfSGR(a,b,c,d)					(((uint8_t) a << 24) + ((uint8_t) b << 16) + ((uint8_t) c << 8) + (uint8_t) d)
 
 /* https://en.wikipedia.org/wiki/ANSI_escape_code#Escape_sequences
- * http://www.termsys.demon.co.uk/vtansi.htm#colors */
+ * http://www.termsys.demon.co.uk/vtansi.htm#colors
+ */
+
+// #################################### Public structures ##########################################
+
 typedef union __attribute__((packed)) {
 	struct __attribute__((packed)) {
 		uint8_t		d ;
@@ -233,8 +236,17 @@ typedef	struct __attribute__((packed)) xpc_s {
 } xpc_t ;
 DUMB_STATIC_ASSERT(sizeof(xpc_t) == 20) ;
 
-/*
- * Public function prototypes for extended functionality version of stdio supplied functions
+// ################################### Public variables ############################################
+
+extern SemaphoreHandle_t	usartSemaphore ;
+
+// ################################### Public functions ############################################
+
+inline void	printfx_lock(void) { xRtosSemaphoreTake(&usartSemaphore, portMAX_DELAY) ; }
+
+inline void printfx_unlock(void) { xRtosSemaphoreGive(&usartSemaphore) ; }
+
+/* Public function prototypes for extended functionality version of stdio supplied functions
  * These names MUST be used if any of the extended functionality is used in a format string
  */
 int		PrintFX(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list) ;
@@ -274,7 +286,6 @@ int     uprintfx(struct ubuf_s *, const char * , ...) ;
 // ############################## LOW LEVEL DIRECT formatted output ################################
 int 	vcprintfx(const char *, va_list) ;
 int 	cprintfx(const char *, ...) ;
-int		nbcprintfx(const char *, ...) ;
 
 int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) ;
 
