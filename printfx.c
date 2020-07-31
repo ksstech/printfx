@@ -1432,16 +1432,6 @@ int 	cprintfx(const char * format, ...) {
 	return iRV ;
 }
 
-int		xPrintToStdoutNoBlock(xpc_t * psXPC, int cChr) { return putchar_stdout_noblock(cChr) ; }
-
-int32_t	nbcprintfx(const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int32_t iRV = PrintFX(xPrintToStdoutNoBlock, NULL, 128, format, vArgs) ;
-	va_end(vArgs) ;
-	return iRV ;
-}
-
 /* ################################# Destination - String buffer or STDOUT #########################
  * * Based on the values (pre) initialised for buffer start and size
  * a) walk through the buffer on successive calls, concatenating output; or
