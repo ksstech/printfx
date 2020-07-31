@@ -48,13 +48,12 @@
  */
 
 #include	"printfx.h"
-#include	"FreeRTOS_Support.h"
 #include	"x_string_general.h"						// xinstring function
 #include	"x_errors_events.h"
 #include	"x_values_to_string.h"
 #include	"x_sockets.h"
 #include	"x_ubuf.h"
-#include	"x_retarget.h"
+#include	"x_stdio.h"
 #include	"x_struct_union.h"
 
 #include	"hal_debug.h"								// need ASSERT
@@ -1268,7 +1267,9 @@ int 	snprintfx(char * pBuf, size_t BufSize, const char * format, ...) {
 	return count ;
 }
 
-int 	vsprintfx(char * pBuf, const char * format, va_list vArgs) { return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int 	vsprintfx(char * pBuf, const char * format, va_list vArgs) {
+	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vArgs) ;
+}
 
 int 	sprintfx(char * pBuf, const char * format, ...) {
 	va_list	vArgs ;
@@ -1280,9 +1281,13 @@ int 	sprintfx(char * pBuf, const char * format, ...) {
 
 // ################################### Destination = FILE PTR ######################################
 
-int		xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
+int		xPrintToFile(xpc_t * psXPC, int cChr) {
+	return fputc(cChr, psXPC->stream) ;
+}
 
-int 	vfprintfx(FILE * stream, const char * format, va_list vArgs) { return PrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int 	vfprintfx(FILE * stream, const char * format, va_list vArgs) {
+	return PrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
+}
 
 int 	fprintfx(FILE * stream, const char * format, ...) {
 	va_list vArgs ;
@@ -1300,9 +1305,13 @@ int		xPrintStdOut(xpc_t * psXPC, int cChr) {
 	return xRetargetPutChar(configSTDIO_UART_CHAN, cChr) ;
 }
 
-int 	vnprintfx(size_t count, const char * format, va_list vArgs) { return PrintFX(xPrintStdOut, stdout, count, format, vArgs) ; }
+int 	vnprintfx(size_t count, const char * format, va_list vArgs) {
+	return PrintFX(xPrintStdOut, stdout, count, format, vArgs) ;
+}
 
-int 	vprintfx(const char * format, va_list vArgs) { return vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int 	vprintfx(const char * format, va_list vArgs) {
+	return vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs) ;
+}
 
 int 	nprintfx(size_t count, const char * format, ...) {
 	va_list vArgs ;
@@ -1328,7 +1337,9 @@ int		xPrintToHandle(xpc_t * psXPC, int cChr) {
 	return size == 1 ? cChr : size ;
 }
 
-int		vdprintfx(int32_t fd, const char * format, va_list vArgs) { return PrintFX(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int		vdprintfx(int32_t fd, const char * format, va_list vArgs) {
+	return PrintFX(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ;
+}
 
 int		dprintfx(int32_t fd, const char * format, ...) {
 	va_list	vArgs ;
@@ -1340,9 +1351,13 @@ int		dprintfx(int32_t fd, const char * format, ...) {
 
 // ################################### Destination = DEVICE ########################################
 
-int		xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
+int		xPrintToDevice(xpc_t * psXPC, int cChr) {
+	return psXPC->DevPutc(cChr) ;
+}
 
-int 	vdevprintfx(int (* handler)(int ), const char * format, va_list vArgs) { return PrintFX(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int 	vdevprintfx(int (* handler)(int ), const char * format, va_list vArgs) {
+	return PrintFX(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
+}
 
 int 	devprintfx(int (* handler)(int ), const char * format, ...) {
 	va_list vArgs ;
@@ -1358,9 +1373,8 @@ int 	devprintfx(int (* handler)(int ), const char * format, ...) {
 
 int		xPrintToSocket(xpc_t * psXPC, int cChr) {
 	char cBuf = cChr ;
-	if (xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf)) != sizeof(cBuf)) {
+	if (xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf)) != sizeof(cBuf))
 		return EOF ;
-	}
 	return cChr ;
 }
 
@@ -1382,12 +1396,13 @@ int 	socprintfx(netx_t * psSock, const char * format, ...) {
 
 // #################################### Destination : UBUF #########################################
 
-int		xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr) ; }
+int		xPrintToUBuf(xpc_t * psXPC, int cChr) {
+	return xUBufPutC(psXPC->psUBuf, cChr) ;
+}
 
 int		vuprintfx(ubuf_t * psUBuf, const char * format, va_list vArgs) {
-	if (xUBufSpace(psUBuf) == 0) {						// if no space left
+	if (xUBufSpace(psUBuf) == 0)						// if no space left
 		return 0 ;										// return
-	}
 	return PrintFX(xPrintToUBuf, psUBuf, xUBufAvail(psUBuf), format, vArgs) ;
 }
 
@@ -1402,8 +1417,6 @@ int		uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 /* ################################## Destination = UART/TELNET ####################################
  * Output directly to the [possibly redirected] stdout/UART channel
  */
-
-SemaphoreHandle_t	usartSemaphore = NULL ;
 
 int		xPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
 
@@ -1434,6 +1447,7 @@ int32_t	nbcprintfx(const char * format, ...) {
  * a) walk through the buffer on successive calls, concatenating output; or
  * b) output directly to stdout if buffer pointer/size not initialized
  */
+
 int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
 	va_list vArgs ;
 	va_start(vArgs, pcFormat) ;
