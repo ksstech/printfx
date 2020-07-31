@@ -96,6 +96,10 @@ static	const double round_nums[xpfMAXIMUM_DECIMALS+1] = {
 	0.000000005,	0.0000000005, 	0.00000000005, 	0.000000000005,	0.0000000000005, 	0.00000000000005, 	0.000000000000005, 	0.0000000000000005
 } ;
 
+// ############################## private function variables #######################################
+
+SemaphoreHandle_t	usartSemaphore = NULL ;
+
 // ############################# Foundation character and string output ############################
 
 /**
@@ -1404,10 +1408,7 @@ SemaphoreHandle_t	usartSemaphore = NULL ;
 int		xPrintToStdout(xpc_t * psXPC, int cChr) { return putchar_stdout(cChr) ; }
 
 int 	vcprintfx(const char * format, va_list vArgs) {
-	xRtosSemaphoreTake(&usartSemaphore, portMAX_DELAY) ;
-	int32_t iRV = PrintFX(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	xRtosSemaphoreGive(&usartSemaphore) ;
-	return iRV ;
+	return PrintFX(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
 }
 
 int 	cprintfx(const char * format, ...) {
