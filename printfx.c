@@ -1398,7 +1398,7 @@ int 	devprintfx(int (* handler)(int ), const char * format, ...) {
 
 int		xPrintToSocket(xpc_t * psXPC, int cChr) {
 	char cBuf = cChr ;
-	if (xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf)) != sizeof(cBuf))
+	if (xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf)))
 		return EOF ;
 	return cChr ;
 }
