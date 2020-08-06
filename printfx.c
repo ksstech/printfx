@@ -1330,6 +1330,26 @@ int 	printfx(const char * format, ...) {
 	return iRV ;
 }
 
+/* ################################## Destination = UART/TELNET ####################################
+ * Output directly to the [possibly redirected] stdout/UART channel
+ */
+
+int		xPrintToStdout(xpc_t * psXPC, int cChr) { return x_putchar(cChr) ; }
+
+int 	vcprintfx(const char * format, va_list vArgs) {
+	int iRV = PrintFX(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	printfx_unlock() ;
+	return iRV ;
+}
+
+int 	cprintfx(const char * format, ...) {
+	va_list vArgs ;
+	va_start(vArgs, format) ;
+	int iRV = vcprintfx(format, vArgs) ;
+	va_end(vArgs) ;
+	return iRV ;
+}
+
 // ################################### Destination = HANDLE ########################################
 
 int		xPrintToHandle(xpc_t * psXPC, int cChr) {
@@ -1413,28 +1433,6 @@ int		uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 	int count = vuprintfx(psUBuf, format, vArgs) ;
 	va_end(vArgs) ;
 	return count ;
-}
-
-/* ################################## Destination = UART/TELNET ####################################
- * Output directly to the [possibly redirected] stdout/UART channel
- */
-
-int		xPrintToStdout(xpc_t * psXPC, int cChr) {
-	while (x_putchar(cChr) == EOF)
-		taskYIELD() ;
-	return cChr ;
-}
-
-int 	vcprintfx(const char * format, va_list vArgs) {
-	return PrintFX(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
-
-int 	cprintfx(const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int iRV = vcprintfx(format, vArgs) ;
-	va_end(vArgs) ;
-	return iRV ;
 }
 
 /* ################################# Destination - String buffer or STDOUT #########################
