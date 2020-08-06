@@ -1356,6 +1356,28 @@ int 	cprintfx(const char * format, ...) {
 	return iRV ;
 }
 
+/* ################################# Destination - String buffer or STDOUT #########################
+ * * Based on the values (pre) initialised for buffer start and size
+ * a) walk through the buffer on successive calls, concatenating output; or
+ * b) output directly to stdout if buffer pointer/size not initialized
+ */
+
+int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
+	va_list vArgs ;
+	va_start(vArgs, pcFormat) ;
+	int32_t iRV ;
+	if (*ppcBuf && (*pSize > 1)) {
+		iRV = vsnprintfx(*ppcBuf, *pSize, pcFormat, vArgs) ;
+		if (iRV > 0) {
+			*ppcBuf	+= iRV ;
+			*pSize	-= iRV ;
+		}
+	} else {
+		iRV = vnprintfx(xpfMAXLEN_MAXVAL, pcFormat, vArgs) ;
+	}
+	va_end(vArgs) ;
+	return iRV ;
+}
 // ################################### Destination = HANDLE ########################################
 
 int		xPrintToHandle(xpc_t * psXPC, int cChr) {
@@ -1433,28 +1455,6 @@ int		uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 	int count = vuprintfx(psUBuf, format, vArgs) ;
 	va_end(vArgs) ;
 	return count ;
-}
-
-/* ################################# Destination - String buffer or STDOUT #########################
- * * Based on the values (pre) initialised for buffer start and size
- * a) walk through the buffer on successive calls, concatenating output; or
- * b) output directly to stdout if buffer pointer/size not initialized
- */
-
-int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
-	va_list vArgs ;
-	va_start(vArgs, pcFormat) ;
-	int32_t iRV ;
-	if (*ppcBuf && (*pSize > 1)) {
-		iRV = vsnprintfx(*ppcBuf, *pSize, pcFormat, vArgs) ;
-		if (iRV > 0) {
-			*ppcBuf	+= iRV ;
-			*pSize	-= iRV ;
-		}
-	} else {
-		iRV = vprintfx(pcFormat, vArgs) ;
-	}
-	return iRV ;
 }
 
 // ############################# Aliases for NEW/STDLIB supplied functions #########################
