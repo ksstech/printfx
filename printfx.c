@@ -1304,7 +1304,10 @@ int 	fprintfx(FILE * stream, const char * format, ...) {
 int		xPrintStdOut(xpc_t * psXPC, int cChr) { return x_uputc(configSTDIO_UART_CHAN, cChr) ; }
 
 int 	vnprintfx(size_t count, const char * format, va_list vArgs) {
-	return PrintFX(xPrintStdOut, stdout, count, format, vArgs) ;
+	printfx_lock() ;
+	int32_t iRV = PrintFX(xPrintStdOut, stdout, count, format, vArgs) ;
+	printfx_unlock() ;
+	return iRV ;
 }
 
 int 	vprintfx(const char * format, va_list vArgs) {
