@@ -1301,11 +1301,7 @@ int 	fprintfx(FILE * stream, const char * format, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-int		xPrintStdOut(xpc_t * psXPC, int cChr) {
-	if (cChr == CHR_LF)
-		x_uputc(configSTDIO_UART_CHAN, CHR_CR) ;
-	return x_uputc(configSTDIO_UART_CHAN, cChr) ;
-}
+int		xPrintStdOut(xpc_t * psXPC, int cChr) { return x_uputc(configSTDIO_UART_CHAN, cChr) ; }
 
 int 	vnprintfx(size_t count, const char * format, va_list vArgs) {
 	return PrintFX(xPrintStdOut, stdout, count, format, vArgs) ;
