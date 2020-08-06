@@ -1277,27 +1277,11 @@ int 	sprintfx(char * pBuf, const char * format, ...) {
 	return count ;
 }
 
-// ################################### Destination = FILE PTR ######################################
+// ################################### Destination = STDOUT ########################################
 
-int		xPrintToFile(xpc_t * psXPC, int cChr) {
-	return fputc(cChr, psXPC->stream) ;
-}
 void	printfx_lock(void) { xRtosSemaphoreTake(&usartSemaphore, portMAX_DELAY) ; }
 
-int 	vfprintfx(FILE * stream, const char * format, va_list vArgs) {
-	return PrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
 void	printfx_unlock(void) { xRtosSemaphoreGive(&usartSemaphore) ; }
-
-int 	fprintfx(FILE * stream, const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int count = vfprintfx(stream, format, vArgs) ;
-	va_end(vArgs) ;
-	return count ;
-}
-
-// ################################### Destination = STDOUT ########################################
 
 int		xPrintStdOut(xpc_t * psXPC, int cChr) { return x_uputc(configSTDIO_UART_CHAN, cChr) ; }
 
@@ -1378,6 +1362,23 @@ int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
 	va_end(vArgs) ;
 	return iRV ;
 }
+
+// ################################### Destination = FILE PTR ######################################
+
+int		xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
+
+int 	vfprintfx(FILE * stream, const char * format, va_list vArgs) {
+	return PrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
+}
+
+int 	fprintfx(FILE * stream, const char * format, ...) {
+	va_list vArgs ;
+	va_start(vArgs, format) ;
+	int count = vfprintfx(stream, format, vArgs) ;
+	va_end(vArgs) ;
+	return count ;
+}
+
 // ################################### Destination = HANDLE ########################################
 
 int		xPrintToHandle(xpc_t * psXPC, int cChr) {

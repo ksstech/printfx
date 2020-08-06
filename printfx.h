@@ -254,10 +254,6 @@ int 	snprintfx(char * , size_t , const char * , ...) ;
 int 	vsprintfx(char * , const char * , va_list ) ;
 int		sprintfx(char * , const char * , ...) ;
 
-// ################################### Destination = FILE PTR ######################################
-int		vfprintfx(FILE * , const char * , va_list ) ;
-int		fprintfx(FILE * , const char * , ...) ;
-
 // ##################################### Destination = STDOUT ######################################
 
 void	printfx_lock(void) ;
@@ -269,6 +265,17 @@ int 	nprintfx(size_t, const char *, ...) ;
 int		printfx(const char *, ...) ;
 int 	printfx_nolock(const char * format, ...) ;
 
+// ############################## LOW LEVEL DIRECT formatted output ################################
+
+int 	vcprintfx(const char *, va_list) ;
+int 	cprintfx(const char *, ...) ;
+
+int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) ;
+
+// ################################### Destination = FILE PTR ######################################
+
+int		vfprintfx(FILE * , const char * , va_list ) ;
+int		fprintfx(FILE * , const char * , ...) ;
 
 // ################################### Destination = HANDLE ########################################
 
@@ -289,12 +296,6 @@ int 	socprintfx(struct netx_s *, const char *, ...) ;
 
 int     vuprintfx(struct ubuf_s *, const char * , va_list) ;
 int     uprintfx(struct ubuf_s *, const char * , ...) ;
-
-// ############################## LOW LEVEL DIRECT formatted output ################################
-int 	vcprintfx(const char *, va_list) ;
-int 	cprintfx(const char *, ...) ;
-
-int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) ;
 
 // ##################################### functional tests ##########################################
 
