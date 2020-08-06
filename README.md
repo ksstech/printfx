@@ -55,22 +55,23 @@
   	U	format specifier
   	  
 # Valid formatting characters:
-  !#'*+-%0.0-9ABC D EFGHI J KL MNO PQRS T U VWXYZ
-  |||||||||\_/ab|c|defgh|i|jk|lmn|opqr|s|t|uvwxy|z
-  ||||||||| | ||||||||||||||||||||||||||||||||||||
-  ||||||||| | |||||||||||||||||||||||||||||||||||*----> UNUSED (z)
-  ||||||||| | ||||||||||||||||||||||||||||||||||*-----> DT(Z)
-  ||||||||| | |||||||||||||||||||||||||||||||||*------> UNUSED (Yy)
-  ||||||||| | ||||||||||||||||||||||||||||||||*---> HEX UC/lc value
-  ||||||||| | |||||||||||||||||||||||||||||||*--------> HEXDUMP, word (u32) sized values UC/lc
-  ||||||||| | ||||||||||||||||||||||||||||||*---------> UNUSED (Vv)
-  ||||||||| | |||||||||||||||||||||||||||||*------> (u)NSIGNED number (uint32_t)
-  ||||||||| | ||||||||||||||||||||||||||||*-----------> UNUSED (U)
-  ||||||||| | |||||||||||||||||||||||||||*--------> Not implemented (t)
-  ||||||||| | ||||||||||||||||||||||||||*-------------> (T)IME
-  ||||||||| | |||||||||||||||||||||||||*----------> STRING null terminated ascii
-  ||||||||| | ||||||||||||||||||||||||*-----------> Not implemented (S)
-  ||||||||| | |||||||||||||||||||||||*----------------> UNUSED (Rr)
+  !#'*+-%0.0-9ABC D EFGHI J KL MNO PQR S T U VWXYZ
+  |||||||||\_/ab|c|defgh|i|jk|lmn|opq|r|s|t|uvwxy|z
+  ||||||||| | |||||||||||||||||||||||||||||||||||||
+  ||||||||| | ||||||||||||||||||||||||||||||||||||*----> UNUSED (z)
+  ||||||||| | |||||||||||||||||||||||||||||||||||*-----> DT(Z)
+  ||||||||| | ||||||||||||||||||||||||||||||||||*------> UNUSED (Yy)
+  ||||||||| | |||||||||||||||||||||||||||||||||*---> HEX UC/lc value
+  ||||||||| | ||||||||||||||||||||||||||||||||*--------> HEXDUMP, word (u32) sized values UC/lc
+  ||||||||| | |||||||||||||||||||||||||||||||*---------> UNUSED (Vv)
+  ||||||||| | ||||||||||||||||||||||||||||||*------> (u)NSIGNED number (uint32_t)
+  ||||||||| | |||||||||||||||||||||||||||||*-----------> UNUSED (U)
+  ||||||||| | ||||||||||||||||||||||||||||*--------> Not implemented (t)
+  ||||||||| | |||||||||||||||||||||||||||*-------------> (T)IME
+  ||||||||| | ||||||||||||||||||||||||||*----------> STRING null terminated ascii
+  ||||||||| | |||||||||||||||||||||||||*-----------> Not implemented (S)
+  ||||||||| | ||||||||||||||||||||||||*---------------> UNUSED (r)
+  ||||||||| | |||||||||||||||||||||||*-------------> (R) uS based time
   ||||||||| | ||||||||||||||||||||||*-----------------> UNUSED (Qq)
   ||||||||| | |||||||||||||||||||||*--------------> POINTER U32 address with (0x/0X) prefix
   ||||||||| | ||||||||||||||||||||*---------------> (o)CTAL value
@@ -107,9 +108,9 @@
 
 # Examples:
 	"%'03llJ"			- print binary representation, optional separator, llong & field width modifiers
-	"%['!#+ll]{BbHhWw}"	- hexdump of memory area, USE 2 PARAMETERS FOR START AND LENGTH !!!!
- 						MUST NOT specify "*" or "." or "*." or .*", this will screw up the parameter sequence
-	"%[-0]I"			- print IP address, justified left or right (pad 0 or ' ')
+	"%['!#+ll] {BbHhWw}"	- hexdump of memory area, USE 2 PARAMETERS FOR START and LENGTH
+ 						MUST NOT specify "*", ".", "*." or .*", this will screw up the parameter sequence
+	"%[-0]I"			- print IP address, justified left or right, pad 0 or ' '
 	"%[']{Mm}"			- prints MAC address, optional ':' separator, upper/lower case
 	"%[!']D"			- POSIX [relative/altform] date (1 parameter, pointer to TSZ_t
 	"%[!']T"			- POSIX [relative/altform] time
@@ -121,14 +122,19 @@
    If the value specifier provided, then use/increment the pointer, using the SAME FORMAT specifier, for the number of times specified.
 
 # What is NOT supported:
-  locale, radix fixed to '.'
-  *n*th argument in the form of %n$
-  'b' additional conversion specifier
-  'n' conversion character
-  'h' flag as applied to 'diouxX' to specify source value being short [un]signed int
-  'l' flag as applied to 'diouxX' to specify source value being long [un]signed int
-  'L' flag as applied to 'eEfgG' to specify source value being long double
-  ' ' flag
+  Specifiers:
+	'a', 'A' or 'n'
+  Sub-specifiers:
+	'b' conversion specifier
+	'h' or 'hh' as applied to any specifiers
+	'l' as applied to 'cns' specifiers
+	'll' as applied to 'n' specifier
+	'L' as applied to 'eEfgG' to specify long double
+	'j, 't' or 'z' as applied to any specifiers	 
+  Modifier
+ 	' '
+	locale, radix fixed to '.'
+	*n*th argument in the form of %n$
 
 # What is PARTIALLY supported:
   '#' flag, not in 'oxXeEfgG' or '.' radix conversions
