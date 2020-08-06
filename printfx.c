@@ -1380,9 +1380,7 @@ int		dprintfx(int32_t fd, const char * format, ...) {
 
 // ################################### Destination = DEVICE ########################################
 
-int		xPrintToDevice(xpc_t * psXPC, int cChr) {
-	return psXPC->DevPutc(cChr) ;
-}
+int		xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
 
 int 	vdevprintfx(int (* handler)(int ), const char * format, va_list vArgs) {
 	return PrintFX(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
@@ -1425,9 +1423,7 @@ int 	socprintfx(netx_t * psSock, const char * format, ...) {
 
 // #################################### Destination : UBUF #########################################
 
-int		xPrintToUBuf(xpc_t * psXPC, int cChr) {
-	return xUBufPutC(psXPC->psUBuf, cChr) ;
-}
+int		xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr) ; }
 
 int		vuprintfx(ubuf_t * psUBuf, const char * format, va_list vArgs) {
 	if (xUBufSpace(psUBuf) == 0)						// if no space left

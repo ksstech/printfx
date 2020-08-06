@@ -248,6 +248,7 @@ DUMB_STATIC_ASSERT(sizeof(xpc_t) == 20) ;
 int		PrintFX(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list) ;
 
 // ##################################### Destination = STRING ######################################
+
 int 	vsnprintfx(char * , size_t , const char * , va_list ) ;
 int 	snprintfx(char * , size_t , const char * , ...) ;
 int 	vsprintfx(char * , const char * , va_list ) ;
@@ -270,18 +271,22 @@ int 	printfx_nolock(const char * format, ...) ;
 
 
 // ################################### Destination = HANDLE ########################################
+
 int		vdprintfx(int , const char *, va_list ) ;
 int		dprintfx(int , const char *, ...) ;
 
 // ################################### Destination = DEVICE ########################################
+
 int 	vdevprintfx(int (* handler)(int ), const char *, va_list) ;
 int 	devprintfx(int (* handler)(int), const char *, ...) ;
 
 // #################################### Destination : SOCKET #######################################
+
 int 	vsocprintfx(struct netx_s *, const char *, va_list) ;
 int 	socprintfx(struct netx_s *, const char *, ...) ;
 
 // #################################### Destination : UBUF #########################################
+
 int     vuprintfx(struct ubuf_s *, const char * , va_list) ;
 int     uprintfx(struct ubuf_s *, const char * , ...) ;
 
