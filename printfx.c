@@ -111,15 +111,13 @@ SemaphoreHandle_t	usartSemaphore = NULL ;
  * \return	1 or 0 based on whether char was '\000'
  */
 void	vPrintChar(xpc_t * psXPC, char cChr) {
-	if ((psXPC->f.maxlen == 0) || (psXPC->f.curlen < psXPC->f.maxlen)) {
 #if 	(xpfSUPPORT_FILTER_NUL == 1)
-		if (cChr == CHR_NUL) {
+		if (cChr == CHR_NUL)
 			return ;
-		}
 #endif
-		if (psXPC->handler(psXPC, cChr) == cChr) {
-			psXPC->f.curlen++ ;							// adjust the count
-		}
+	if (psXPC->f.maxlen == 0 || psXPC->f.curlen < psXPC->f.maxlen) {
+		if (psXPC->handler(psXPC, cChr) == cChr)		// successfully written ?
+			psXPC->f.curlen++ ;							// yes, adjust count
 	}
 }
 
