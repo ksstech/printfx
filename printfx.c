@@ -1284,10 +1284,12 @@ int 	sprintfx(char * pBuf, const char * format, ...) {
 int		xPrintToFile(xpc_t * psXPC, int cChr) {
 	return fputc(cChr, psXPC->stream) ;
 }
+void	printfx_lock(void) { xRtosSemaphoreTake(&usartSemaphore, portMAX_DELAY) ; }
 
 int 	vfprintfx(FILE * stream, const char * format, va_list vArgs) {
 	return PrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
 }
+void	printfx_unlock(void) { xRtosSemaphoreGive(&usartSemaphore) ; }
 
 int 	fprintfx(FILE * stream, const char * format, ...) {
 	va_list vArgs ;

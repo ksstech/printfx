@@ -238,13 +238,9 @@ DUMB_STATIC_ASSERT(sizeof(xpc_t) == 20) ;
 
 // ################################### Public variables ############################################
 
-extern SemaphoreHandle_t	usartSemaphore ;
+//extern SemaphoreHandle_t	usartSemaphore ;
 
 // ################################### Public functions ############################################
-
-inline void	printfx_lock(void) { xRtosSemaphoreTake(&usartSemaphore, portMAX_DELAY) ; }
-
-inline void printfx_unlock(void) { xRtosSemaphoreGive(&usartSemaphore) ; }
 
 /* Public function prototypes for extended functionality version of stdio supplied functions
  * These names MUST be used if any of the extended functionality is used in a format string
@@ -262,6 +258,10 @@ int		vfprintfx(FILE * , const char * , va_list ) ;
 int		fprintfx(FILE * , const char * , ...) ;
 
 // ##################################### Destination = STDOUT ######################################
+
+void	printfx_lock(void) ;
+void	printfx_unlock(void) ;
+
 int 	vnprintfx(size_t, const char *, va_list) ;
 int 	vprintfx(const char * , va_list) ;
 int 	nprintfx(size_t, const char *, ...) ;
