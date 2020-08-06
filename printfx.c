@@ -1424,8 +1424,6 @@ int 	socprintfx(netx_t * psSock, const char * format, ...) {
 int		xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr) ; }
 
 int		vuprintfx(ubuf_t * psUBuf, const char * format, va_list vArgs) {
-	if (xUBufSpace(psUBuf) == 0)						// if no space left
-		return 0 ;										// return
 	return PrintFX(xPrintToUBuf, psUBuf, xUBufAvail(psUBuf), format, vArgs) ;
 }
 
