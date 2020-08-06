@@ -1330,6 +1330,14 @@ int 	printfx(const char * format, ...) {
 	return iRV ;
 }
 
+int 	printfx_nolock(const char * format, ...) {
+	va_list vArgs ;
+	va_start(vArgs, format) ;
+	int iRV = PrintFX(xPrintStdOut, stdout, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	va_end(vArgs) ;
+	return iRV ;
+}
+
 /* ################################## Destination = UART/TELNET ####################################
  * Output directly to the [possibly redirected] stdout/UART channel
  */

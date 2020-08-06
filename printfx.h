@@ -266,6 +266,8 @@ int 	vnprintfx(size_t, const char *, va_list) ;
 int 	vprintfx(const char * , va_list) ;
 int 	nprintfx(size_t, const char *, ...) ;
 int		printfx(const char *, ...) ;
+int 	printfx_nolock(const char * format, ...) ;
+
 
 // ################################### Destination = HANDLE ########################################
 int		vdprintfx(int , const char *, va_list ) ;
