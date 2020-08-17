@@ -97,7 +97,7 @@ static	const double round_nums[xpfMAXIMUM_DECIMALS+1] = {
 
 // ############################## private function variables #######################################
 
-SemaphoreHandle_t	usartSemaphore = NULL ;
+SemaphoreHandle_t	printfxMux = NULL, cprintfxMux = NULL ;
 
 // ############################# Foundation character and string output ############################
 
@@ -1279,9 +1279,9 @@ int 	sprintfx(char * pBuf, const char * format, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-void	printfx_lock(void) { xRtosSemaphoreTake(&usartSemaphore, portMAX_DELAY) ; }
+void	printfx_lock(void) { xRtosSemaphoreTake(&printfxMux, portMAX_DELAY) ; }
 
-void	printfx_unlock(void) { xRtosSemaphoreGive(&usartSemaphore) ; }
+void	printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux) ; }
 
 int		xPrintStdOut(xpc_t * psXPC, int cChr) { return x_uputc(configSTDIO_UART_CHAN, cChr) ; }
 
@@ -1312,6 +1312,10 @@ int 	printfx(const char * format, ...) {
 	return iRV ;
 }
 
+/*
+ * printfx_nolock() - print to stdout without any semaphore locking.
+ * 					securing the channel must be done manually
+ */
 int 	printfx_nolock(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
@@ -1327,8 +1331,9 @@ int 	printfx_nolock(const char * format, ...) {
 int		xPrintToStdout(xpc_t * psXPC, int cChr) { return x_putchar(cChr) ; }
 
 int 	vcprintfx(const char * format, va_list vArgs) {
+	xRtosSemaphoreTake(&cprintfxMux, portMAX_DELAY) ;
 	int iRV = PrintFX(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	printfx_unlock() ;
+	xRtosSemaphoreGive(&cprintfxMux) ;
 	return iRV ;
 }
 
