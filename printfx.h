@@ -38,7 +38,7 @@ extern "C" {
 // #################################################################################################
 
 extern uint64_t RunTime ;
-#define	_TRACK_(f)						"%!R: %s:%d " f "\n", RunTime, __FUNCTION__, __LINE__
+#define	_TRACK_(f)						"%!.R: %s:%d " f "\n", RunTime, __FUNCTION__, __LINE__
 #define	TRACK(f, ...)					printfx(_TRACK_(f), ##__VA_ARGS__)
 #define	IF_TRACK(T, f, ...)				if (T) TRACK(f, ##__VA_ARGS__)
 #define	PRINT(f, ...)					printfx(f, ##__VA_ARGS__)
@@ -75,31 +75,8 @@ extern uint64_t RunTime ;
 
 // ################################## x[snf]printf() related #######################################
 
-#define	xpfMAX_DIGITS_FRAC_SEC			3
-
-#if		(xpfMAX_DIGITS_FRAC_SEC == 0)
-	#define	xpfTIME_FRAC_SEC_DIVISOR		(1000000)
-#elif	(xpfMAX_DIGITS_FRAC_SEC == 1)
-	#define	xpfTIME_FRAC_SEC_DIVISOR		(100000)
-#elif	(xpfMAX_DIGITS_FRAC_SEC == 2)
-	#define	xpfTIME_FRAC_SEC_DIVISOR		(10000)
-#elif	(xpfMAX_DIGITS_FRAC_SEC == 3)
-	#define	xpfTIME_FRAC_SEC_DIVISOR	(1000)
-#elif	(xpfMAX_DIGITS_FRAC_SEC == 4)
-	#define	xpfTIME_FRAC_SEC_DIVISOR		(100)
-#elif	(xpfMAX_DIGITS_FRAC_SEC == 5)
-	#define	xpfTIME_FRAC_SEC_DIVISOR		(10)
-#elif	(xpfMAX_DIGITS_FRAC_SEC == 6)
-	#define	xpfTIME_FRAC_SEC_DIVISOR		(1)
-#else
-	#error "Invalid values for xpfMAX_DIGITS_FRAC_SEC (must be 0 -> 6)"
-#endif
-
-
-#define	xpfMAX_LEN_FRAC_SEC				(xpfMAX_DIGITS_FRAC_SEC + 3)
-#define	xpfMAX_LEN_TIME					(sizeof("12:34:56.") + xpfMAX_LEN_FRAC_SEC)
-
-#define	xpfMAX_LEN_DATE					sizeof("Sun, 10 Sep 2017")	// was "2015-04-01T"
+#define	xpfMAX_LEN_TIME					sizeof("12:34:56.654321")
+#define	xpfMAX_LEN_DATE					sizeof("Sun, 10 Sep 2017")
 
 #define	xpfMAX_LEN_DTZ					(xpfMAX_LEN_DATE + xpfMAX_LEN_TIME + configTIME_MAX_LEN_TZINFO)
 
@@ -143,11 +120,9 @@ extern uint64_t RunTime ;
 
 #define	xpfMINWID_BITS					16			// Number of bits in field(s)
 #define	xpfMINWID_MAXVAL				((1 << xpfMINWID_BITS) - 1)
-#define	xpfMINWID_MINVAL				0
 
 #define	xpfPRECIS_BITS					16			// Number of bits in field(s)
 #define	xpfPRECIS_MAXVAL				((1 << xpfPRECIS_BITS) - 1)
-#define	xpfPRECIS_MINVAL				0
 
 #define	xpfSGR(a,b,c,d)					(((uint8_t) a << 24) + ((uint8_t) b << 16) + ((uint8_t) c << 8) + (uint8_t) d)
 
@@ -172,7 +147,7 @@ DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4) ;
 typedef	union xpf_u {
 	struct __attribute__((packed)) {
 		uint32_t	lengths ;							// maxlen & curlen ;
-		uint32_t	limits ;							// minwid & precision
+		uint32_t	limits ;							// minwid & precis
 		uint32_t	flags ;								// rest of flags
 	} ;
 	struct __attribute__((packed)) {
@@ -182,7 +157,7 @@ typedef	union xpf_u {
 		uint32_t	maxlen		: xpfMAXLEN_BITS ;		// max chars to output 0 = unlimited
 		uint32_t	curlen		: xpfMAXLEN_BITS ;		// number of chars output so far
 		uint32_t	minwid		: xpfMINWID_BITS ;		// minimum field width
-		uint32_t	precision	: xpfPRECIS_BITS ;		// number of decimal digits or width of string
+		uint32_t	precis		: xpfPRECIS_BITS ;		// number of decimal digits or width of string
 	// byte 0
 		uint8_t		group 		: 1 ;					// 0 = disable, 1 = enable
 		uint8_t		alt_form	: 1 ;					// '#'
@@ -201,7 +176,7 @@ typedef	union xpf_u {
 		uint8_t		signval		: 1 ;					// true = content is signed value
 		uint8_t		plus		: 1 ;					// true = force use of '+' or '-' signed
 		uint8_t		arg_width	: 1 ;					// read arg for width
-		uint8_t		arg_prec	: 1 ;					// read arg for precision
+		uint8_t		arg_prec	: 1 ;					// read arg for precis
 		uint8_t		yday_ok		: 1 ;					// day of year
 		uint8_t		year_ok		: 1 ;					// year
 	// byte 3

@@ -311,6 +311,7 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 	xpf_t	xpf ;
 	xpf.limits			= psXPC->f.limits ;				// save original flags
 	xpf.flags			= psXPC->f.flags ;
+	xpf.precis			= psXPC->f.precis ;
 	x64_t x64Value 		= { 0 } ;
 
 	int32_t	Exponent = 0 ;								// if exponential format requested, calculate the exponent
@@ -330,8 +331,8 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 
 	if (psXPC->f.form == xpfFORMAT_0_G) {				// if 'gG' specified check exponent range and select applicable mode.
 		// if explicit precision is '0' take it as '1' (https://pubs.opengroup.org/onlinepubs/007908799/xsh/fprintf.html)
-		psXPC->f.precision = psXPC->f.precision ? psXPC->f.precision : 1 ;
-		if ((Exponent < -4) || (Exponent >= psXPC->f.precision)) {
+		psXPC->f.precis = psXPC->f.precis ? psXPC->f.precis : 1 ;
+		if ((Exponent < -4) || (Exponent >= psXPC->f.precis)) {
 			psXPC->f.form = xpfFORMAT_2_E ;				// force 'eE' format
 		} else {
 			psXPC->f.form = xpfFORMAT_1_F ;				// force 'f' format
@@ -342,8 +343,8 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 		f64Val = x64Value.f64 ;							// change to exponent adjusted value
 	}
 
-	if (f64Val < (DBL_MAX - round_nums[psXPC->f.precision])) {	// if addition of rounding value will NOT cause overflow.
-		f64Val += round_nums[psXPC->f.precision] ;		// round by adding .5LSB to the value
+	if (f64Val < (DBL_MAX - round_nums[psXPC->f.precis])) {	// if addition of rounding value will NOT cause overflow.
+		f64Val += round_nums[psXPC->f.precis] ;		// round by adding .5LSB to the value
 	}
 
 	Buffer[xpfMAX_LEN_F64 - 1] = CHR_NUL ;				// building R to L, ensure buffer NULL-term
@@ -359,18 +360,18 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 		Buffer[xpfMAX_LEN_F64-2 -Len++] = psXPC->f.Ucase ? 'E' : 'e' ;
 	}
 
-	if (psXPC->f.precision > 0)	{						// if decimal digits requested, convert fractional portion?
+	if (psXPC->f.precis > 0)	{						// if decimal digits requested, convert fractional portion?
 		uint64_t	m ;									// calc multiplicant to convert fractional portion to whole number
 		int32_t		i ;
 		x64Value.f64	= f64Val - (uint64_t)f64Val ;	// isolate fraction as double
-		for (i = 0, m = 1 ; i < psXPC->f.precision ; i++) {
+		for (i = 0, m = 1 ; i < psXPC->f.precis ; i++) {
 			m *= 10 ;
 		}
 		x64Value.f64	= x64Value.f64 * (double)m ;	// convert fraction to integer [+fraction]
 		x64Value.u64	= (uint64_t)x64Value.f64 ;		// extract integer portion, discard remaining fraction of "fraction"
 
 		if (x64Value.u64 || psXPC->f.radix) {			// if fraction<>0 or radix specified, something to be displayed...
-			psXPC->f.minwid		= psXPC->f.precision ;	// do the (now decimal) fractional portion
+			psXPC->f.minwid		= psXPC->f.precis ;	// do the (now decimal) fractional portion
 			psXPC->f.pad0		= 1 ;					// MUST left pad with '0'
 			psXPC->f.group		= 0 ;					// cannot group in fractional
 			psXPC->f.signval	= 0 ;					// always unsigned value
@@ -392,6 +393,7 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 	psXPC->f.flags	= xpf.flags ;
 	psXPC->f.precis	= 0 ;								// enable full string to be output (subject to minwid padding on right)
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64 - 1 - Len)) ;
+	psXPC->f.precis	= xpf.precis ;
 }
 
 /**
@@ -528,9 +530,18 @@ seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 	return Seconds ;
 }
 
+uint32_t	u32pow(uint32_t base, uint32_t exp) {
+	uint32_t res ;
+	for(res = 1; exp > 0; res *= base, --exp) ;
+	return res ;
+}
+
 void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
 	struct	tm 	sTM ;
 	xTimeGMTime(xTimeStampAsSeconds(uSecs), &sTM, psXPC->f.abs_rel) ;
+	xpf_t xpf ;
+	xpf.precis	= psXPC->f.precis ;
+	xpf.minwid	= psXPC->f.minwid ;
 	psXPC->f.plus	= 0 ;								// ensure no '+' sign printed
 	psXPC->f.form	= psXPC->f.group ? xpfFORMAT_3 : xpfFORMAT_0_G ;
 	psXPC->f.minwid = 2 ;
@@ -557,24 +568,28 @@ void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
 	Len += xPrintXxx(psXPC, (uint64_t) sTM.tm_sec, &Buffer[Len], 2) ;
 	psXPC->f.sec_ok = 1 ;								// not required, just to be correct
 
-	// Part 4: 'Z': ".x[xxxxx]
-	uSecs %= MICROS_IN_SECOND ;
-	uSecs /= xpfTIME_FRAC_SEC_DIVISOR ;
-	if (psXPC->f.alt_form == 0) {
-		psXPC->f.alt_form = 0 ;							// clear so not to confuse xPrintXxx()
-		Buffer[Len++]		= (psXPC->f.form == xpfFORMAT_3) ? CHR_s :  CHR_FULLSTOP ;
-		psXPC->f.pad0		= 1 ;
-		psXPC->f.signval	= 0 ;						// unsigned value
-		psXPC->f.minwid		= xpfMAX_DIGITS_FRAC_SEC ;
-		Len += xPrintXxx(psXPC, uSecs, Buffer + Len, xpfMAX_DIGITS_FRAC_SEC) ;
+	// Part 4: [.xxxxxx]
+	if (psXPC->f.radix && psXPC->f.alt_form == 0) {
+		Buffer[Len++]	= (psXPC->f.form == xpfFORMAT_3) ? CHR_s :  CHR_FULLSTOP ;
+		uSecs %= MICROS_IN_SECOND ;
+		psXPC->f.precis	= psXPC->f.precis == 0 ? 3 : psXPC->f.precis > 6 ? 6 : psXPC->f.precis ;
+		if (psXPC->f.precis < 6)
+			uSecs /= u32pow(10, 6 - psXPC->f.precis) ;
+		psXPC->f.pad0	= 1 ;						// need leading '0's
+		psXPC->f.signval= 0 ;
+		psXPC->f.ljust	= 0 ;						// force R-just
+		psXPC->f.minwid	= psXPC->f.precis ;
+		Len += xPrintXxx(psXPC, uSecs, &Buffer[Len], psXPC->f.precis) ;
 	}
 
 	// converted L to R, so terminate
 	Buffer[Len] = CHR_NUL ;
 	// then send the formatted output to the correct stream
-	psXPC->f.precision	= 0 ;							// enable full string
+	psXPC->f.precis	= 0 ;							// enable full string
 	psXPC->f.minwid	= 0 ;
 	vPrintString(psXPC, Buffer) ;
+	psXPC->f.precis = xpf.precis ;
+	psXPC->f.minwid = xpf.minwid ;
 }
 
 /**
@@ -649,9 +664,11 @@ void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
 	}
 	// converted L to R, so terminate
 	Buffer[Len] = CHR_NUL ;
-// then send the formatted output to the correct stream
-	psXPC->f.precision	= 0 ;							// enable full string (subject to minwid)
+	// then send the formatted output to the correct stream
+	uint32_t precis = psXPC->f.precis ;
+	psXPC->f.precis	= 0 ;								// enable full string (subject to minwid)
 	vPrintString(psXPC, Buffer) ;
+	psXPC->f.precis = precis ;
 }
 
 /**
@@ -758,9 +775,9 @@ void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 		}
 	}
 // terminate string in buffer then out as per normal...
-	psXPC->f.precision	= 0 ;							// enable full string (subject to minwid)
 	Buffer[Len]		= CHR_NUL ;							// converted L to R, so add terminating NUL
 	psXPC->f.minwid	= 0 ;								// no explicit limit on width
+	psXPC->f.precis	= 0 ;								// enable full string (subject to minwid)
 	vPrintString(psXPC, Buffer) ;
 }
 
@@ -918,7 +935,7 @@ void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
 		}
 	}
 	// then send the formatted output to the correct stream
-	psXPC->f.precision	= 0 ;							// enable full string (subject to minwid)
+	psXPC->f.precis	= 0 ;							// enable full string (subject to minwid)
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_IP - 1 - Len)) ;
 }
 
@@ -1190,9 +1207,9 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 			case CHR_g:
 				sXPC.f.signval	= 1 ;					// float always signed value.
 				if (sXPC.f.radix) {
-					sXPC.f.precision	= (sXPC.f.precision > xpfMAXIMUM_DECIMALS) ? xpfMAXIMUM_DECIMALS : sXPC.f.precision ;
+					sXPC.f.precis	= (sXPC.f.precis > xpfMAXIMUM_DECIMALS) ? xpfMAXIMUM_DECIMALS : sXPC.f.precis ;
 				} else {
-					sXPC.f.precision	= xpfDEFAULT_DECIMALS ;
+					sXPC.f.precis	= xpfDEFAULT_DECIMALS ;
 				}
 				myASSERT(sXPC.f.alt_form == 0) ;		// MUST not use '#' modifier
 				vPrintF64(&sXPC, va_arg(vArgs, double)) ;
