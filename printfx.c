@@ -250,7 +250,7 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 	 * For ' ' padding format is [       -xxxxx]
 	 * whilst '0' padding it is  [-0000000xxxxx] */
 		Count = (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0 ;
-	// If we are padding with ' ' and a signed is required, do that first
+	// If we are padding with ' ' and leading '+' or '-' is required, do that first
 		if ((psXPC->f.pad0 == 0) && (psXPC->f.negvalue || psXPC->f.plus)) {	// If a sign is required
 			*pTemp-- = psXPC->f.negvalue ? CHR_MINUS : CHR_PLUS ;			// start by prepend of '+' or '-'
 			--Count ;
@@ -284,7 +284,6 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 void	vPrintX64(xpc_t * psXPC, uint64_t Value) {
 	char 	Buffer[xpfMAX_LEN_X64] ;
 	Buffer[xpfMAX_LEN_X64 - 1] = CHR_NUL ;				// terminate the buffer, single value built R to L
-// then do conversion and print
 	int32_t Len = xPrintXxx(psXPC, Value, Buffer, xpfMAX_LEN_X64 - 1) ;
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_X64 - 1 - Len)) ;
 }
@@ -771,7 +770,7 @@ void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 			// nothing added other than the time offset
 #endif
 		} else {
-			// Should never get here...
+			IF_myASSERT(debugTRACK, 0) ;
 		}
 	}
 // terminate string in buffer then out as per normal...
@@ -1043,34 +1042,43 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 						cFmt += *format - CHR_0 ;
 						++format ;
 					} else if (*format == CHR_FULLSTOP) {
-						myASSERT(sXPC.f.radix == 0)		// cannot have 2x radix '.'
-						++format ;						// skip over radix char
-						sXPC.f.radix	= 1 ;			// flag radix as provided
-						if (cFmt > 0) {
-							myASSERT(sXPC.f.arg_width == 0) ;
-							// at this stage we MIGHT have parsed a minwid value, if so verify and store.
-							sXPC.f.minwid	= cFmt ;	// Save value parsed (maybe 0) as min_width
-							sXPC.f.arg_width= 1 ;		// flag min_width as having been supplied
-							cFmt = 0 ;					// reset counter in case of precision following
+						if (sXPC.f.radix == 0) {		// cannot have 2x radix '.'
+							++format ;					// skip over radix char
+							sXPC.f.radix	= 1 ;		// flag radix as provided
+							if (cFmt > 0) {
+								if (sXPC.f.arg_width == 0) {
+									// at this stage we MIGHT have parsed a minwid value, if so verify and store.
+									sXPC.f.minwid	= cFmt ;	// Save value parsed (maybe 0) as min_width
+									sXPC.f.arg_width= 1 ;	// flag min_width as having been supplied
+									cFmt = 0 ;			// reset counter in case of precision following
+								} else {
+									IF_myASSERT(debugTRACK, 0) ;
+								}
+							}
+						} else {
+							IF_myASSERT(debugTRACK, 0) ;
 						}
 					} else if (*format == CHR_ASTERISK) {
-						myASSERT(sXPC.f.radix == 1) ;	// Should not have '*' except after radix '.'
-						++format ; 						// skip over argument precision char
-						sXPC.f.precision= va_arg(vArgs, uint32_t) ;
-						sXPC.f.arg_prec	= 1 ;
-						cFmt = 0 ;						// reset counter just in case!!!
+						if (sXPC.f.radix) {				// '*' only allowed after .
+							++format ; 					// skip over argument precision char
+							sXPC.f.precis= va_arg(vArgs, uint32_t) ;
+							sXPC.f.arg_prec	= 1 ;
+							cFmt = 0 ;					// reset counter just in case
+						} else {
+							IF_myASSERT(debugTRACK, 0) ;
+						}
 					} else {
 						break ;
 					}
 				}
-			// Save possible parsed value in cFmt
+				// Save possible parsed value in cFmt
 				if (cFmt > 0) {
-					if ((sXPC.f.arg_width == 0) && (sXPC.f.radix == 0)) {
-						sXPC.f.minwid	= cFmt ;
-					} else if ((sXPC.f.arg_prec == 0) && (sXPC.f.radix == 1)) {
-						sXPC.f.precision= cFmt ;
+					if (sXPC.f.arg_width == 0 && sXPC.f.radix == 0) {
+						sXPC.f.minwid	= cFmt > xpfMINWID_MAXVAL ? xpfMINWID_MAXVAL : cFmt ;
+					} else if (sXPC.f.arg_prec == 0 && sXPC.f.radix == 1) {
+						sXPC.f.precis	= cFmt > xpfPRECIS_MAXVAL ? xpfPRECIS_MAXVAL : cFmt ;
 					} else {
-						myASSERT(0) ;
+						IF_myASSERT(debugTRACK, 0) ;
 					}
 				}
 			}
