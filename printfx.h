@@ -238,7 +238,6 @@ DUMB_STATIC_ASSERT(sizeof(xpc_t) == 20) ;
 
 // ################################### Public variables ############################################
 
-//extern SemaphoreHandle_t	usartSemaphore ;
 
 // ################################### Public functions ############################################
 
