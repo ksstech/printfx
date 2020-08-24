@@ -148,22 +148,23 @@ int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
 void	vPrintString (xpc_t * psXPC, char * pStr) {
 	pStr = (pStr == NULL) ? STRING_NULL : INRANGE_MEM(pStr) ? pStr : STRING_OOR ;
 
-	int32_t PadLen, Len = 0 ;
-	for (char * ptr = pStr; *ptr ; ++ptr, ++Len) ;					// calc actual string length
-	PadLen = (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0 ;	// calc required number of padding chars
+	int32_t PadLen, padchar, Len = 0 ;
+	for (char * ptr = pStr; *ptr ; ++ptr, ++Len) ;		// calc actual string length
+	PadLen = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;	// calc required number of padding chars
 
-	// handle padding on left (ie right justified)
-	int32_t padchar = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
+	padchar = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;		// left padding (ie right justified)
 	if ((psXPC->f.ljust == 0) && PadLen) {				// If right justified & we must pad
-		while (PadLen--) vPrintChar(psXPC, padchar) ;	// do left pad
+		while (PadLen--)
+			vPrintChar(psXPC, padchar) ;				// do left pad
 	}
-	// output the actual string
-	psXPC->f.precision = psXPC->f.precision ? psXPC->f.precision : Len ;
-	while (*pStr && psXPC->f.precision--) vPrintChar(psXPC, *pStr++) ;
 
-	// handle padding on right (ie left justified)
+	psXPC->f.precis = psXPC->f.precis ? psXPC->f.precis : Len ;
+	while (*pStr && psXPC->f.precis--)					// output the actual string
+		vPrintChar(psXPC, *pStr++) ;
+
 	if ((psXPC->f.ljust == 1) && PadLen) {				// If left justified & we must pad
-		while (PadLen--) vPrintChar(psXPC, padchar) ;	// do right pad
+		while (PadLen--)
+			vPrintChar(psXPC, padchar) ;				// do right pad
 	}
 }
 
@@ -227,13 +228,11 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 #endif
 		// convert to string starting at end of buffer from Least (R) to Most (L) significant digits
 		while (ullVal) {
-		// calculate the next remainder ie digit
-			iTemp = ullVal % psXPC->f.nbase ;
+			iTemp	= ullVal % psXPC->f.nbase ;			// calculate the next remainder ie digit
 			*pTemp-- = cPrintNibbleToChar(psXPC, iTemp) ;
 			++Len ;
-			ullVal /= psXPC->f.nbase ;
-		// handle digit grouping, if required
-			if (ullVal && psXPC->f.group) {
+			ullVal	/= psXPC->f.nbase ;
+			if (ullVal && psXPC->f.group) {				// handle digit grouping, if required
 				if ((++Count % 3) == 0) {
 					*pTemp-- = CHR_COMMA ;
 					++Len ;
@@ -309,7 +308,7 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 	int32_t Len = 0 ;
 	psXPC->f.negvalue	= f64Val < 0.0 ? 1 : 0 ;		// set negvalue if < 0.0
 	f64Val				*= psXPC->f.negvalue ? -1.0 : 1.0 ;	// convert to positive number
-	xpf_t		xpf ;
+	xpf_t	xpf ;
 	xpf.limits			= psXPC->f.limits ;				// save original flags
 	xpf.flags			= psXPC->f.flags ;
 	x64_t x64Value 		= { 0 } ;
@@ -382,16 +381,17 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 		}
 	}
 
-	x64Value.u64		= f64Val ;						// extract and convert the whole number portions
-	psXPC->f.limits		= xpf.limits ;					// restore original limits & flags
-	psXPC->f.flags		= xpf.flags ;
-// adjust minwid to do padding (if required) based on string length after adding whole number
-	psXPC->f.minwid		= psXPC->f.minwid > Len ? psXPC->f.minwid -Len : 0 ;
+	x64Value.u64	= f64Val ;							// extract and convert the whole number portions
+	psXPC->f.limits	= xpf.limits ;						// restore original limits & flags
+	psXPC->f.flags	= xpf.flags ;
+
+	// adjust minwid to do padding (if required) based on string length after adding whole number
+	psXPC->f.minwid	= psXPC->f.minwid > Len ? psXPC->f.minwid -Len : 0 ;
 	Len += xPrintXxx(psXPC, x64Value.u64, Buffer, xpfMAX_LEN_F64-1 -Len) ;
-	psXPC->f.limits		= xpf.limits ;					// restore original limits & flags
-	psXPC->f.flags		= xpf.flags ;
-	psXPC->f.precision	= 0 ;							// enable full string to be output (subject to minwid padding on right)
-	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64-1 -Len)) ;
+	psXPC->f.limits	= xpf.limits ;						// restore original limits & flags
+	psXPC->f.flags	= xpf.flags ;
+	psXPC->f.precis	= 0 ;								// enable full string to be output (subject to minwid padding on right)
+	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64 - 1 - Len)) ;
 }
 
 /**
@@ -542,9 +542,9 @@ void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
 		Buffer[Len++]	= (psXPC->f.form == xpfFORMAT_3) ? CHR_h :  CHR_COLON ;
 		psXPC->f.hour_ok= 1 ;
 		psXPC->f.pad0	= 1 ;
-	} else {
+	} else
 		Len = 0 ;
-	}
+
 	// Part 2: minutes
 	if (sTM.tm_min > 0 || psXPC->f.pad0 || psXPC->f.hour_ok) {
 		Len += xPrintXxx(psXPC, (uint64_t) sTM.tm_min, &Buffer[Len], 2) ;
@@ -552,6 +552,7 @@ void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
 		psXPC->f.min_ok = 1 ;
 		psXPC->f.pad0	= 1 ;
 	}
+
 	// Part 3: seconds
 	Len += xPrintXxx(psXPC, (uint64_t) sTM.tm_sec, &Buffer[Len], 2) ;
 	psXPC->f.sec_ok = 1 ;								// not required, just to be correct
@@ -586,9 +587,8 @@ void	vPrintTime(xpc_t * psXPC, TSZ_t * psTSZ) {
 size_t	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid	= 0 ;
 	size_t Len = xPrintXxx(psXPC, (int64_t) (psTM->tm_year + (psXPC->f.abs_rel ? 0 : YEAR_BASE_MIN)), pBuffer, 4) ;
-	if (psXPC->f.alt_form == 0) {						// no extra ' ' at end for alt_form
+	if (psXPC->f.alt_form == 0)							// no extra ' ' at end for alt_form
 		*(pBuffer + Len++) = (psXPC->f.form == xpfFORMAT_3) ? CHR_FWDSLASH : CHR_MINUS ;
-	}
 	psXPC->f.year_ok	= 1 ;
 	psXPC->f.pad0		= 1 ;
 	return Len ;
@@ -597,11 +597,10 @@ size_t	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 size_t	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid	= 2 ;
 	size_t Len = xPrintXxx(psXPC, (int64_t) (psTM->tm_mon + (psXPC->f.abs_rel ? 0 : 1)), pBuffer, 2) ;
-	if (psXPC->f.alt_form) {
+	if (psXPC->f.alt_form)
 		*(pBuffer + Len++) = CHR_SPACE ;
-	} else {
+	else
 		*(pBuffer + Len++) = (psXPC->f.form == xpfFORMAT_3) ? CHR_FWDSLASH : CHR_MINUS ;
-	}
 	psXPC->f.mon_ok	= 1 ;
 	psXPC->f.pad0	= 1 ;
 	return Len ;
@@ -610,12 +609,11 @@ size_t	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 size_t	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid = 2 ;
 	size_t Len = xPrintXxx(psXPC, (int64_t) psTM->tm_mday, pBuffer, 2) ;
-	if (psXPC->f.alt_form) {
+	if (psXPC->f.alt_form)
 		*(pBuffer + Len++) = CHR_SPACE ;
-	} else {
+	else
 		*(pBuffer + Len++) = ((psXPC->f.form == xpfFORMAT_3) && psXPC->f.abs_rel) ? CHR_d :
 							(psXPC->f.form == xpfFORMAT_3) ? CHR_SPACE : CHR_T ;
-	}
 	psXPC->f.mday_ok	= 1 ;
 	psXPC->f.pad0		= 1 ;
 	return Len ;
@@ -630,9 +628,8 @@ void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
 	psXPC->f.pad0	= psXPC->f.abs_rel ? 0 : 1 ;
 	size_t	Len ;
 	char	Buffer[xpfMAX_LEN_DATE] ;
-	if (psXPC->f.alt_form && psXPC->f.abs_rel) {		// cannot have Alt form with relative value
+	if (psXPC->f.alt_form && psXPC->f.abs_rel) 			// cannot have Alt form with relative value
 		psXPC->f.alt_form = 0 ;							// force to normal format output.
-	}
 
 	if (psXPC->f.alt_form) {
 		Len = xstrncpy(Buffer, (char *) xTimeGetDayName(sTM.tm_wday), 3) ;			// "Sun"
@@ -643,17 +640,14 @@ void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
 		Len += xPrintDate_Year(psXPC, &sTM, &Buffer[Len]) ;							// "Sun, 10 Sep 2017"
 	} else {
 		Len = 0 ;
-		if (sTM.tm_year > 0 || psXPC->f.pad0) {
+		if (sTM.tm_year > 0 || psXPC->f.pad0)
 			Len += xPrintDate_Year(psXPC, &sTM, &Buffer[Len]) ;
-		}
-		if (sTM.tm_mon > 0 || psXPC->f.pad0 || psXPC->f.year_ok) {
+		if (sTM.tm_mon > 0 || psXPC->f.pad0 || psXPC->f.year_ok)
 			Len += xPrintDate_Month(psXPC, &sTM, &Buffer[Len]) ;
-		}
-		if (Seconds >= SECONDS_IN_DAY || psXPC->f.pad0 || psXPC->f.mon_ok) {
+		if (Seconds >= SECONDS_IN_DAY || psXPC->f.pad0 || psXPC->f.mon_ok)
 			Len += xPrintDate_Day(psXPC, &sTM, &Buffer[Len]) ;
-		}
 	}
-// converted L to R, so terminate
+	// converted L to R, so terminate
 	Buffer[Len] = CHR_NUL ;
 // then send the formatted output to the correct stream
 	psXPC->f.precision	= 0 ;							// enable full string (subject to minwid)
@@ -685,9 +679,8 @@ void	vPrintDate(xpc_t * psXPC, TSZ_t * psTSZ) {
 void	vPrintDateTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
 	vPrintDateUSec(psXPC, uSecs) ;
 	vPrintTimeUSec(psXPC, uSecs) ;
-	if (psXPC->f.no_zone == 0 && psXPC->f.abs_rel == 0) {
+	if (psXPC->f.no_zone == 0 && psXPC->f.abs_rel == 0)
 		vPrintChar(psXPC, CHR_Z) ;						// If not coming from vPrintDateTimeZone() AND not relative time
-	}
 }
 
 /**
@@ -765,9 +758,9 @@ void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 		}
 	}
 // terminate string in buffer then out as per normal...
-	Buffer[Len]			= CHR_NUL ;						// converted L to R, so add terminating NUL
-	psXPC->f.minwid		= 0 ;							// no explicit limit on width
 	psXPC->f.precision	= 0 ;							// enable full string (subject to minwid)
+	Buffer[Len]		= CHR_NUL ;							// converted L to R, so add terminating NUL
+	psXPC->f.minwid	= 0 ;								// no explicit limit on width
 	vPrintString(psXPC, Buffer) ;
 }
 
@@ -858,13 +851,12 @@ void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
  */
 void	vPrintBinary(xpc_t * psXPC, uint64_t ullVal) {
 	int32_t		len ;
-	if (psXPC->f.minwid == 0) {							// not specified
+	if (psXPC->f.minwid == 0)							// not specified
 		len = (psXPC->f.llong == 1) ? 64 : 32 ;			// set to 32 or 64 ...
-	} else if (psXPC->f.llong == 1) {					// width specified, but check validity...
+	else if (psXPC->f.llong == 1)						// width specified, but check validity...
 		len = (psXPC->f.minwid > 64) ? 64 : psXPC->f.minwid ;
-	} else {
+	else
 		len = (psXPC->f.minwid > 32) ? 32 : psXPC->f.minwid ;
-	}
 	uint64_t mask	= 1ULL << (len - 1) ;
 	psXPC->f.form	= psXPC->f.group ? xpfFORMAT_3 : xpfFORMAT_0_G ;
 	while (mask) {
@@ -981,8 +973,8 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 			if (*format == CHR_NUL) {					// terminating NULL at end of format string...
 				break ;
 			}
-		/* In order for the optional modifiers to work correctly, especially in cases such as HEXDUMP
-		 * the modifiers MUST be in correct sequence of interpretation being [ ! # ' * + - % 0 ] */
+			/* In order for the optional modifiers to work correctly, especially in cases such as HEXDUMP
+			 * the modifiers MUST be in correct sequence of interpretation being [ ! # ' * + - % 0 ] */
 			int32_t	cFmt ;
 			while ((cFmt = xinstring("!#'*+-%0", *format)) != erFAILURE) {
 				switch (cFmt) {
@@ -1025,13 +1017,13 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 					myASSERT(0) ;
 				}
 			}
-		// handle pre and post decimal field width/precision indicators
+			// handle pre and post decimal field width/precision indicators
 			if ((*format == CHR_FULLSTOP) || INRANGE(CHR_0, *format, CHR_9, char)) {
 				cFmt = 0 ;
 				while (1) {
 					if (INRANGE(CHR_0, *format, CHR_9, char)) {
 						cFmt *= 10 ;
-						cFmt += *format - '0' ;
+						cFmt += *format - CHR_0 ;
 						++format ;
 					} else if (*format == CHR_FULLSTOP) {
 						myASSERT(sXPC.f.radix == 0)		// cannot have 2x radix '.'
@@ -1065,7 +1057,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 					}
 				}
 			}
-		// handle 2x successive 'l' characters, lower case ONLY, form long long value treatment
+			// handle 2x successive 'l' characters, lower case ONLY, form long long value treatment
 			if (*format == CHR_l) {
 				++format;
 				if (*format == CHR_l) {
@@ -1073,13 +1065,13 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 					sXPC.f.llong = 1 ;
 				}
 			}
-		// Check if format character where UC/lc same character control the case of the output
+			// Check if format character where UC/lc same character control the case of the output
 			cFmt = *format ;
 			if (xinstring(vPrintStr1, cFmt) != erFAILURE) {
 				cFmt |= 0x20 ;							// convert to lower case, but ...
 				sXPC.f.Ucase = 1 ;						// indicate as UPPER case requested
 			}
-		// At this stage the format specifiers used in UC & LC to denote output case has been changed to all lower case
+			// At this stage the format specifiers used in UC & LC to denote output case has been changed to all lower case
 			switch (cFmt) {
 #if		(xpfSUPPORT_SGR == 1)
 			/* XXX: Since we are using the same command handler to process requests (UART, HTTP & TNET) and
