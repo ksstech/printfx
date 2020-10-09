@@ -612,12 +612,12 @@ size_t	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 }
 
 size_t	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
-	psXPC->f.minwid = 2 ;
-	size_t Len = xPrintXxx(psXPC, (int64_t) psTM->tm_mday, pBuffer, 2) ;
+	psXPC->f.minwid = psXPC->f.abs_rel ? 1 : 2 ;
+	size_t Len = xPrintXxx(psXPC, (int64_t) psTM->tm_mday, pBuffer, psXPC->f.abs_rel ? 10 : 2) ;
 	if (psXPC->f.alt_form)
 		*(pBuffer + Len++) = CHR_SPACE ;
 	else
-		*(pBuffer + Len++) = ((psXPC->f.form == xpfFORMAT_3) && psXPC->f.abs_rel) ? CHR_d :
+		*(pBuffer + Len++) = (psXPC->f.form == xpfFORMAT_3 && psXPC->f.abs_rel) ? CHR_d :
 							(psXPC->f.form == xpfFORMAT_3) ? CHR_SPACE : CHR_T ;
 	psXPC->f.mday_ok	= 1 ;
 	psXPC->f.pad0		= 1 ;
@@ -1218,6 +1218,12 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 #if		(xpfSUPPORT_POINTER == 1)
 			case CHR_p:									// pointer value UC/lc
 				vPrintPointer(&sXPC, va_arg(vArgs, uint32_t)) ;		// no provision for 64 bit pointers (yet)
+				break ;
+#endif
+
+#if		(xpfSUPPORT_DATETIME == 1)
+			case CHR_r:								// u32 timestamp (abs or rel) -> u64 uSecs
+				vPrintDateTimeUSec(&sXPC, (uint64_t) va_arg(vArgs, uint32_t) * MILLION) ;
 				break ;
 #endif
 
