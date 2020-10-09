@@ -147,25 +147,17 @@ int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
  */
 void	vPrintString (xpc_t * psXPC, char * pStr) {
 	pStr = (pStr == NULL) ? STRING_NULL : INRANGE_MEM(pStr) ? pStr : STRING_OOR ;
-
-	int32_t PadLen, padchar, Len = 0 ;
-	for (char * ptr = pStr; *ptr ; ++ptr, ++Len) ;		// calc actual string length
-	PadLen = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;	// calc required number of padding chars
-
-	padchar = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;		// left padding (ie right justified)
-	if ((psXPC->f.ljust == 0) && PadLen) {				// If right justified & we must pad
-		while (PadLen--)
-			vPrintChar(psXPC, padchar) ;				// do left pad
-	}
+	int32_t Len = xstrlen(pStr) ;
+	int32_t PadLen = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;	// calc required number of padding chars
+	int32_t PadChr = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;		// left padding (ie right justified)
+	if ((psXPC->f.ljust == 0) && PadLen)				// If right justified & we must pad
+		while (PadLen--) vPrintChar(psXPC, PadChr) ;	// do left pad
 
 	psXPC->f.precis = psXPC->f.precis ? psXPC->f.precis : Len ;
-	while (*pStr && psXPC->f.precis--)					// output the actual string
-		vPrintChar(psXPC, *pStr++) ;
+	while (*pStr && psXPC->f.precis--) vPrintChar(psXPC, *pStr++) ;
 
-	if ((psXPC->f.ljust == 1) && PadLen) {				// If left justified & we must pad
-		while (PadLen--)
-			vPrintChar(psXPC, padchar) ;				// do right pad
-	}
+	if ((psXPC->f.ljust == 1) && PadLen)				// If left justified & we must pad
+		while (PadLen--) vPrintChar(psXPC, PadChr) ;	// do right pad
 }
 
 /**
@@ -178,9 +170,8 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
 char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
 	IF_myASSERT(debugPARAM, Value < 0x10) ;
 	char cChr = hexchars[Value] ;
-	if ((psXPC->f.Ucase == 0) && (Value > 9)) {
+	if (psXPC->f.Ucase == 0 && Value > 9)
 		cChr += 0x20 ;									// convert to lower case
-	}
 	return cChr ;
 }
 
@@ -529,7 +520,7 @@ seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 	return Seconds ;
 }
 
-uint32_t	u32pow(uint32_t base, uint32_t exp) {
+uint32_t u32pow(uint32_t base, uint32_t exp) {
 	uint32_t res ;
 	for(res = 1; exp > 0; res *= base, --exp) ;
 	return res ;
@@ -1129,7 +1120,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 #endif
 
 #if		(xpfSUPPORT_DATETIME == 1)
-			case CHR_R:								// timestamp (abs or rel)
+			case CHR_R:								// u64 timestamp (abs or rel)
 				vPrintDateTimeUSec(&sXPC, va_arg(vArgs, uint64_t)) ;	// para =  microSeconds
 				break ;
 
@@ -1205,7 +1196,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				vPrintX64(&sXPC, x64Val.u64) ;
 				break ;
 
-#if	(xpfSUPPORT_IEEE754 == 1)
+#if		(xpfSUPPORT_IEEE754 == 1)
 			case CHR_e:									// treat same as 'f' for now, need to implement...
 				sXPC.f.form++ ;
 				/* FALLTHRU */ /* no break */
@@ -1224,7 +1215,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				break ;
 #endif
 
-#if	(xpfSUPPORT_POINTER == 1)
+#if		(xpfSUPPORT_POINTER == 1)
 			case CHR_p:									// pointer value UC/lc
 				vPrintPointer(&sXPC, va_arg(vArgs, uint32_t)) ;		// no provision for 64 bit pointers (yet)
 				break ;

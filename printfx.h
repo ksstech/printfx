@@ -37,16 +37,16 @@ extern "C" {
 
 // #################################################################################################
 
-extern uint64_t RunTime ;
+// "format" used by ALL tracking macros.
 #define	_TRACK_(f)						"%!.R: %s:%d " f "\n", RunTime, __FUNCTION__, __LINE__
+
 #define	TRACK(f, ...)					printfx(_TRACK_(f), ##__VA_ARGS__)
 #define	IF_TRACK(T, f, ...)				if (T) TRACK(f, ##__VA_ARGS__)
 #define	PRINT(f, ...)					printfx(f, ##__VA_ARGS__)
 #define	IF_PRINT(T, f, ...)				if (T) PRINT(f, ##__VA_ARGS__)
 
-/* The direct output functions must ONLY be used to debug tasks that work with redirected
- * STDOUT such as the HTTP and TelNET tasks */
-//#define	CTRACK(f, ...)					ets_printf("%s:%d " f "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
+/* The direct output functions are intended to be used to debug tasks that work
+ * with redirected STDOUT such as the HTTP and TelNET tasks */
 #define	CTRACK(f, ...)					cprintfx(_TRACK_(f), ##__VA_ARGS__)
 #define	IF_CTRACK(T, f, ...)			if (T) CTRACK(f, ##__VA_ARGS__)
 #define	CPRINT(f, ...)					cprintfx(f, ##__VA_ARGS__)
