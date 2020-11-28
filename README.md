@@ -102,9 +102,9 @@
   |||||*-------> LEFT justification, HEXDUMP remove address info
   ||||*--------> SIGN leading '+' or '-',	DTZ=Add full TZ info, HEXDUMP add ASCII info
   |||*---------> Minwid or precision variable provided
-  ||*----------> Xxx=3 digits group, DTZ "::." -> "hms"	DUMP use '|-+'
+  ||*----------> Xxx=3 digits group, DTZ "::." -> "hms"	MAC/DUMP use '|-+'
   |*-----------> Xxx=Scaling, DTZ=alt form (Sun, 10 Sep 2017 20:50:37 GMT) IP=ntohl() Hex=Reverse order
-  *------------> DTZ=elapsed time,	DUMP=relative addr,
+  *------------> DTZ=elapsed time,	DUMP=relative addr, MAC=use ':' separator
 
 # Examples:
 	"%'03llJ"			- print binary representation, optional separator, llong & field width modifiers
