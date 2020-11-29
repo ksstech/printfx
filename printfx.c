@@ -19,32 +19,11 @@
  */
 
 /*
- * x<snf>printf -  set of routines to replace equivalent printf functionality
- * Date			Ver		Author	Comments
- * 2015/01/17	2.00	AMM		Change output functionality to use pointer to a routine
- * 2015/01/23	2.10	AMM		Fixed length return to exclude the terminating '\000'
- * 2015/03/20	2.20	AMM		Moved wrapper function for circular buffer xcbprintf here
- * 								Rearranged conditionals to group wrapper functions where belong
- * 2015/05/03	2.30	AMM		simplified format string parsing structure
- * 								incorporated all flags in psXPC structure
- * 								removed need to pass all parameters to sub-functions
- * 								Added octal decoding
- * 2015/08/28	2.31	AMM		Added Binary string, IP & MAC address support.
- * 2015/08/30	2.32	AMM		Added debug style dump with variable 8/16/32/64 bit value groupings
- * 								Multiple separator options, none/absolute/relative address display
- * 2015/10/01	2.40	AMM		Added date, time and date/time/zone format selectors
- * 2015/11/01	2.41	AMM		Added relative time & date modifier
- * 2015/11/21	2.42	AMM		Added alternative date/time separators "--T' -> "// " and "::[.Z]" -> "hm[sm]"
- * 2016/01/30	2.50	AMM		Added exponential format conversion specifier(s)
- * 2017/01/05	2.60	AMM		Complete change in handling of output re/direction
- * 								Circular buffer support replace with a simpler linear buffer (circular functionality to be added)
- * 								Added v[snf]printf functionality
+ * <snf>printfx -  set of routines to replace equivalent printf functionality
  *
  * History:
  * --------
  *	Originally used source as per George Menie and Daniel D Miller.
- *	Converted to be used with the TI compiler for the CC3200
- *	Started complete rewrite mid 2014 when need for retargeting via ITM, UART or RTT was required.
  */
 
 #include	"printfx.h"
