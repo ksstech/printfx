@@ -125,6 +125,10 @@ int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
  * \return	number of ACTUAL characters output.
  */
 void	vPrintString (xpc_t * psXPC, char * pStr) {
+// Required to avoid crash when wifi message is intercepted and a string pointer parameter
+// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
+// Following line was used to test for the details of the anomaly
+//	if (pStr != NULL && INRANGE_MEM(pStr) == false) ets_printf("pOOR 0x%08x\n", pStr) ;
 	pStr = INRANGE_MEM(pStr) ? pStr : pStr == NULL ? STRING_NULL : STRING_OOR ;
 	int32_t Len = xstrlen(pStr) ;
 	int32_t PadLen = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;	// calc required number of padding chars
@@ -214,11 +218,13 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 		*pTemp-- = CHR_0 ;
 		Len = 1 ;
 	}
-// First check if ANY form of padding required
+
+	// First check if ANY form of padding required
 	if (psXPC->f.ljust == 0) {							// right justified (ie pad left) ???
 	/* this section ONLY when value is RIGHT justified.
 	 * For ' ' padding format is [       -xxxxx]
-	 * whilst '0' padding it is  [-0000000xxxxx] */
+	 * whilst '0' padding it is  [-0000000xxxxx]
+	 */
 		Count = (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0 ;
 	// If we are padding with ' ' and leading '+' or '-' is required, do that first
 		if ((psXPC->f.pad0 == 0) && (psXPC->f.negvalue || psXPC->f.plus)) {	// If a sign is required
@@ -233,7 +239,7 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 				*pTemp-- = iTemp ; ;
 			}
 		}
-	// If we are padding with ' ' AND a sign is required (-value or +requested), do that first
+	// If we are padding with '0' AND a sign is required (-value or +requested), do that first
 		if (psXPC->f.pad0 && (psXPC->f.negvalue || psXPC->f.plus)) {	// If +/- sign is required
 			if (*(pTemp+1) == CHR_SPACE || *(pTemp+1) == CHR_0) {
 				pTemp++ ;								// set overwrite last with '+' or '-'
@@ -790,8 +796,7 @@ void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
 			vPrintPointer(psXPC, psXPC->f.abs_rel ? Idx : (uint32_t) (pStr + Idx)) ;
 			xPrintChars(psXPC, (char *) ": ") ;
 		}
-
-	// then the actual series of values in 8-32 bit groups
+		// then the actual series of values in 8-32 bit groups
 		int32_t Width = ((Len - Idx) > xpfHEXDUMP_WIDTH) ? xpfHEXDUMP_WIDTH : Len - Idx ;
 		vPrintHexValues(psXPC, Width, pStr + Idx) ;
 
@@ -1063,11 +1068,11 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 			// At this stage the format specifiers used in UC & LC to denote output case has been changed to all lower case
 			switch (cFmt) {
 #if		(xpfSUPPORT_SGR == 1)
-			/* XXX: Since we are using the same command handler to process requests (UART, HTTP & TNET) and
-			 * since we are embedding colour ESC sequences into the formatted output (to make it pretty) and
-			 * since the colour ESC sequences are not understood by the HTTP protocol (but handled by UART & TNET); hence
-			 * we must try to filter out the possible output produced by the ESC sequences if the output is going
-			 * to a socket, and this we must try to do, one way or another.
+			/* XXX: Since we are using the same command handler to process (UART, HTTP & TNET)
+			 * requests, and we are embedding colour ESC sequences into the formatted output,
+			 * and the colour ESC sequences (handled by UART & TNET) are not understood by
+			 * the HTTP protocol, we must try to filter out the possible output produced by
+			 * the ESC sequences if the output is going to a socket, one way or another.
 			 */
 			case CHR_C:
 				vPrintSetGraphicRendition(&sXPC, va_arg(vArgs, uint32_t)) ;
@@ -1095,6 +1100,20 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 #if		(xpfSUPPORT_DATETIME == 1)
 			case CHR_R:								// u64 timestamp (abs or rel)
 				vPrintDateTimeUSec(&sXPC, va_arg(vArgs, uint64_t)) ;	// para =  microSeconds
+			/* Prints date and/or time in POSIX format
+			 * Use the following modifier flags
+			 *	'`'		select between 2 different separator sets being
+			 *			'/' or '-' (years)
+			 *			'/' or '-' (months)
+			 *			'T' or ' ' (days)
+			 *			':' or 'h' (hours and minutes)
+			 *			'.' or 's' (seconds)
+			 * 	'!'		Treat time value as elapsed and not epoch [micro] seconds
+			 * 	'.'		append 1 -> 6 digit(s) fractional seconds
+			 * Norm 1	1970/01/01T00:00:00Z
+			 * Norm 2	1970-01-01 00h00m00s
+			 * Altform	Mon, 01 Jan 1970 00:00:00 GMT
+			 */
 				break ;
 
 			case CHR_T:								// TIME
@@ -1136,6 +1155,11 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				sXPC.f.size = 0 ;
 				sXPC.f.llong = 0 ;					// force interpretation as sequence of U8 values
 				sXPC.f.form	= sXPC.f.group ? xpfFORMAT_1_F : xpfFORMAT_0_G ;
+			/* Formats 6 byte string (0x00 is valid) as a series of hex characters.
+			 * defualt format uses no separators eg. '0123456789AB'
+			 * Support the following modifier flags:
+			 *  '!'	select ':' separator between digits
+			 */
 				vPrintHexValues(&sXPC, configMAC_ADDRESS_LENGTH, va_arg(vArgs, char *)) ;
 				break ;
 #endif
@@ -1335,7 +1359,11 @@ int 	cprintfx(const char * format, ...) {
 /* ################################# Destination - String buffer or STDOUT #########################
  * * Based on the values (pre) initialised for buffer start and size
  * a) walk through the buffer on successive calls, concatenating output; or
- * b) output directly to stdout if buffer pointer/size not initialized
+ * b) output directly to stdout if buffer pointer/size not initialized.
+ * Because the intent in this function is to provide a streamlined method for
+ * keeping track of buffer usage over a series of successive printf() type calls
+ * no attempt is made to control access to the buffer or output channel as such.
+ * It is the responsibility of the calling function to control (un/lock) access.
  */
 
 int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
