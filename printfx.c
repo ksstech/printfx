@@ -146,7 +146,7 @@ int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
  * \return	number of ACTUAL characters output.
  */
 void	vPrintString (xpc_t * psXPC, char * pStr) {
-	pStr = (pStr == NULL) ? STRING_NULL : INRANGE_MEM(pStr) ? pStr : STRING_OOR ;
+	pStr = INRANGE_MEM(pStr) ? pStr : pStr == NULL ? STRING_NULL : STRING_OOR ;
 	int32_t Len = xstrlen(pStr) ;
 	int32_t PadLen = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;	// calc required number of padding chars
 	int32_t PadChr = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;		// left padding (ie right justified)
