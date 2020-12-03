@@ -1076,8 +1076,6 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 			 */
 				break ;
 
-			case CHR_T:								// TIME
-				vPrintTime(&sXPC, va_arg(vArgs, TSZ_t *)) ;				// para =  pointer to TSZ_t structure
 			case CHR_R:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
 				IF_myASSERT(debugTRACK, sXPC.f.alt_form == 0 && sXPC.f.plus == 0 && sXPC.f.pad0 == 0 && sXPC.f.group == 0) ;
 				if (sXPC.f.rel_val == 0)
@@ -1085,6 +1083,13 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				vPrintDateTime(&sXPC, va_arg(vArgs, uint64_t)) ;
 				break ;
 #endif
+			case CHR_T:				// psTSZ epoch TIME
+				IF_myASSERT(debugTRACK, sXPC.f.rel_val == 0 && sXPC.f.group == 0) ;
+				sXPC.f.pad0		= 1 ;
+				psTSZ = va_arg(vArgs, TSZ_t *) ;
+				xPrintCalcSeconds(&sXPC, psTSZ, &sTM) ;
+				vPrintTime(&sXPC, &sTM, (uint32_t) (psTSZ->usecs % MICROS_IN_SECOND)) ;
+				vPrintZone(&sXPC, psTSZ) ;
 
 			case CHR_Z:				// psTSZ epoch DATE+TIME+ZONE
 				IF_myASSERT(debugTRACK, sXPC.f.rel_val == 0 && sXPC.f.plus == 0 && sXPC.f.group == 0) ;
