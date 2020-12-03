@@ -771,7 +771,7 @@ void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
 	uint32_t	Count ;
 	for (uint32_t Idx = 0; Idx < Len; Idx += xpfHEXDUMP_WIDTH) {
 		if (psXPC->f.ljust == 0) {						// display absolute or relative address
-			vPrintPointer(psXPC, psXPC->f.abs_rel ? Idx : (uint32_t) (pStr + Idx)) ;
+			vPrintPointer(psXPC, psXPC->f.rel_val ? Idx : (uint32_t) (pStr + Idx)) ;
 			xPrintChars(psXPC, (char *) ": ") ;
 		}
 		// then the actual series of values in 8-32 bit groups
@@ -871,7 +871,7 @@ void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
 			Buffer[xpfMAX_LEN_IP - 1 - ++Len] = CHR_FULLSTOP ;
 	}
 	// then send the formatted output to the correct stream
-	psXPC->f.precis	= 0 ;							// enable full string (subject to minwid)
+	psXPC->f.limits	= 0 ;
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_IP - 1 - Len)) ;
 }
 
