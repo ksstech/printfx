@@ -185,9 +185,6 @@ typedef	struct __attribute__((packed)) xpf_u {
 } xpf_t ;
 DUMB_STATIC_ASSERT(sizeof(xpf_t) == 12) ;
 
-struct	ubuf_s ;
-struct	netx_s ;
-
 typedef	struct __attribute__((packed)) xpc_s {
 	int 	(*handler)(struct xpc_s * , int ) ;
 	union {
@@ -229,6 +226,8 @@ int 	vnprintfx(size_t, const char *, va_list) ;
 int 	vprintfx(const char * , va_list) ;
 int 	nprintfx(size_t, const char *, ...) ;
 int		printfx(const char *, ...) ;
+
+int 	vnprintfx_nolock(size_t count, const char * format, va_list vArgs) ;
 int 	printfx_nolock(const char * format, ...) ;
 
 // ############################## LOW LEVEL DIRECT formatted output ################################
