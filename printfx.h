@@ -103,10 +103,11 @@ extern "C" {
 #define	xpfSIZING_WORD					2			// 32 bit word
 #define	xpfSIZING_DWORD					3			// 64 bit long long word
 
-#define	xpfFORMAT_0_G					0			// FLOAT 'G' or 'g' else NONE
-#define	xpfFORMAT_1_F					1			// FLOAT 'F' or 'f' else COLON
-#define	xpfFORMAT_2_E					2			// FLOAT 'E' or 'e'
-#define	xpfFORMAT_3						3			// COMPLEX
+//														FLOAT			MAC/DUMP
+#define	xpfFORMAT_0_G					0			// 'G' or 'g'		NONE		(default)
+#define	xpfFORMAT_1_F					1			// 'F' or 'f'		COLON		('!' select)
+#define	xpfFORMAT_2_E					2			// 'E' or 'e'		MINUS
+#define	xpfFORMAT_3						3			//					COMPLEX		('`' select)
 
 /* For HEXDUMP functionality the size is as follows
  * ( 0x12345678 {32 x 3} [ 32 x Char]) = 142 plus some safety = 160 characters max.
@@ -131,32 +132,28 @@ extern "C" {
 
 // #################################### Public structures ##########################################
 
-typedef union __attribute__((packed)) {
-	struct __attribute__((packed)) {
-		uint8_t		d ;
-		uint8_t		c ;
-		uint8_t		b ;
-		uint8_t		a ;
-	} ;
+typedef union {
+	struct { uint8_t	d, c, b, a ; } ;
 	uint8_t		u8[sizeof(uint32_t)] ;
 	uint32_t	u32 ;
 } sgr_info_t ;
 DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4) ;
 
-typedef	union xpf_u {
-	struct __attribute__((packed)) {
+typedef	struct __attribute__((packed)) xpf_u {
+	union {
 		uint32_t	lengths ;							// maxlen & curlen ;
-		uint32_t	limits ;							// minwid & precis
-		uint32_t	flags ;								// rest of flags
+		struct __attribute__((packed)) {
+			uint32_t	maxlen		: xpfMAXLEN_BITS ;	// max chars to output 0 = unlimited
+			uint32_t	curlen		: xpfMAXLEN_BITS ;	// number of chars output so far
+		} ;
 	} ;
-	struct __attribute__((packed)) {
-	/* Be careful about changing the size of the next 4 fields since the 16bits each
-	 * align directly with the uint32_t fields "limits and "flags" above. The "flags" field is
-	 * used to reset the flags in the man vPrint routine */
-		uint32_t	maxlen		: xpfMAXLEN_BITS ;		// max chars to output 0 = unlimited
-		uint32_t	curlen		: xpfMAXLEN_BITS ;		// number of chars output so far
-		uint32_t	minwid		: xpfMINWID_BITS ;		// minimum field width
-		uint32_t	precis		: xpfPRECIS_BITS ;		// number of decimal digits or width of string
+	union {
+		uint32_t	limits ;							// minwid & precis
+		struct __attribute__((packed)) {
+			uint32_t	minwid		: xpfMINWID_BITS ;		// minimum field width
+			uint32_t	precis		: xpfPRECIS_BITS ;		// number of decimal digits or width of string
+		} ;
+	} ;
 	union {
 		uint32_t	flags ;								// rest of flags
 		struct __attribute__((packed)) {
