@@ -495,6 +495,14 @@ uint32_t u32pow(uint32_t base, uint32_t exp) {
 	uint32_t res ;
 	for(res = 1; exp > 0; res *= base, --exp) ;
 	return res ;
+size_t	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
+	psXPC->f.minwid	= 2 ;
+	size_t Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_mon + 1), pBuffer, 2) ;
+	pBuffer[Len++] = psXPC->f.alt_form ? CHR_SPACE :
+					(psXPC->f.form == xpfFORMAT_3) ? CHR_FWDSLASH : CHR_MINUS ;
+	return Len ;
+}
+
 }
 
 void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
@@ -552,17 +560,6 @@ size_t	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	if (psXPC->f.alt_form == 0)							// no extra ' ' at end for alt_form
 		*(pBuffer + Len++) = (psXPC->f.form == xpfFORMAT_3) ? CHR_FWDSLASH : CHR_MINUS ;
 	psXPC->f.pad0		= 1 ;
-	return Len ;
-}
-
-size_t	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
-	psXPC->f.minwid	= 2 ;
-	size_t Len = xPrintXxx(psXPC, (int64_t) (psTM->tm_mon + (psXPC->f.abs_rel ? 0 : 1)), pBuffer, 2) ;
-	if (psXPC->f.alt_form)
-		*(pBuffer + Len++) = CHR_SPACE ;
-	else
-		*(pBuffer + Len++) = (psXPC->f.form == xpfFORMAT_3) ? CHR_FWDSLASH : CHR_MINUS ;
-	psXPC->f.pad0	= 1 ;
 	return Len ;
 }
 
