@@ -1296,9 +1296,11 @@ int 	printfx(const char * format, ...) {
 }
 
 /*
- * printfx_nolock() - print to stdout without any semaphore locking.
+ * vnprintfx_nolock() - print to stdout without any semaphore locking.
  * 					securing the channel must be done manually
  */
+int 	vnprintfx_nolock(size_t count, const char * format, va_list vArgs) { return PrintFX(xPrintStdOut, stdout, count, format, vArgs) ; }
+
 int 	printfx_nolock(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
@@ -1349,7 +1351,7 @@ int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
 			*pSize	-= iRV ;
 		}
 	} else {
-		iRV = vnprintfx(xpfMAXLEN_MAXVAL, pcFormat, vArgs) ;
+		iRV = vnprintfx_nolock(xpfMAXLEN_MAXVAL, pcFormat, vArgs) ;
 	}
 	va_end(vArgs) ;
 	return iRV ;
