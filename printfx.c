@@ -1088,11 +1088,18 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				break ;
 #endif
 
+			case CHR_Z:				// psTSZ epoch DATE+TIME+ZONE
+				IF_myASSERT(debugTRACK, sXPC.f.rel_val == 0 && sXPC.f.plus == 0 && sXPC.f.group == 0) ;
+				sXPC.f.pad0		= 1 ;
+				sXPC.f.no_zone	= 1 ;
+				uint32_t flags	= sXPC.f.flags ;
+				psTSZ = va_arg(vArgs, TSZ_t *) ;
+				vPrintDateTime(&sXPC, xTimeMakeTimestamp(xPrintCalcSeconds(&sXPC, psTSZ, NULL), psTSZ->usecs % MICROS_IN_SECOND)) ;
+				sXPC.f.flags	= flags ;
+				vPrintZone(&sXPC, psTSZ) ;
 				break ;
 
 #if		(xpfSUPPORT_DATETIME == 1)
-			case CHR_Z:								// DATE, TIME, ZONE
-				vPrintDateTimeZone(&sXPC, va_arg(vArgs, TSZ_t *)) ;		// para =  SysTime
 			case CHR_r:				// U32->U64 epoch (yr+mth+day) or relative (days) + TIME
 				IF_myASSERT(debugTRACK, sXPC.f.alt_form == 0 && sXPC.f.plus == 0 &&
 										sXPC.f.pad0 == 0 && sXPC.f.radix == 0 &&
