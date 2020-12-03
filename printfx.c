@@ -731,20 +731,22 @@ void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
  * @param pString
  */
 void	vPrintURL(xpc_t * psXPC, char * pStr) {
-	char cIn ;
-	pStr = (pStr == NULL) ? STRING_NULL : INRANGE_MEM(pStr) ? pStr : STRING_OOR ;
-	while ((cIn = *pStr++) != CHR_NUL) {
-		if (INRANGE(CHR_A, cIn, CHR_Z, char) ||
-			INRANGE(CHR_a, cIn, CHR_z, char) ||
-			INRANGE(CHR_0, cIn, CHR_9, char) ||
-			cIn == CHR_MINUS || cIn == CHR_FULLSTOP || cIn == CHR_UNDERSCORE || cIn == CHR_TILDE) {
-			vPrintChar(psXPC, cIn) ;
-		} else {
-			vPrintChar(psXPC, CHR_PERCENT) ;
-			vPrintChar(psXPC, cPrintNibbleToChar(psXPC, cIn >> 4)) ;
-			vPrintChar(psXPC, cPrintNibbleToChar(psXPC, cIn & 0x0F)) ;
+	if (INRANGE_MEM(pStr)) {
+		char cIn ;
+		while ((cIn = *pStr++) != CHR_NUL) {
+			if (INRANGE(CHR_A, cIn, CHR_Z, char) ||
+				INRANGE(CHR_a, cIn, CHR_z, char) ||
+				INRANGE(CHR_0, cIn, CHR_9, char) ||
+				cIn == CHR_MINUS || cIn == CHR_FULLSTOP || cIn == CHR_UNDERSCORE || cIn == CHR_TILDE) {
+				vPrintChar(psXPC, cIn) ;
+			} else {
+				vPrintChar(psXPC, CHR_PERCENT) ;
+				vPrintChar(psXPC, cPrintNibbleToChar(psXPC, cIn >> 4)) ;
+				vPrintChar(psXPC, cPrintNibbleToChar(psXPC, cIn & 0x0F)) ;
+			}
 		}
-	}
+	} else
+		vPrintString(psXPC, pStr) ;						// "null" or "pOOR"
 }
 
 /**
