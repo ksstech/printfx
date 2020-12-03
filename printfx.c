@@ -156,7 +156,6 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
  * \return		pointer to the correct character
  */
 char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
-	IF_myASSERT(debugPARAM, Value < 0x10) ;
 	char cChr = hexchars[Value] ;
 	if (psXPC->f.Ucase == 0 && Value > 9)
 		cChr += 0x20 ;									// convert to lower case
@@ -178,7 +177,6 @@ char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
  * Protection against buffer overflow based on correct sized buffer being allocated in calling function
  */
 int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize) {
-	IF_myASSERT(debugPARAM, INRANGE_SRAM(pBuffer) && (BufSize > 1)) ;
 	int32_t	Len = 0, Count = 0, iTemp = 0 ;
 	char * pTemp = pBuffer + BufSize - 1 ;				// Point to last space in buffer
 	if (ullVal) {
@@ -428,7 +426,6 @@ void	vPrintHexU64(xpc_t * psXPC, uint64_t Value) {
  *					'#' via alt_form select reverse order (little vs big endian) interpretation
  */
 void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
-//	IF_myASSERT(debugPARAM, (Num > 0) && INRANGE_MEM(pStr)) ;
 	int32_t	Size = 1 << psXPC->f.size ;
 	if (psXPC->f.alt_form)								// '#' specified to invert order ?
 		pStr += Num - Size ;							// working backwards so point to last
