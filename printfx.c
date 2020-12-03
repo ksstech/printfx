@@ -448,20 +448,15 @@ void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
 		if (Idx >= Num) {
 			break ;
 		}
-	// now handle the grouping separator(s)
-		if (psXPC->f.form == xpfFORMAT_1_F) {
-			vPrintChar(psXPC, CHR_COLON) ;
-		} else if (psXPC->f.form == xpfFORMAT_3) {
-			if ((Idx % 8) == 0) {
-				vPrintChar(psXPC, CHR_SPACE) ;
-			} else if ((Idx % 4) == 0) {
-				vPrintChar(psXPC, CHR_VERT_BAR) ;
-			} else if ((Idx % 2) == 0) {
-				vPrintChar(psXPC, CHR_MINUS) ;
-			} else {
-				vPrintChar(psXPC, CHR_COLON) ;
-			}
-		}
+		// now handle the grouping separator(s) if any
+		if (psXPC->f.form == xpfFORMAT_0_G)				// no separator required?
+			continue ;
+		vPrintChar(psXPC, psXPC->f.form == xpfFORMAT_1_F ? CHR_COLON :
+						  psXPC->f.form == xpfFORMAT_2_E ? CHR_MINUS :
+						  psXPC->f.form == xpfFORMAT_3 ? (
+							(Idx % 8) == 0 ? CHR_SPACE :
+							(Idx % 4) == 0 ? CHR_VERT_BAR :
+							(Idx % 2) == 0 ? CHR_MINUS : CHR_COLON ) : '?') ;
 	}
 }
 
