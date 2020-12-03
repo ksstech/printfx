@@ -1413,10 +1413,10 @@ int		xPrintToSocket(xpc_t * psXPC, int cChr) {
 }
 
 int 	vsocprintfx(netx_t * psSock, const char * format, va_list vArgs) {
-	int	OldFlags	= psSock->flags ;
+	int	Fsav	= psSock->flags ;
 	psSock->flags	|= MSG_MORE ;
 	int32_t iRV = PrintFX(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	psSock->flags	= OldFlags ;
+	psSock->flags	= Fsav ;
 	return (psSock->error == 0) ? iRV : erFAILURE ;
 }
 
