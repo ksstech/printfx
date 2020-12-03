@@ -528,6 +528,28 @@ size_t	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	return Len ;
 }
 
+void	vPrintDate(xpc_t * psXPC, struct tm * psTM) {
+	size_t	Len = 0 ;
+	char	Buffer[xpfMAX_LEN_DATE] ;
+	psXPC->f.form	= psXPC->f.group ? xpfFORMAT_3 : xpfFORMAT_0_G ;
+	if (psXPC->f.alt_form) {
+		Len += xstrncpy(Buffer, xTimeGetDayName(psTM->tm_wday), 3) ;		// "Sun"
+		Len += xstrncpy(Buffer + Len, ", ", 2) ;							// "Sun, "
+		Len += xPrintDate_Day(psXPC, psTM, Buffer + Len) ;					// "Sun, 10 "
+		Len += xstrncpy(Buffer + Len, xTimeGetMonthName(psTM->tm_mon), 3) ;	// "Sun, 10 Sep"
+		Len += xstrncpy(Buffer + Len, " ", 1) ;								// "Sun, 10 Sep "
+		Len += xPrintDate_Year(psXPC, psTM, Buffer + Len) ;					// "Sun, 10 Sep 2017"
+	} else {
+		if (psXPC->f.rel_val == 0) {					// if epoch value do YEAR+MON
+			Len += xPrintDate_Year(psXPC, psTM, Buffer + Len) ;
+			Len += xPrintDate_Month(psXPC, psTM, Buffer + Len) ;
+		}
+		if (psTM->tm_mday || psXPC->f.pad0)
+			Len += xPrintDate_Day(psXPC, psTM, Buffer + Len) ;
+	}
+	Buffer[Len] = CHR_NUL ;								// converted L to R, so terminate
+	psXPC->f.limits	= 0 ;								// enable full string (subject to minwid)
+	vPrintString(psXPC, Buffer) ;
 }
 
 void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
@@ -614,28 +636,6 @@ void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
 	psXPC->f.precis	= 0 ;								// enable full string (subject to minwid)
 	vPrintString(psXPC, Buffer) ;
 	psXPC->f.precis = precis ;
-}
-
-/**
- * vPrintDate()
- * \brief		Prints to date in POSIX format to destination
- * \brief		CRITICAL : This function absorbs 2 parameters on the stack
- * \param[in]	psXPC - pointer to print control structure
- * \param[in]	Secs - Seconds in epoch format
- * \param[out]	none
- * \return		none
- * \comment		Use the following modifier flags
- *				'`'		select between 2 different separator sets being
- *				'/' or '-' (years) '/' or '-' (months) 'T' or ' ' (days)
- * 				'!'		Treat time value as abs_rel and not epoch seconds
- * 		Norm 1	1970/01/01T00:00:00Z
- * 		Norm 2	1970-01-01 00:00:00
- * 		Altform Mon, 01 Jan 1970 00:00:00 GMT
- */
-void	vPrintDate(xpc_t * psXPC, TSZ_t * psTSZ) {
-	seconds_t Seconds = xPrintCalcSeconds(psXPC, psTSZ, NULL) ;
-	uint64_t TStamp = xTimeMakeTimestamp(Seconds, psTSZ->usecs % MICROS_IN_SECOND) ;
-	vPrintDateUSec(psXPC, TStamp) ;
 }
 
 void	vPrintDateTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
