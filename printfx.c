@@ -1131,28 +1131,22 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				vPrintChar(&sXPC, va_arg(vArgs, int32_t)) ;
 				break ;
 
-			case CHR_d:								// signed decimal "[-]ddddd"
-			case CHR_i:								// signed integer (same as decimal ?)
-			case CHR_o:								// unsigned octal "ddddd"
-			case CHR_u:								// unsigned decimal "ddddd"
-			case CHR_x:								// hex as in "789abcd" UC/LC
-				// setup the number base value/form
+			case CHR_d:									// signed decimal "[-]ddddd"
+			case CHR_i:									// signed integer (same as decimal ?)
+			case CHR_o:									// unsigned octal "ddddd"
+			case CHR_u:									// unsigned decimal "ddddd"
+			case CHR_x:									// hex as in "789abcd" UC/LC
+				x64Val.u64	= sXPC.f.llong ? va_arg(vArgs, uint64_t) : va_arg(vArgs, uint32_t) ;
+				if (cFmt == CHR_d || cFmt == CHR_i) {
+					sXPC.f.signval = 1 ;
+					if (x64Val.i64 < 0)	{
+						sXPC.f.negvalue	= 1 ;
+						x64Val.i64 		*= -1 ; 		// convert the value to unsigned
+					}
+				}
 				sXPC.f.nbase = (cFmt == CHR_x) ? BASE16 : (cFmt == CHR_o) ? BASE08 : BASE10 ;
-				// if not working with BASE10, disable grouping
-				if (sXPC.f.nbase != BASE10) {
-					sXPC.f.group = 0 ;
-				}
-				// set signed form based on conversion specifier
-					sXPC.f.signval	= (cFmt == CHR_d || cFmt == CHR_i) ? 1 : 0 ;
-				// fetch 64 bit value from stack, or 32 bit & convert to 64 bit
-				x64_t	x64Val ;
-				if (sXPC.f.signval) {
-					x64Val.i64		= sXPC.f.llong ? va_arg(vArgs, int64_t) : va_arg(vArgs, int32_t) ;
-					sXPC.f.negvalue	= (x64Val.i64 < 0) ? 1 : 0 ;	// set the negvalue form as required.
-					x64Val.i64 		*= sXPC.f.negvalue ? -1 : 1 ; 	// convert the value to unsigned
-				} else {
-					x64Val.u64	= sXPC.f.llong ? va_arg(vArgs, uint64_t) : va_arg(vArgs, uint32_t) ;
-				}
+				if (sXPC.f.nbase != BASE10)				// if not BASE10
+					sXPC.f.group = 0 ;					// disable grouping
 				vPrintX64(&sXPC, x64Val.u64) ;
 				break ;
 
