@@ -479,9 +479,9 @@ seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 	seconds_t	Seconds ;
 	// Get seconds value to use... (adjust for TZ if required/allowed)
 	if (psTSZ->pTZ &&									// TZ info available
-		psXPC->f.plus &&								// output not going to show TZ info
-		!psXPC->f.alt_form &&							// alt_form always GMT/UTC
-		!psXPC->f.abs_rel) {							// relative time has no TZ info
+		psXPC->f.plus == 1 &&							// TZ info requested
+		psXPC->f.alt_form == 0 &&						// NOT alt_form (always GMT/UTC)
+		psXPC->f.rel_val == 0) {						// NOT relative time (has no TZ info)
 		Seconds = xTimeCalcLocalTimeSeconds(psTSZ) ;
 	} else
 		Seconds = xTimeStampAsSeconds(psTSZ->usecs) ;
