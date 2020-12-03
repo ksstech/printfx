@@ -50,7 +50,7 @@
 #include	<math.h>									// isnan()
 #include	<float.h>									// DBL_MIN/MAX
 
-#define	debugFLAG					(0xC000)
+#define	debugFLAG					0xE001
 
 #define	debugTIMING					(debugFLAG_GLOBAL & debugFLAG & 0x1000)
 #define	debugTRACK					(debugFLAG_GLOBAL & debugFLAG & 0x2000)
@@ -365,7 +365,6 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 	psXPC->f.flags	= xpf.flags ;
 	psXPC->f.precis	= 0 ;								// enable full string to be output (subject to minwid padding on right)
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64 - 1 - Len)) ;
-	psXPC->f.precis	= xpf.precis ;
 }
 
 /**
@@ -491,10 +490,6 @@ seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 	return Seconds ;
 }
 
-uint32_t u32pow(uint32_t base, uint32_t exp) {
-	uint32_t res ;
-	for(res = 1; exp > 0; res *= base, --exp) ;
-	return res ;
 size_t	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid	= 0 ;
 	size_t Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_year + YEAR_BASE_MIN), pBuffer, 4) ;
@@ -552,13 +547,6 @@ void	vPrintDate(xpc_t * psXPC, struct tm * psTM) {
 	vPrintString(psXPC, Buffer) ;
 }
 
-void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
-	struct	tm 	sTM ;
-	xTimeGMTime(xTimeStampAsSeconds(uSecs), &sTM, psXPC->f.abs_rel) ;
-	xpf_t xpf ;
-	xpf.precis	= psXPC->f.precis ;
-	xpf.minwid	= psXPC->f.minwid ;
-	psXPC->f.plus	= 0 ;								// ensure no '+' sign printed
 void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 	psXPC->f.form	= psXPC->f.group ? xpfFORMAT_3 : xpfFORMAT_0_G ;
 	psXPC->f.minwid = 2 ;
@@ -600,129 +588,56 @@ void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 	vPrintString(psXPC, Buffer) ;
 }
 
-
-void	vPrintDateUSec(xpc_t * psXPC, uint64_t uSecs) {
-	struct tm 	sTM ;
-	seconds_t Seconds ;
-	xTimeGMTime(Seconds = xTimeStampAsSeconds(uSecs), &sTM, psXPC->f.abs_rel) ;
-	psXPC->f.plus	= 0 ;								// ensure no '+' sign printed
-	psXPC->f.form	= psXPC->f.group ? xpfFORMAT_3 : xpfFORMAT_0_G ;
-	psXPC->f.pad0	= psXPC->f.abs_rel ? 0 : 1 ;
-	size_t	Len ;
-	char	Buffer[xpfMAX_LEN_DATE] ;
-	if (psXPC->f.alt_form && psXPC->f.abs_rel) 			// cannot have Alt form with relative value
-		psXPC->f.alt_form = 0 ;							// force to normal format output.
-
-	if (psXPC->f.alt_form) {
-		Len = xstrncpy(Buffer, (char *) xTimeGetDayName(sTM.tm_wday), 3) ;			// "Sun"
-		Len += xstrncpy(&Buffer[Len], (char *) ", ", 2) ;							// "Sun, "
-		Len += xPrintDate_Day(psXPC, &sTM, &Buffer[Len]) ;							// "Sun, 10 "
-		Len += xstrncpy(&Buffer[Len], (char *) xTimeGetMonthName(sTM.tm_mon), 3) ;	// "Sun, 10 Sep"
-		Len += xstrncpy(&Buffer[Len], (char *) " ", 1) ;							// "Sun, 10 Sep "
-		Len += xPrintDate_Year(psXPC, &sTM, &Buffer[Len]) ;							// "Sun, 10 Sep 2017"
-	} else {
-		Len = 0 ;
-		if (sTM.tm_year > 0 || psXPC->f.pad0)
-			Len += xPrintDate_Year(psXPC, &sTM, &Buffer[Len]) ;
-		if (sTM.tm_mon > 0 || psXPC->f.pad0 || psXPC->f.year_ok)
-			Len += xPrintDate_Month(psXPC, &sTM, &Buffer[Len]) ;
-		if (Seconds >= SECONDS_IN_DAY || psXPC->f.pad0 || psXPC->f.mon_ok)
-			Len += xPrintDate_Day(psXPC, &sTM, &Buffer[Len]) ;
-	}
-	// converted L to R, so terminate
-	Buffer[Len] = CHR_NUL ;
-	// then send the formatted output to the correct stream
-	uint32_t precis = psXPC->f.precis ;
-	psXPC->f.precis	= 0 ;								// enable full string (subject to minwid)
-	vPrintString(psXPC, Buffer) ;
-	psXPC->f.precis = precis ;
-}
-
-void	vPrintDateTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
-	vPrintDateUSec(psXPC, uSecs) ;
-	vPrintTimeUSec(psXPC, uSecs) ;
-	if (psXPC->f.no_zone == 0 && psXPC->f.abs_rel == 0)
-		vPrintChar(psXPC, CHR_Z) ;						// If not coming from vPrintDateTimeZone() AND not relative time
-}
-
-/**
- * vPrintDateTimeZone()
- * \brief		Prints to Date, Time [& TZ] info in POSIX format to destination
- * \brief		CRITICAL : This function absorbs 3 parameters on the stack
- * \param[in]	psXPC - pointer to print control structure
- * \param[in]	psTSZ - pointer to SystemTime structure
- * \param[out]	none
- * \return		none
- * \comment		Use the following modifier flags
- *				'`'		select between ':' & 'h' and
- * 				'!'		Treat time value as abs_rel and not epoch seconds
- */
-void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
-	uint32_t flags		= psXPC->f.flags ;				// save current flags, primarily f.plus
-	psXPC->f.no_zone	= 1 ;
-	vPrintDateTimeUSec(psXPC, xTimeMakeTimestamp(xPrintCalcSeconds(psXPC, psTSZ, NULL), psTSZ->usecs % MICROS_IN_SECOND)) ;
-	psXPC->f.flags		= flags ;						// restore the f.plus status
-	// now handle the TZ info
+void	vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 	size_t	Len = 0 ;
 	char	Buffer[configTIME_MAX_LEN_TZINFO] ;
-	if (psXPC->f.abs_rel == 0) {						// ONLY possible if not elapsed time
-		if (psTSZ->pTZ == 0 || psXPC->f.plus == 0) {	// If no TZ info supplied or TZ info not wanted...
-			Buffer[0]	= CHR_Z ;						// add 'Z' for Zulu/zero time zone
-			Len = 1 ;
-
-		} else if (psXPC->f.alt_form == 1) {			// TZ info available but '#' format specified
-			Len = xstrncpy(Buffer, (char *) " GMT", 4) ;// show as GMT (ie UTC)
-
-		} else if (psXPC->f.plus) {						// TZ info available & '+x:xx(???)' format requested
-			psXPC->f.signval	= 1 ;					// TZ hours offset is a signed value
-			psXPC->f.plus		= 1 ;					// force display of sign
-			psXPC->f.pad0		= 1 ;
-			Len = xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXPC->f.minwid = 3) ;
-		// insert separating ':' or 'h'
-			Buffer[Len++]	= psXPC->f.form ? CHR_h : CHR_COLON ;
-		// add the minutes
-			psXPC->f.signval	= 0 ;					// TZ offset minutes unsigned
-			psXPC->f.plus		= 0 ;
-			psXPC->f.pad0		= 1 ;
-			Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXPC->f.minwid = 2) ;
+	if (psTSZ->pTZ == 0 || psXPC->f.plus == 0) {		// If no TZ info supplied or TZ info not wanted...
+		Buffer[Len++]	= CHR_Z ;						// add 'Z' for Zulu/zero time zone
+	} else if (psXPC->f.alt_form) {						// TZ info available but '#' format specified
+		Len = xstrncpy(Buffer, (char *) " GMT", 4) ;	// show as GMT (ie UTC)
+	} else if (psXPC->f.plus) {							// TZ info available & '+x:xx(???)' format requested
+		psXPC->f.signval	= 1 ;						// TZ hours offset is a signed value
+		psXPC->f.plus		= 1 ;						// force display of sign
+		Len = xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXPC->f.minwid = 3) ;
+		Buffer[Len++]	= psXPC->f.form ? CHR_h : CHR_COLON ;
+		psXPC->f.signval	= 0 ;						// TZ offset minutes unsigned
+		psXPC->f.plus		= 0 ;
+		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXPC->f.minwid = 2) ;
 #if		(buildTIME_TZTYPE_SELECTED == buildTIME_TZTYPE_POINTER)
-			if (psTSZ->pTZ->pcTZName) {					// handle TZ name (as string pointer) if there
-				Buffer[Len++]	= CHR_L_ROUND ;			// add separating ' ('
-				psXPC->f.minwid = 0 ;					// then complete with the TZ name
-				while ((psXPC->f.minwid < configTIME_MAX_LEN_TZNAME) &&
-						(psTSZ->pTZ->pcTZName[psXPC->f.minwid] != CHR_NUL)) {
-					Buffer[Len + psXPC->f.minwid] = psTSZ->pTZ->pcTZName[psXPC->f.minwid] ;
-					psXPC->f.minwid++ ;
-				}
-				Len += psXPC->f.minwid ;
-				Buffer[Len++]	= CHR_R_ROUND ;			// and wrap it up...
+		if (psTSZ->pTZ->pcTZName) {					// handle TZ name (as string pointer) if there
+			Buffer[Len++]	= CHR_L_ROUND ;			// add separating ' ('
+			psXPC->f.minwid = 0 ;					// then complete with the TZ name
+			while (psXPC->f.minwid < configTIME_MAX_LEN_TZNAME &&
+					psTSZ->pTZ->pcTZName[psXPC->f.minwid] != CHR_NUL) {
+				Buffer[Len + psXPC->f.minwid] = psTSZ->pTZ->pcTZName[psXPC->f.minwid] ;
+				psXPC->f.minwid++ ;
 			}
-#elif	(buildTIME_TZTYPE_SELECTED == buildTIME_TZTYPE_FOURCHARS)
-			// Now handle the TZ name if there, check to ensure max 4 chars all UCase
-			if (xstrverify(&psTSZ->pTZ->tzname[0], CHR_A, CHR_Z, configTIME_MAX_LEN_TZNAME) == erSUCCESS) {
-				Buffer[Len++]	= CHR_L_ROUND ;			// add separating ' ('
-			// then complete with the TZ name
-				psXPC->f.minwid = 0 ;
-				while ((psXPC->f.minwid < configTIME_MAX_LEN_TZNAME) &&
-						(psTSZ->pTZ->tzname[psXPC->f.minwid] != CHR_NUL) &&
-						(psTSZ->pTZ->tzname[psXPC->f.minwid] != CHR_SPACE)) {
-					Buffer[Len + psXPC->f.minwid] = psTSZ->pTZ->tzname[psXPC->f.minwid] ;
-					psXPC->f.minwid++ ;
-				}
-				Len += psXPC->f.minwid ;
-				Buffer[Len++]	= CHR_R_ROUND ;			// and wrap it up...
-			}
-#elif	(buildTIME_TZTYPE_SELECTED == buildTIME_TZTYPE_RFC3164)
-			// nothing added other than the time offset
-#endif
-		} else {
-			IF_myASSERT(debugTRACK, 0) ;
+			Len += psXPC->f.minwid ;
+			Buffer[Len++]	= CHR_R_ROUND ;			// and wrap it up...
 		}
+#elif	(buildTIME_TZTYPE_SELECTED == buildTIME_TZTYPE_FOURCHARS)
+		// Now handle the TZ name if there, check to ensure max 4 chars all UCase
+		if (xstrverify(&psTSZ->pTZ->tzname[0], CHR_A, CHR_Z, configTIME_MAX_LEN_TZNAME) == erSUCCESS) {
+			Buffer[Len++]	= CHR_L_ROUND ;			// add separating ' ('
+		// then complete with the TZ name
+			psXPC->f.minwid = 0 ;
+			while ((psXPC->f.minwid < configTIME_MAX_LEN_TZNAME) &&
+					(psTSZ->pTZ->tzname[psXPC->f.minwid] != CHR_NUL) &&
+					(psTSZ->pTZ->tzname[psXPC->f.minwid] != CHR_SPACE)) {
+				Buffer[Len + psXPC->f.minwid] = psTSZ->pTZ->tzname[psXPC->f.minwid] ;
+				psXPC->f.minwid++ ;
+			}
+			Len += psXPC->f.minwid ;
+			Buffer[Len++]	= CHR_R_ROUND ;			// and wrap it up...
+		}
+#elif	(buildTIME_TZTYPE_SELECTED == buildTIME_TZTYPE_RFC3164)
+		// nothing added other than the time offset
+#endif
+	} else {
+		IF_myASSERT(debugTRACK, 0) ;
 	}
-// terminate string in buffer then out as per normal...
 	Buffer[Len]		= CHR_NUL ;							// converted L to R, so add terminating NUL
-	psXPC->f.minwid	= 0 ;								// no explicit limit on width
-	psXPC->f.precis	= 0 ;								// enable full string (subject to minwid)
+	psXPC->f.limits	= 0 ;								// enable full string (subject to minwid)
 	vPrintString(psXPC, Buffer) ;
 }
 
