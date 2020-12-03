@@ -1538,14 +1538,14 @@ int		uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 
 // ##################################### functional tests ##########################################
 
-#define		TEST_INTEGER	0
-#define		TEST_STRING		0
-#define		TEST_FLOAT		2
-#define		TEST_BINARY		0
-#define		TEST_ADDRESS	0
-#define		TEST_DATETIME	0
-#define		TEST_HEXDUMP	0
-#define		TEST_WIDTH_PREC	0
+#define		TEST_INTEGER	1
+#define		TEST_STRING		1
+#define		TEST_FLOAT		1
+#define		TEST_BINARY		1
+#define		TEST_ADDRESS	1
+#define		TEST_DATETIME	1
+#define		TEST_HEXDUMP	1
+#define		TEST_WIDTH_PREC	1
 
 void	vPrintfUnitTest(void) {
 #if		(TEST_INTEGER == 1)
@@ -1644,7 +1644,7 @@ uint64_t	my_llong = 0x98765432 ;
 
 	PRINT("rounding doubles: %.1f %.1f %.3f %.2f [%-8.3f]\n", 3.93, 3.96, 3.0988, 3.999, -4.382) ;
 	PRINT("rounding doubles: %.1e %.1e %.3e %.2e [%-8.3e]\n", 3.93, 3.96, 3.0988, 3.999, -4.382) ;
-#elif	(TEST_FLOAT == 2)
+
 	PRINT ("%g  %g  %g  %g  %g  %g  %g  %g\n", 0.0, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.0000001) ;
 	PRINT ("%g  %g  %g  %g  %g  %g  %g  %g\n", 1.1, 10.01, 100.001, 1000.0001, 10000.00001, 100000.000001, 1000000.0000001, 10000000.00000001) ;
 	double dVal ;
@@ -1683,20 +1683,44 @@ uint64_t	my_llong = 0x98765432 ;
 
 #if		(TEST_DATETIME == 1)
 	#if		defined(__TIME__) && defined(__DATE__)
-		PRINT("_DATE_TIME_ : %s %s\n", __DATE__, __TIME__) ;
+		PRINT("_DATE_ _TIME_ : %s %s\n", __DATE__, __TIME__) ;
 	#endif
 	#if		defined(__TIMESTAMP__)
 		PRINT("_TIMESTAMP_ : %s\n", __TIMESTAMP__) ;
 	#endif
 	#if		defined(__TIMESTAMP__ISO__)
-		PRINT("TimestampISO: %s\n", __TIMESTAMP__ISO__) ;
+		PRINT("_TIMESTAMP_ISO_ : %s\n", __TIMESTAMP__ISO__) ;
 	#endif
-	PRINT("Normal  (S1): %Z\n", &CurSecs) ;
-	PRINT("Elapsed (S1): %!Z\n", &RunSecs) ;
-	PRINT("Normal  (S2): %'Z\n", &CurSecs) ;
-	PRINT("Elapsed (S2): %!'Z\n", &RunSecs) ;
-	PRINT("Normal Alt  : %#Z\n", &CurSecs) ;
-//	PRINT("Elapsed Alt: %!#Z\n", &RunSecs) ;		Invalid, CRASH !!!
+	PRINT("Normal  (S1): %Z\n", &sTSZ) ;
+	PRINT("Normal  (S2): %'Z\n", &sTSZ) ;
+	PRINT("Normal Alt  : %#Z\n", &sTSZ) ;
+
+	PRINT("Elapsed S1      : %!R\n", RunTime) ;
+	PRINT("Elapsed S2      : %!`R\n", RunTime) ;
+	PRINT("Elapsed S1 x3uS : %!.R\n", RunTime) ;
+	PRINT("Elapsed S2 x6uS : %!`.6R\n", RunTime) ;
+
+	seconds_t	Seconds ;
+	uint64_t uSecs ;
+	struct	tm 	sTM ;
+	for(uint64_t i = 0; i <= 1000; i += 50) {
+		printfx("#%llu", i) ;
+		uSecs = i * 86398999000ULL ;
+		Seconds = xTimeStampAsSeconds(uSecs) ;
+		xTimeGMTime(Seconds, &sTM, 1) ;
+		printfx("  %u / %d  ->  %!.R", Seconds, sTM.tm_mday, uSecs) ;
+
+		uSecs = i * 86400000000ULL ;
+		Seconds = xTimeStampAsSeconds(uSecs) ;
+		xTimeGMTime(Seconds, &sTM, 1) ;
+		printfx("  %u / %d  ->  %!.R", Seconds, sTM.tm_mday, uSecs) ;
+
+		uSecs = i * 86401001000ULL ;
+		Seconds = xTimeStampAsSeconds(uSecs) ;
+		xTimeGMTime(Seconds, &sTM, 1) ;
+		printfx("  %u / %d  ->  %!.R", Seconds, sTM.tm_mday, uSecs) ;
+		printfx("\n") ;
+	}
 #endif
 
 #if		(TEST_HEXDUMP == 1)
@@ -1722,10 +1746,10 @@ uint64_t	my_llong = 0x98765432 ;
 	PRINT("String : Minwid=5  Precis=8  : %*.*s\n",  5,  8, "0123456789ABCDEF") ;
 	PRINT("String : Minwid=30 Precis=15 : %*.*s\n", 30, 15, "0123456789ABCDEF") ;
 
-	double	my_double	= 22000.0 / 7.0 ;
-	PRINT("Float  : Variables  5.8  : %*.*f\n",  5,  8, my_double) ;
-	PRINT("Float  : Specified  5.8  : %5.8f\n", my_double) ;
-	PRINT("Float  : Variables 30.14 : %*.*f\n",  30,  14, my_double) ;
-	PRINT("Float  : Specified 30.14 : %30.14f\n", my_double) ;
+	double	F64	= 22000.0 / 7.0 ;
+	PRINT("Float  : Variables  5.8  : %*.*f\n",  5,  8, F64) ;
+	PRINT("Float  : Specified  5.8  : %5.8f\n", F64) ;
+	PRINT("Float  : Variables 30.14 : %*.*f\n",  30,  14, F64) ;
+	PRINT("Float  : Specified 30.14 : %30.14f\n", F64) ;
 #endif
 }
