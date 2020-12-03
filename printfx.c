@@ -137,15 +137,15 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
 	pStr = INRANGE_MEM(pStr) ? pStr : pStr == NULL ? STRING_NULL : STRING_OOR ;
 	int32_t Len = xstrlen(pStr) ;
 	int32_t PadLen = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;	// calc required number of padding chars
-		while (PadLen--) vPrintChar(psXPC, PadChr) ;	// do left pad
 	int32_t PadChr = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
 	if (psXPC->f.ljust == 0 && PadLen)					// If right justified & we must pad
+		while (PadLen--)	vPrintChar(psXPC, PadChr) ;	// do left pad
 
-	psXPC->f.precis = psXPC->f.precis ? psXPC->f.precis : Len ;
-	while (*pStr && psXPC->f.precis--) vPrintChar(psXPC, *pStr++) ;
+	uint32_t precis = psXPC->f.precis ? psXPC->f.precis : Len ;
+	while (*pStr && precis--)vPrintChar(psXPC, *pStr++) ;
 
-		while (PadLen--) vPrintChar(psXPC, PadChr) ;	// do right pad
 	if (psXPC->f.ljust && PadLen)						// If left justified & we must pad
+		while (PadLen--)	vPrintChar(psXPC, PadChr) ;	// do right pad
 }
 
 /**
