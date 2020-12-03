@@ -504,32 +504,32 @@ void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
 	xpf.precis	= psXPC->f.precis ;
 	xpf.minwid	= psXPC->f.minwid ;
 	psXPC->f.plus	= 0 ;								// ensure no '+' sign printed
+void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 	psXPC->f.form	= psXPC->f.group ? xpfFORMAT_3 : xpfFORMAT_0_G ;
 	psXPC->f.minwid = 2 ;
 	size_t	Len ;
 	char	Buffer[xpfMAX_LEN_TIME] ;
 	// Part 1: hours
-		Len = xPrintXxx(psXPC, (uint64_t) sTM.tm_hour, Buffer, 2) ;
 	if (psTM->tm_hour || psXPC->f.pad0) {
+		Len = xPrintXxx(psXPC, (uint64_t) psTM->tm_hour, Buffer, 2) ;
 		Buffer[Len++]	= (psXPC->f.form == xpfFORMAT_3) ? CHR_h :  CHR_COLON ;
 		psXPC->f.pad0	= 1 ;
 	} else
 		Len = 0 ;
 
 	// Part 2: minutes
-		Len += xPrintXxx(psXPC, (uint64_t) sTM.tm_min, &Buffer[Len], 2) ;
 	if (psTM->tm_min || psXPC->f.pad0) {
+		Len += xPrintXxx(psXPC, (uint64_t) psTM->tm_min, Buffer+Len, 2) ;
 		Buffer[Len++]	= (psXPC->f.form == xpfFORMAT_3) ? CHR_m :  CHR_COLON ;
 		psXPC->f.pad0	= 1 ;
 	}
 
 	// Part 3: seconds
-	Len += xPrintXxx(psXPC, (uint64_t) sTM.tm_sec, &Buffer[Len], 2) ;
+	Len += xPrintXxx(psXPC, (uint64_t) psTM->tm_sec, Buffer+Len, 2) ;
 
 	// Part 4: [.xxxxxx]
 	if (psXPC->f.radix && psXPC->f.alt_form == 0) {
 		Buffer[Len++]	= (psXPC->f.form == xpfFORMAT_3) ? CHR_s :  CHR_FULLSTOP ;
-		uSecs %= MICROS_IN_SECOND ;
 		psXPC->f.precis	= psXPC->f.precis == 0 ? 3 : psXPC->f.precis > 6 ? 6 : psXPC->f.precis ;
 		if (psXPC->f.precis < 6)
 			uSecs /= u32pow(10, 6 - psXPC->f.precis) ;
@@ -537,25 +537,14 @@ void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
 		psXPC->f.signval= 0 ;
 		psXPC->f.ljust	= 0 ;						// force R-just
 		psXPC->f.minwid	= psXPC->f.precis ;
-		Len += xPrintXxx(psXPC, uSecs, &Buffer[Len], psXPC->f.precis) ;
+		Len += xPrintXxx(psXPC, uSecs, Buffer+Len, psXPC->f.precis) ;
 	}
 
-	// converted L to R, so terminate
 	Buffer[Len] = CHR_NUL ;
-	// then send the formatted output to the correct stream
-	psXPC->f.precis	= 0 ;							// enable full string
-	psXPC->f.minwid	= 0 ;
+	psXPC->f.limits	= 0 ;							// enable full string
 	vPrintString(psXPC, Buffer) ;
-	psXPC->f.precis = xpf.precis ;
-	psXPC->f.minwid = xpf.minwid ;
 }
 
-/**
- * vPrintTime() - print time (using TZ info to adjust) with uSec resolution
- */
-void	vPrintTime(xpc_t * psXPC, TSZ_t * psTSZ) {
-	vPrintTimeUSec(psXPC, xTimeMakeTimestamp(xPrintCalcSeconds(psXPC, psTSZ, NULL), psTSZ->usecs % MICROS_IN_SECOND)) ;
-}
 
 size_t	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid	= 0 ;
