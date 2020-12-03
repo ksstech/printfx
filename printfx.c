@@ -822,15 +822,10 @@ void	vPrintBinary(xpc_t * psXPC, uint64_t ullVal) {
 		mask >>= 1;
 	// handle the complex grouping separator(s) boundary 8 use '|' or 4 use '-'
 		if (--len && psXPC->f.form) {
-			if ((len % 32) == 0) {
-				vPrintChar(psXPC, CHR_VERT_BAR) ;		// separate on word boundary
-			} else if ((len % 16) == 0) {
-				vPrintChar(psXPC, CHR_COLON) ;			// separate on short boundary
-			} else if ((len % 8) == 0) {
-				vPrintChar(psXPC, CHR_SPACE) ;			// separate on byte boundary
-			} else if ((len % 4) == 0) {
-				vPrintChar(psXPC, CHR_MINUS) ;			// separate on nibble boundary
-			}
+			vPrintChar(psXPC, len % 32 == 0 ? CHR_VERT_BAR :	// word boundary
+							  len % 16 == 0 ? CHR_COLON :		// short boundary
+							  len % 8 == 0 ? CHR_SPACE :		// byte boundary
+							  len % 4 == 0 ? CHR_MINUS : '?') ;	// nibble
 		}
 	}
 }
