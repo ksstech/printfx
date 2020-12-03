@@ -26,7 +26,9 @@
  *	Originally used source as per George Menie and Daniel D Miller.
  */
 
+
 #include	"printfx.h"
+#include	"FreeRTOS_Support.h"
 #include	"x_string_general.h"						// xinstring function
 #include	"x_errors_events.h"
 #include	"x_values_to_string.h"
@@ -34,9 +36,15 @@
 #include	"x_ubuf.h"
 #include	"x_stdio.h"
 #include	"x_struct_union.h"
+#include	"x_utilities.h"
 
-#include	"hal_debug.h"								// need ASSERT
-#include	"hal_nvic.h"
+#if		defined(ESP_PLATFORM)
+	#include	"hal_config.h"
+	#include	"hal_debug.h"							// need ASSERT
+	#include	"hal_nvic.h"
+#else
+	#include	"alt_config.h"
+#endif
 
 #include	<string.h>
 #include	<math.h>									// isnan()

@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include	"FreeRTOS_Support.h"
 #include	"x_definitions.h"
 
 #include	<stdarg.h>
