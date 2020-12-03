@@ -140,15 +140,15 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
 	pStr = INRANGE_MEM(pStr) ? pStr : pStr == NULL ? STRING_NULL : STRING_OOR ;
 	int32_t Len = xstrlen(pStr) ;
 	int32_t PadLen = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;	// calc required number of padding chars
-	int32_t PadChr = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;		// left padding (ie right justified)
-	if ((psXPC->f.ljust == 0) && PadLen)				// If right justified & we must pad
 		while (PadLen--) vPrintChar(psXPC, PadChr) ;	// do left pad
+	int32_t PadChr = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
+	if (psXPC->f.ljust == 0 && PadLen)					// If right justified & we must pad
 
 	psXPC->f.precis = psXPC->f.precis ? psXPC->f.precis : Len ;
 	while (*pStr && psXPC->f.precis--) vPrintChar(psXPC, *pStr++) ;
 
-	if ((psXPC->f.ljust == 1) && PadLen)				// If left justified & we must pad
 		while (PadLen--) vPrintChar(psXPC, PadChr) ;	// do right pad
+	if (psXPC->f.ljust && PadLen)						// If left justified & we must pad
 }
 
 /**
@@ -182,9 +182,8 @@ char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
  */
 int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize) {
 	IF_myASSERT(debugPARAM, INRANGE_SRAM(pBuffer) && (BufSize > 1)) ;
-	int32_t	Len, iTemp, Count ;
-	char * pTemp = pBuffer + BufSize - 1 ;				// Set pointer to end of buffer
-	Len = Count = 0 ;
+	int32_t	Len = 0, Count = 0, iTemp = 0 ;
+	char * pTemp = pBuffer + BufSize - 1 ;				// Point to last space in buffer
 	if (ullVal) {
 #if		(xpfSUPPORT_SCALING == 1)
 		uint8_t	ScaleChr = CHR_NUL ;
@@ -235,7 +234,7 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 	 */
 		Count = (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0 ;
 	// If we are padding with ' ' and leading '+' or '-' is required, do that first
-		if ((psXPC->f.pad0 == 0) && (psXPC->f.negvalue || psXPC->f.plus)) {	// If a sign is required
+		if (psXPC->f.pad0 == 0 && (psXPC->f.negvalue || psXPC->f.plus)) {	// If a sign is required
 			*pTemp-- = psXPC->f.negvalue ? CHR_MINUS : CHR_PLUS ;			// start by prepend of '+' or '-'
 			--Count ;
 			++Len ;
@@ -243,14 +242,12 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize
 		if (Count > 0) {								// If any space left to pad
 			iTemp = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;	// define applicable padding char
 			Len += Count ;								// Now do the actual padding
-			while (Count--) {
-				*pTemp-- = iTemp ; ;
-			}
+			while (Count--) *pTemp-- = iTemp ;
 		}
 	// If we are padding with '0' AND a sign is required (-value or +requested), do that first
 		if (psXPC->f.pad0 && (psXPC->f.negvalue || psXPC->f.plus)) {	// If +/- sign is required
-			if (*(pTemp+1) == CHR_SPACE || *(pTemp+1) == CHR_0) {
-				pTemp++ ;								// set overwrite last with '+' or '-'
+			if (pTemp[1] == CHR_SPACE || pTemp[1] == CHR_0) {
+				++pTemp ;								// set overwrite last with '+' or '-'
 			} else {
 				++Len ;									// set to add extra '+' or '-'
 			}
@@ -315,20 +312,18 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 	if (psXPC->f.form == xpfFORMAT_0_G) {				// if 'gG' specified check exponent range and select applicable mode.
 		// if explicit precision is '0' take it as '1' (https://pubs.opengroup.org/onlinepubs/007908799/xsh/fprintf.html)
 		psXPC->f.precis = psXPC->f.precis ? psXPC->f.precis : 1 ;
-		if ((Exponent < -4) || (Exponent >= psXPC->f.precis)) {
+		if (Exponent < -4 || Exponent >= psXPC->f.precis) {
 			psXPC->f.form = xpfFORMAT_2_E ;				// force 'eE' format
 		} else {
 			psXPC->f.form = xpfFORMAT_1_F ;				// force 'f' format
 		}
 	}
 
-	if (psXPC->f.form == xpfFORMAT_2_E) {				// based on format change value if exponent format
+	if (psXPC->f.form == xpfFORMAT_2_E)					// based on format change value if exponent format
 		f64Val = x64Value.f64 ;							// change to exponent adjusted value
-	}
 
-	if (f64Val < (DBL_MAX - round_nums[psXPC->f.precis])) {	// if addition of rounding value will NOT cause overflow.
-		f64Val += round_nums[psXPC->f.precis] ;		// round by adding .5LSB to the value
-	}
+	if (f64Val < (DBL_MAX - round_nums[psXPC->f.precis]))	// if addition of rounding value will NOT cause overflow.
+		f64Val += round_nums[psXPC->f.precis] ;			// round by adding .5LSB to the value
 
 	Buffer[xpfMAX_LEN_F64 - 1] = CHR_NUL ;				// building R to L, ensure buffer NULL-term
 
@@ -339,7 +334,7 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 		psXPC->f.ljust		= 0 ;
 		psXPC->f.negvalue	= (Exponent < 0) ? 1 : 0 ;
 		Exponent *= psXPC->f.negvalue ? -1LL : 1LL ;
-		Len += xPrintXxx(psXPC, Exponent, Buffer, (xpfMAX_LEN_F64-1)) ;
+		Len += xPrintXxx(psXPC, Exponent, Buffer, xpfMAX_LEN_F64 - 1) ;
 		Buffer[xpfMAX_LEN_F64-2 -Len++] = psXPC->f.Ucase ? 'E' : 'e' ;
 	}
 
@@ -347,9 +342,8 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 		uint64_t	m ;									// calc multiplicant to convert fractional portion to whole number
 		int32_t		i ;
 		x64Value.f64	= f64Val - (uint64_t)f64Val ;	// isolate fraction as double
-		for (i = 0, m = 1 ; i < psXPC->f.precis ; i++) {
+		for (i = 0, m = 1 ; i < psXPC->f.precis ; ++i)
 			m *= 10 ;
-		}
 		x64Value.f64	= x64Value.f64 * (double)m ;	// convert fraction to integer [+fraction]
 		x64Value.u64	= (uint64_t)x64Value.f64 ;		// extract integer portion, discard remaining fraction of "fraction"
 
@@ -360,7 +354,7 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 			psXPC->f.signval	= 0 ;					// always unsigned value
 			psXPC->f.negvalue	= 0 ;					// and never negative
 			psXPC->f.plus		= 0 ;					// no leading +/- before fractional part
-			Len += xPrintXxx(psXPC, x64Value.u64, Buffer, xpfMAX_LEN_F64-1 -Len) ;
+			Len += xPrintXxx(psXPC, x64Value.u64, Buffer, xpfMAX_LEN_F64 - 1 - Len) ;
 			Buffer[xpfMAX_LEN_F64-2 -Len++] = CHR_FULLSTOP ;	// handle the separator
 		}
 	}
@@ -370,8 +364,8 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 	psXPC->f.flags	= xpf.flags ;
 
 	// adjust minwid to do padding (if required) based on string length after adding whole number
-	psXPC->f.minwid	= psXPC->f.minwid > Len ? psXPC->f.minwid -Len : 0 ;
-	Len += xPrintXxx(psXPC, x64Value.u64, Buffer, xpfMAX_LEN_F64-1 -Len) ;
+	psXPC->f.minwid	= psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;
+	Len += xPrintXxx(psXPC, x64Value.u64, Buffer, xpfMAX_LEN_F64 - 1 - Len) ;
 	psXPC->f.limits	= xpf.limits ;						// restore original limits & flags
 	psXPC->f.flags	= xpf.flags ;
 	psXPC->f.precis	= 0 ;								// enable full string to be output (subject to minwid padding on right)
@@ -439,9 +433,8 @@ void	vPrintHexU64(xpc_t * psXPC, uint64_t Value) {
 void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
 //	IF_myASSERT(debugPARAM, (Num > 0) && INRANGE_MEM(pStr)) ;
 	int32_t	Size = 1 << psXPC->f.size ;
-	if (psXPC->f.alt_form) {							// '#' specified to invert order ?
+	if (psXPC->f.alt_form)								// '#' specified to invert order ?
 		pStr += Num - Size ;							// working backwards so point to last
-	}
 
 	x64_t	x64Val ;
 	int32_t	Idx	= 0 ;
@@ -452,12 +445,11 @@ void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
 		case 2:	x64Val.u32[0] = *((uint32_t *) pStr) ;	vPrintHexU32(psXPC, x64Val.u32[0]) ;	break ;
 		case 3:	x64Val.u64	  = *((uint64_t *) pStr) ;	vPrintHexU64(psXPC, x64Val.u64) ; 		break ;
 		}
-	// step to the next 8/16/32/64 bit value
-		if (psXPC->f.alt_form) {						// '#' specified to invert order ?
+		// step to the next 8/16/32/64 bit value
+		if (psXPC->f.alt_form)							// '#' specified to invert order ?
 			pStr -= Size ;								// update source pointer backwards
-		} else {
+		else
 			pStr += Size ;								// update source pointer forwards
-		}
 		Idx += Size ;
 		if (Idx >= Num) {
 			break ;
@@ -502,14 +494,11 @@ seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 		!psXPC->f.alt_form &&							// alt_form always GMT/UTC
 		!psXPC->f.abs_rel) {							// relative time has no TZ info
 		Seconds = xTimeCalcLocalTimeSeconds(psTSZ) ;
-	} else {
+	} else
 		Seconds = xTimeStampAsSeconds(psTSZ->usecs) ;
-	}
 
-// convert seconds into components
-	if (psTM) {
-		xTimeGMTime(Seconds, psTM, psXPC->f.abs_rel) ;
-	}
+	if (psTM)											// convert seconds into components
+		xTimeGMTime(Seconds, psTM, psXPC->f.rel_val) ;
 	return Seconds ;
 }
 
@@ -807,14 +796,11 @@ void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
 		// then the actual series of values in 8-32 bit groups
 		int32_t Width = ((Len - Idx) > xpfHEXDUMP_WIDTH) ? xpfHEXDUMP_WIDTH : Len - Idx ;
 		vPrintHexValues(psXPC, Width, pStr + Idx) ;
-
 		if (psXPC->f.plus == 1) {						// handle values dumped as ASCII chars
 		// handle space padding for ASCII dump to line up
 			Count = (Len > xpfHEXDUMP_WIDTH) ? ((xpfHEXDUMP_WIDTH - Width) / Size) * ((Size * 2) + (psXPC->f.form ? 1 : 0)) + 1 : 1 ;
-			while (Count--) {
-				vPrintChar(psXPC, CHR_SPACE) ;
-			}
-		// handle same values dumped as ASCII characters
+			while (Count--)	vPrintChar(psXPC, CHR_SPACE) ;
+			// handle same values dumped as ASCII characters
 			for (Count = 0; Count < Width; ++Count) {
 				uint32_t cChr = *(pStr + Idx + Count) ;
 			#if 0										// Device supports characters in range 0x80 to 0xFE
@@ -825,9 +811,8 @@ void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
 			}
 			vPrintChar(psXPC, CHR_SPACE) ;
 		}
-		if (Idx < Len && Len > xpfHEXDUMP_WIDTH) {
+		if (Idx < Len && Len > xpfHEXDUMP_WIDTH)
 			xPrintChars(psXPC, (char *) "\n") ;
-		}
 	}
 }
 
@@ -905,10 +890,9 @@ void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
 	size_t	Idx, Len ;
 	for (Idx = 0, Len = 0; Idx < sizeof(Val); ++Idx) {
 		uint64_t u64Val = (uint8_t) pChr[Idx] ;
-		Len += xPrintXxx(psXPC, u64Val, Buffer + (xpfMAX_LEN_IP - 5 - Len), 4) ;
-		if (Idx < 3) {
-			*(Buffer + (xpfMAX_LEN_IP - 1 - ++Len)) = CHR_FULLSTOP ;
-		}
+		Len += xPrintXxx(psXPC, u64Val, Buffer + xpfMAX_LEN_IP - 5 - Len, 4) ;
+		if (Idx < 3)
+			Buffer[xpfMAX_LEN_IP - 1 - ++Len] = CHR_FULLSTOP ;
 	}
 	// then send the formatted output to the correct stream
 	psXPC->f.precis	= 0 ;							// enable full string (subject to minwid)
@@ -1088,21 +1072,15 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 #endif
 
 #if		(xpfSUPPORT_DATETIME == 1)
-			case CHR_D:								// DATE
-				vPrintDate(&sXPC, va_arg(vArgs, TSZ_t *)) ;			// para =  SysTime
-				break ;
+			case CHR_C: vPrintSetGraphicRendition(&sXPC, va_arg(vArgs, uint32_t)) ;		break ;
 #endif
 
-#if		(xpfSUPPORT_IP_ADDR == 1)
-			case CHR_I:								// IP address
-				vPrintIpAddress(&sXPC, va_arg(vArgs, uint32_t)) ;
-				break ;
+#if		(xpfSUPPORT_IP_ADDR == 1)						// IP address
+			case CHR_I: vPrintIpAddress(&sXPC, va_arg(vArgs, uint32_t)) ;	break ;
 #endif
 
 #if		(xpfSUPPORT_BINARY == 1)
-			case CHR_J:
-				vPrintBinary(&sXPC, sXPC.f.llong ? va_arg(vArgs, uint64_t) : (uint64_t) va_arg(vArgs, uint32_t)) ;
-				break ;
+			case CHR_J: vPrintBinary(&sXPC, sXPC.f.llong ? va_arg(vArgs, uint64_t) : (uint64_t) va_arg(vArgs, uint32_t)) ;	break ;
 #endif
 
 #if		(xpfSUPPORT_DATETIME == 1)
@@ -1142,19 +1120,18 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 #endif
 
 #if		(xpfSUPPORT_HEXDUMP == 1)
-			case CHR_b:								// HEXDUMP byte sized UC/lc
-			case CHR_h:								// HEXDUMP halfword sized UC/lc
-			case CHR_w:								// HEXDUMP word sized UC/lc
+			case CHR_b:									// HEXDUMP byte sized UC/lc
+			case CHR_h:									// HEXDUMP halfword sized UC/lc
+			case CHR_w:									// HEXDUMP word sized UC/lc
 					sXPC.f.form	= sXPC.f.group ? xpfFORMAT_3 : xpfFORMAT_0_G ;
-					sXPC.f.size = (cFmt == 'b') ? xpfSIZING_BYTE : (cFmt == 'h') ? xpfSIZING_SHORT : xpfSIZING_WORD ;
+					sXPC.f.size = cFmt == 'b' ? xpfSIZING_BYTE : (cFmt == 'h') ? xpfSIZING_SHORT : xpfSIZING_WORD ;
 					sXPC.f.size	+= (sXPC.f.llong) ? 1 : 0 ; 			// apply ll modifier to size
 				/* In order for formatting to work  the "*" or "." radix specifiers
 				 * should not be used. The requirement for a second parameter is implied and assumed */
 					uint32_t U32	= va_arg(vArgs, uint32_t) ;				// 32 bit size
 					char * pChar	= va_arg(vArgs, char *) ;				// 32 bit address
-					if (pChar) {
+					if (pChar)
 						vPrintHexDump(&sXPC, U32, pChar) ;
-					}
 					break ;
 #endif
 
@@ -1220,10 +1197,6 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				break ;
 #endif
 
-#if		(xpfSUPPORT_POINTER == 1)
-			case CHR_p:									// pointer value UC/lc
-				vPrintPointer(&sXPC, va_arg(vArgs, uint32_t)) ;		// no provision for 64 bit pointers (yet)
-				break ;
 #endif
 
 #if		(xpfSUPPORT_DATETIME == 1)
@@ -1232,9 +1205,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				break ;
 #endif
 
-			case CHR_s:
-				vPrintString(&sXPC, va_arg(vArgs, char *)) ;
-				break;
+			case CHR_s:	vPrintString(&sXPC, va_arg(vArgs, char *)) ;	break;
 
 			default:
 				/* At this stage we have handled the '%' as assumed, but the next character found is invalid.
@@ -1255,9 +1226,8 @@ out_lbl:
 // ##################################### Destination = STRING ######################################
 
 int		xPrintToString(xpc_t * psXPC, int cChr) {
-	if (psXPC->pStr) {
+	if (psXPC->pStr)
 		*psXPC->pStr++ = cChr ;
-	}
 	return cChr ;
 }
 
@@ -1267,12 +1237,10 @@ int 	vsnprintfx(char * pBuf, size_t BufSize, const char * format, va_list vArgs)
 		return 0 ; 										// & return
 	}
 	int iRV = PrintFX(xPrintToString, pBuf, BufSize, format, vArgs) ;
-	if (pBuf && (iRV == BufSize)) {						// buffer specified and FULL?
+	if (pBuf && (iRV == BufSize))						// buffer specified and FULL?
 		iRV-- ; 										// yes, adjust the length for terminator
-	}
-	if (pBuf) {											// buffer specified ?
+	if (pBuf)											// buffer specified ?
 		pBuf[iRV] = CHR_NUL ; 							// yes, terminate
-	}
 	return iRV ;
 }
 
@@ -1284,9 +1252,7 @@ int 	snprintfx(char * pBuf, size_t BufSize, const char * format, ...) {
 	return count ;
 }
 
-int 	vsprintfx(char * pBuf, const char * format, va_list vArgs) {
-	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int 	vsprintfx(char * pBuf, const char * format, va_list vArgs) { return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int 	sprintfx(char * pBuf, const char * format, ...) {
 	va_list	vArgs ;
@@ -1311,9 +1277,7 @@ int 	vnprintfx(size_t count, const char * format, va_list vArgs) {
 	return iRV ;
 }
 
-int 	vprintfx(const char * format, va_list vArgs) {
-	return vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int 	vprintfx(const char * format, va_list vArgs) { return vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int 	nprintfx(size_t count, const char * format, ...) {
 	va_list vArgs ;
@@ -1395,9 +1359,7 @@ int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
 
 int		xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
 
-int 	vfprintfx(FILE * stream, const char * format, va_list vArgs) {
-	return PrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int 	vfprintfx(FILE * stream, const char * format, va_list vArgs) { return PrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int 	fprintfx(FILE * stream, const char * format, ...) {
 	va_list vArgs ;
@@ -1415,9 +1377,7 @@ int		xPrintToHandle(xpc_t * psXPC, int cChr) {
 	return size == 1 ? cChr : size ;
 }
 
-int		vdprintfx(int32_t fd, const char * format, va_list vArgs) {
-	return PrintFX(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int		vdprintfx(int32_t fd, const char * format, va_list vArgs) { return PrintFX(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int		dprintfx(int32_t fd, const char * format, ...) {
 	va_list	vArgs ;
@@ -1431,9 +1391,7 @@ int		dprintfx(int32_t fd, const char * format, ...) {
 
 int		xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
 
-int 	vdevprintfx(int (* handler)(int ), const char * format, va_list vArgs) {
-	return PrintFX(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int 	vdevprintfx(int (* handler)(int ), const char * format, va_list vArgs) { return PrintFX(xPrintToDevice, handler, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
 int 	devprintfx(int (* handler)(int ), const char * format, ...) {
 	va_list vArgs ;
@@ -1474,9 +1432,7 @@ int 	socprintfx(netx_t * psSock, const char * format, ...) {
 
 int		xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr) ; }
 
-int		vuprintfx(ubuf_t * psUBuf, const char * format, va_list vArgs) {
-	return PrintFX(xPrintToUBuf, psUBuf, xUBufAvail(psUBuf), format, vArgs) ;
-}
+int		vuprintfx(ubuf_t * psUBuf, const char * format, va_list vArgs) { return PrintFX(xPrintToUBuf, psUBuf, xUBufSpace(psUBuf), format, vArgs) ; }
 
 int		uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 	va_list	vArgs ;
