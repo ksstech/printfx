@@ -503,6 +503,23 @@ size_t	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	return Len ;
 }
 
+size_t	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
+	size_t szBuf ;
+	if (psXPC->f.rel_val) {
+		psXPC->f.minwid	= 1 ;
+		szBuf = xDigitsInU32(psTM->tm_mday, psXPC->f.group) ;
+	} else {
+		psXPC->f.minwid	= 2 ;
+		szBuf = 2 ;
+	}
+	size_t Len = xPrintXxx(psXPC, (uint64_t) psTM->tm_mday, pBuffer, szBuf) ;
+	pBuffer[Len++] = psXPC->f.alt_form ? CHR_SPACE :
+					(psXPC->f.form == xpfFORMAT_3 && psXPC->f.rel_val) ? CHR_d :
+					(psXPC->f.form == xpfFORMAT_3) ? CHR_SPACE : CHR_T ;
+	psXPC->f.pad0	= 1 ;
+	return Len ;
+}
+
 }
 
 void	vPrintTimeUSec(xpc_t * psXPC, uint64_t uSecs) {
@@ -559,18 +576,6 @@ size_t	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	size_t Len = xPrintXxx(psXPC, (int64_t) (psTM->tm_year + (psXPC->f.abs_rel ? 0 : YEAR_BASE_MIN)), pBuffer, 4) ;
 	if (psXPC->f.alt_form == 0)							// no extra ' ' at end for alt_form
 		*(pBuffer + Len++) = (psXPC->f.form == xpfFORMAT_3) ? CHR_FWDSLASH : CHR_MINUS ;
-	psXPC->f.pad0		= 1 ;
-	return Len ;
-}
-
-size_t	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
-	psXPC->f.minwid = psXPC->f.abs_rel ? 1 : 2 ;
-	size_t Len = xPrintXxx(psXPC, (int64_t) psTM->tm_mday, pBuffer, psXPC->f.abs_rel ? 10 : 2) ;
-	if (psXPC->f.alt_form)
-		*(pBuffer + Len++) = CHR_SPACE ;
-	else
-		*(pBuffer + Len++) = (psXPC->f.form == xpfFORMAT_3 && psXPC->f.abs_rel) ? CHR_d :
-							(psXPC->f.form == xpfFORMAT_3) ? CHR_SPACE : CHR_T ;
 	psXPC->f.pad0		= 1 ;
 	return Len ;
 }
