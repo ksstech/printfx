@@ -726,6 +726,21 @@ void	vPrintDateTimeZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 	vPrintString(psXPC, Buffer) ;
 }
 
+void	vPrintDateTime(xpc_t * psXPC, uint64_t uSecs) {
+	struct	tm 	sTM ;
+	seconds_t	Seconds = xTimeStampAsSeconds(uSecs) ;
+	xTimeGMTime(Seconds, &sTM, psXPC->f.rel_val) ;
+	uint32_t	limits = psXPC->f.limits ;
+	if (psXPC->f.rel_val == 0 || sTM.tm_mday) {
+		vPrintDate(psXPC, &sTM) ;
+		psXPC->f.limits = limits ;
+	}
+	vPrintTime(psXPC, &sTM, (uint32_t) (uSecs % MICROS_IN_SECOND)) ;
+	if (psXPC->f.no_zone == 0 && psXPC->f.rel_val == 0)
+		vPrintChar(psXPC, CHR_Z) ;
+	psXPC->f.limits = limits ;
+}
+
 /**
  * vPrintURL() -
  * @param psXPC
