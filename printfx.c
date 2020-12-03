@@ -1085,16 +1085,16 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				break ;
 #endif
 
-#if		(xpfSUPPORT_URL == 1)
-			case CHR_U:
-				vPrintURL(&sXPC, va_arg(vArgs, char *)) ;			// para = pointer to string to be encoded
 				break ;
-#endif
 
 #if		(xpfSUPPORT_DATETIME == 1)
 			case CHR_Z:								// DATE, TIME, ZONE
 				vPrintDateTimeZone(&sXPC, va_arg(vArgs, TSZ_t *)) ;		// para =  SysTime
 				break ;
+#endif
+
+#if		(xpfSUPPORT_URL == 1)							// para = pointer to string to be encoded
+			case CHR_U: vPrintURL(&sXPC, va_arg(vArgs, char *)) ;	break ;
 #endif
 
 #if		(xpfSUPPORT_HEXDUMP == 1)
@@ -1114,22 +1114,21 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 #endif
 
 #if		(xpfSUPPORT_MAC_ADDR == 1)
-			case CHR_m:								// MAC address UC/LC format ??:??:??:??:??:??
-				sXPC.f.size = 0 ;
-				sXPC.f.llong = 0 ;					// force interpretation as sequence of U8 values
-				sXPC.f.form	= sXPC.f.group ? xpfFORMAT_1_F : xpfFORMAT_0_G ;
 			/* Formats 6 byte string (0x00 is valid) as a series of hex characters.
 			 * defualt format uses no separators eg. '0123456789AB'
 			 * Support the following modifier flags:
 			 *  '!'	select ':' separator between digits
 			 */
+			case CHR_m:									// MAC address UC/LC format ??:??:??:??:??:??
+				sXPC.f.alt_form	= 0 ;
+				sXPC.f.size		= 0 ;
+				sXPC.f.llong	= 0 ;					// force interpretation as sequence of U8 values
+				sXPC.f.form		= sXPC.f.group ? xpfFORMAT_1_F : xpfFORMAT_0_G ;
 				vPrintHexValues(&sXPC, configMAC_ADDRESS_LENGTH, va_arg(vArgs, char *)) ;
 				break ;
 #endif
 
-			case CHR_c:								// char passed an uint32_t
-				vPrintChar(&sXPC, va_arg(vArgs, int32_t)) ;
-				break ;
+			case CHR_c: vPrintChar(&sXPC, va_arg(vArgs, int32_t)) ;		break ;
 
 			case CHR_d:									// signed decimal "[-]ddddd"
 			case CHR_i:									// signed integer (same as decimal ?)
