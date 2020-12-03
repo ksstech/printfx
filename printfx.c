@@ -909,23 +909,25 @@ void	vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
  */
 
 int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const char * format, va_list vArgs) {
-//	IF_myASSERT(debugPARAM, INRANGE_MEM(handler) && INRANGE_MEM(format)) ;
+	x64_t	x64Val ;					// default size is x64
 	xpc_t	sXPC ;
 	sXPC.handler	= handler ;
 	sXPC.pVoid		= pVoid ;
 	sXPC.f.maxlen	= (BufSize > xpfMAXLEN_MAXVAL) ? xpfMAXLEN_MAXVAL : BufSize ;
 	sXPC.f.curlen	= 0 ;
-
+#if		(xpfSUPPORT_DATETIME == 1)
+	struct	tm 	sTM ;
+	TSZ_t * psTSZ ;
+#endif
 	for (; *format != CHR_NUL; ++format) {
 	// start by expecting format indicator
 		if (*format == CHR_PERCENT) {
 			sXPC.f.flags 	= 0 ;						// set ALL flags to default 0
 			sXPC.f.limits	= 0 ;						// reset field specific limits
-			sXPC.f.nbase	= BASE10 ;					// override default number base
+			sXPC.f.nbase	= BASE10 ;					// default number base
 			++format ;
-			if (*format == CHR_NUL) {					// terminating NULL at end of format string...
+			if (*format == CHR_NUL)						// terminating NULL at end of format string...
 				break ;
-			}
 			/* In order for the optional modifiers to work correctly, especially in cases such as HEXDUMP
 			 * the modifiers MUST be in correct sequence of interpretation being [ ! # ' * + - % 0 ] */
 			int32_t	cFmt ;
@@ -933,7 +935,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				switch (cFmt) {
 				case 0:									// '!' HEXDUMP absolute->relative address
 					++format ;							// or DTZ absolute->relative time
-					sXPC.f.abs_rel	= 1 ;
+					sXPC.f.rel_val	= 1 ;				// or MAC use ':' separator
 					break ;
 				case 1:									// '#' DTZ alternative form
 					++format ;							// or HEXDUMP swop endian
@@ -1042,12 +1044,6 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 			 * the HTTP protocol, we must try to filter out the possible output produced by
 			 * the ESC sequences if the output is going to a socket, one way or another.
 			 */
-			case CHR_C:
-				vPrintSetGraphicRendition(&sXPC, va_arg(vArgs, uint32_t)) ;
-				break ;
-#endif
-
-#if		(xpfSUPPORT_DATETIME == 1)
 			case CHR_C: vPrintSetGraphicRendition(&sXPC, va_arg(vArgs, uint32_t)) ;		break ;
 #endif
 
@@ -1074,6 +1070,13 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 			 * Norm 2	1970-01-01 00h00m00s
 			 * Altform	Mon, 01 Jan 1970 00:00:00 GMT
 			 */
+			case CHR_D:				// epoch (psTSZ) DATE
+				IF_myASSERT(debugTRACK, sXPC.f.rel_val == 0 && sXPC.f.group == 0) ;
+				sXPC.f.pad0		= 1 ;
+				psTSZ = va_arg(vArgs, TSZ_t *) ;
+				xPrintCalcSeconds(&sXPC, psTSZ, &sTM) ;
+				vPrintDate(&sXPC, &sTM) ;
+				vPrintZone(&sXPC, psTSZ) ;
 				break ;
 
 			case CHR_R:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
@@ -1082,7 +1085,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 					sXPC.f.pad0 = 1 ;
 				vPrintDateTime(&sXPC, va_arg(vArgs, uint64_t)) ;
 				break ;
-#endif
+
 			case CHR_T:				// psTSZ epoch TIME
 				IF_myASSERT(debugTRACK, sXPC.f.rel_val == 0 && sXPC.f.group == 0) ;
 				sXPC.f.pad0		= 1 ;
@@ -1090,6 +1093,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				xPrintCalcSeconds(&sXPC, psTSZ, &sTM) ;
 				vPrintTime(&sXPC, &sTM, (uint32_t) (psTSZ->usecs % MICROS_IN_SECOND)) ;
 				vPrintZone(&sXPC, psTSZ) ;
+				break ;
 
 			case CHR_Z:				// psTSZ epoch DATE+TIME+ZONE
 				IF_myASSERT(debugTRACK, sXPC.f.rel_val == 0 && sXPC.f.plus == 0 && sXPC.f.group == 0) ;
@@ -1102,7 +1106,6 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				vPrintZone(&sXPC, psTSZ) ;
 				break ;
 
-#if		(xpfSUPPORT_DATETIME == 1)
 			case CHR_r:				// U32->U64 epoch (yr+mth+day) or relative (days) + TIME
 				IF_myASSERT(debugTRACK, sXPC.f.alt_form == 0 && sXPC.f.plus == 0 && sXPC.f.pad0 == 0 && sXPC.f.radix == 0 && sXPC.f.group == 0) ;
 				sXPC.f.pad0		= 1 ;
@@ -1185,10 +1188,8 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				break ;
 #endif
 
-#endif
-
-#if		(xpfSUPPORT_DATETIME == 1)
-				break ;
+#if		(xpfSUPPORT_POINTER == 1)						// pointer value UC/lc
+			case CHR_p:	vPrintPointer(&sXPC, va_arg(vArgs, uint32_t)) ;	break ;
 #endif
 
 			case CHR_s:	vPrintString(&sXPC, va_arg(vArgs, char *)) ;	break;
