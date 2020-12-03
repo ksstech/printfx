@@ -201,7 +201,7 @@ typedef	struct __attribute__((packed)) xpc_s {
 	} ;
 	xpf_t	f ;
 } xpc_t ;
-DUMB_STATIC_ASSERT(sizeof(xpc_t) == 20) ;
+DUMB_STATIC_ASSERT(sizeof(xpc_t) == (12 + sizeof(int *) + sizeof(void *))) ;
 
 // ################################### Public variables ############################################
 
