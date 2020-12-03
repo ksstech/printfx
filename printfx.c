@@ -1062,8 +1062,6 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 #endif
 
 #if		(xpfSUPPORT_DATETIME == 1)
-			case CHR_R:								// u64 timestamp (abs or rel)
-				vPrintDateTimeUSec(&sXPC, va_arg(vArgs, uint64_t)) ;	// para =  microSeconds
 			/* Prints date and/or time in POSIX format
 			 * Use the following modifier flags
 			 *	'`'		select between 2 different separator sets being
@@ -1082,6 +1080,11 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 
 			case CHR_T:								// TIME
 				vPrintTime(&sXPC, va_arg(vArgs, TSZ_t *)) ;				// para =  pointer to TSZ_t structure
+			case CHR_R:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
+				IF_myASSERT(debugTRACK, sXPC.f.alt_form == 0 && sXPC.f.plus == 0 && sXPC.f.pad0 == 0 && sXPC.f.group == 0) ;
+				if (sXPC.f.rel_val == 0)
+					sXPC.f.pad0 = 1 ;
+				vPrintDateTime(&sXPC, va_arg(vArgs, uint64_t)) ;
 				break ;
 #endif
 
