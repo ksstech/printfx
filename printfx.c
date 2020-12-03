@@ -117,11 +117,8 @@ void	vPrintChar(xpc_t * psXPC, char cChr) {
  * \return	number of ACTUAL characters output.
  */
 int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
-	int32_t	len = 0 ;
-	while (*pStr) {
-		vPrintChar(psXPC, *pStr++) ;
-		++len ;
-	}
+	int32_t len ;
+	for (len = 0; *pStr; vPrintChar(psXPC, *pStr++), ++len) ;
 	return len ;
 }
 
