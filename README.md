@@ -3,7 +3,7 @@
 
 # Key features:
   Does not do ANY dynamic memory allocation.
-  All functions are fully re-entrant
+  All functions are fully re-entrant.
   Minimal stack usage, only the absolute minimum size (based on specific format being processed) is allocated.
   Size can be scaled down by excluding support for various formats, both standard and extensions, at compile time.
 
