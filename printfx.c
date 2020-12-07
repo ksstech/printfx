@@ -32,7 +32,7 @@
 #include	"x_string_general.h"						// xinstring function
 #include	"x_errors_events.h"
 #include	"x_values_to_string.h"
-#include	"x_sockets.h"
+#include	"socketsX.h"
 #include	"x_ubuf.h"
 #include	"x_stdio.h"
 #include	"x_struct_union.h"

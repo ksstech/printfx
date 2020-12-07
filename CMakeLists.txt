@@ -10,11 +10,11 @@ if( pn MATCHES irmacs )
 		SRCS "printfx.c"
 		INCLUDE_DIRS "."
 		REQUIRES common rtos-support
-		PRIV_REQUIRES stringsX values x_sockets
+		PRIV_REQUIRES stringsX values socketsX
 	)
 else()
 #	set( REQUIRES common rtos-support )
-#	set( PRIV_REQUIRES stringsX values x_sockets )
+#	set( PRIV_REQUIRES stringsX values socketsX )
 	project( printfx )
 	add_library( printfx "printfx.c" )
 	target_include_directories( printfx PUBLIC "." )
