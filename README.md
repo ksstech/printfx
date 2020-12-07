@@ -1,5 +1,5 @@
 # printfx
-  New enhanced replacement for variants of printf() - optimized for embedded system
+	Replacement for variants of printf() - optimized for embedded system
 
 # Key features:
 	Does not do ANY dynamic memory allocation.
