@@ -1082,20 +1082,21 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 
 			case CHR_d:									// signed decimal "[-]ddddd"
 			case CHR_i:									// signed integer (same as decimal ?)
+				sXPC.f.signval = 1 ;
+				x64Val.i64	= sXPC.f.llong ? va_arg(vArgs, int64_t) : va_arg(vArgs, int32_t) ;
+				if (x64Val.i64 < 0LL)	{
+					sXPC.f.negvalue	= 1 ;
+					x64Val.i64 		*= -1 ; 		// convert the value to unsigned
+				}
+				vPrintX64(&sXPC, x64Val.i64) ;
+				break ;
+
 			case CHR_o:									// unsigned octal "ddddd"
 			case CHR_u:									// unsigned decimal "ddddd"
 			case CHR_x:									// hex as in "789abcd" UC/LC
 				x64Val.u64	= sXPC.f.llong ? va_arg(vArgs, uint64_t) : va_arg(vArgs, uint32_t) ;
-				if (cFmt == CHR_d || cFmt == CHR_i) {
-					sXPC.f.signval = 1 ;
-					if (x64Val.i64 < 0)	{
-						sXPC.f.negvalue	= 1 ;
-						x64Val.i64 		*= -1 ; 		// convert the value to unsigned
-					}
-				}
-				sXPC.f.nbase = (cFmt == CHR_x) ? BASE16 : (cFmt == CHR_o) ? BASE08 : BASE10 ;
-				if (sXPC.f.nbase != BASE10)				// if not BASE10
-					sXPC.f.group = 0 ;					// disable grouping
+				sXPC.f.nbase = cFmt == CHR_x ? BASE16 : cFmt == CHR_o ? BASE08 : BASE10 ;
+				sXPC.f.group = 0 ;						// disable grouping
 				vPrintX64(&sXPC, x64Val.u64) ;
 				break ;
 
