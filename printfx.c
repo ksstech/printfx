@@ -1100,19 +1100,16 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				break ;
 
 #if		(xpfSUPPORT_IEEE754 == 1)
-			case CHR_e:									// treat same as 'f' for now, need to implement...
-				sXPC.f.form++ ;
+			case CHR_e:	sXPC.f.form++ ;					// treat same as 'f' for now, need to implement...
 				/* FALLTHRU */ /* no break */
-			case CHR_f:									// floating point format
-				sXPC.f.form++ ;
+			case CHR_f:	sXPC.f.form++ ;					// floating point format
 				/* FALLTHRU */ /* no break */
 			case CHR_g:
 				sXPC.f.signval	= 1 ;					// float always signed value.
-				if (sXPC.f.radix) {
+				if (sXPC.f.radix)
 					sXPC.f.precis	= (sXPC.f.precis > xpfMAXIMUM_DECIMALS) ? xpfMAXIMUM_DECIMALS : sXPC.f.precis ;
-				} else {
+				else
 					sXPC.f.precis	= xpfDEFAULT_DECIMALS ;
-				}
 				myASSERT(sXPC.f.alt_form == 0) ;		// MUST not use '#' modifier
 				vPrintF64(&sXPC, va_arg(vArgs, double)) ;
 				break ;
