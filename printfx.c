@@ -555,7 +555,7 @@ void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 	// Part 1: hours
 	if (psTM->tm_hour || psXPC->f.pad0) {
 		Len = xPrintXxx(psXPC, (uint64_t) psTM->tm_hour, Buffer, 2) ;
-		Buffer[Len++]	= (psXPC->f.form == xpfFORMAT_3) ? CHR_h :  CHR_COLON ;
+		Buffer[Len++]	= psXPC->f.form == xpfFORMAT_3 ? CHR_h :  CHR_COLON ;
 		psXPC->f.pad0	= 1 ;
 	} else
 		Len = 0 ;
@@ -563,7 +563,7 @@ void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 	// Part 2: minutes
 	if (psTM->tm_min || psXPC->f.pad0) {
 		Len += xPrintXxx(psXPC, (uint64_t) psTM->tm_min, Buffer+Len, 2) ;
-		Buffer[Len++]	= (psXPC->f.form == xpfFORMAT_3) ? CHR_m :  CHR_COLON ;
+		Buffer[Len++]	= psXPC->f.form == xpfFORMAT_3 ? CHR_m :  CHR_COLON ;
 		psXPC->f.pad0	= 1 ;
 	}
 
@@ -572,7 +572,7 @@ void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 
 	// Part 4: [.xxxxxx]
 	if (psXPC->f.radix && psXPC->f.alt_form == 0) {
-		Buffer[Len++]	= (psXPC->f.form == xpfFORMAT_3) ? CHR_s :  CHR_FULLSTOP ;
+		Buffer[Len++]	= psXPC->f.form == xpfFORMAT_3 ? CHR_s :  CHR_FULLSTOP ;
 		psXPC->f.precis	= psXPC->f.precis == 0 ? 3 : psXPC->f.precis > 6 ? 6 : psXPC->f.precis ;
 		if (psXPC->f.precis < 6)
 			uSecs /= u32pow(10, 6 - psXPC->f.precis) ;
@@ -1012,8 +1012,9 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				break ;
 
 			case CHR_R:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
-				IF_myASSERT(debugTRACK, sXPC.f.alt_form == 0 && sXPC.f.plus == 0 && sXPC.f.pad0 == 0 && sXPC.f.group == 0) ;
 				if (sXPC.f.rel_val == 0)
+//				IF_myASSERT(debugTRACK, !sXPC.f.alt_form && !sXPC.f.plus && !sXPC.f.pad0 && !sXPC.f.group) ;
+				IF_myASSERT(debugTRACK, !sXPC.f.plus && !sXPC.f.pad0 && !sXPC.f.group) ;
 					sXPC.f.pad0 = 1 ;
 				vPrintDateTime(&sXPC, va_arg(vArgs, uint64_t)) ;
 				break ;
