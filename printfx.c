@@ -581,6 +581,8 @@ void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 		psXPC->f.ljust	= 0 ;						// force R-just
 		psXPC->f.minwid	= psXPC->f.precis ;
 		Len += xPrintXxx(psXPC, uSecs, Buffer+Len, psXPC->f.precis) ;
+	} else if (psXPC->f.form == xpfFORMAT_3) {
+		Buffer[Len++]	= CHR_s ;
 	}
 
 	Buffer[Len] = CHR_NUL ;
