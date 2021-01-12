@@ -1012,9 +1012,13 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				break ;
 
 			case CHR_R:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
-				if (sXPC.f.rel_val == 0)
 //				IF_myASSERT(debugTRACK, !sXPC.f.alt_form && !sXPC.f.plus && !sXPC.f.pad0 && !sXPC.f.group) ;
 				IF_myASSERT(debugTRACK, !sXPC.f.plus && !sXPC.f.pad0 && !sXPC.f.group) ;
+				if (sXPC.f.alt_form) {
+					sXPC.f.group = 1 ;
+					sXPC.f.alt_form = 0 ;
+				}
+				if (!sXPC.f.rel_val)
 					sXPC.f.pad0 = 1 ;
 				vPrintDateTime(&sXPC, va_arg(vArgs, uint64_t)) ;
 				break ;
