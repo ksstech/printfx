@@ -1,24 +1,6 @@
 /*
- * Copyright 2014-18 AM Maree/KSS Technologies (Pty) Ltd.
+ * Copyright 2014-21 AM Maree/KSS Technologies (Pty) Ltd.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
- * and associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- */
-
-/*
  * formprint.h
  */
 
@@ -56,12 +38,12 @@ extern "C" {
 
 // PrePend flags
 #define		FLAG_CB_PRE_CL					0x00800000
-//#define		FLAG_CB_PRE_UPSECS				0x00400000
-//#define		FLAG_CB_PRE_DATE				0x00200000
-//#define		FLAG_CB_PRE_TIME				0x00100000
+#define		FLAG_CB_PRE_UPSECS				0x00400000
+#define		FLAG_CB_PRE_DATE				0x00200000
+#define		FLAG_CB_PRE_TIME				0x00100000
 #define		FLAG_CB_PRE_SPC					0x00080000
 // spare 40000-00800
-#define		FLAG_CB_MID_ADDR				0x00000400			// include pointer/addres value
+#define		FLAG_CB_MID_ADDR				0x00000400			// include pointer/address value
 #define		FLAG_CB_MID_RELA				0x00000200			// pointer/address value relative offset only
 #define		FLAG_CB_MID_SEP					0x00000100			// '-' or '|' or ' '
 #define		FLAG_CB_MID_WID					0x000000C0			// 00=08bit, 01=16bit, 02=32bit, 03=64bit
