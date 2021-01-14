@@ -124,11 +124,11 @@ extern "C" {
 #define	xpfPRECIS_BITS					16			// Number of bits in field(s)
 #define	xpfPRECIS_MAXVAL				((1 << xpfPRECIS_BITS) - 1)
 
-#define	xpfSGR(a,b,c,d)					(((uint8_t) a << 24) + ((uint8_t) b << 16) + ((uint8_t) c << 8) + (uint8_t) d)
-
 /* https://en.wikipedia.org/wiki/ANSI_escape_code#Escape_sequences
  * http://www.termsys.demon.co.uk/vtansi.htm#colors
  */
+
+#define	xpfSGR(a,b,c,d)					(((uint8_t) a << 24) + ((uint8_t) b << 16) + ((uint8_t) c << 8) + (uint8_t) d)
 
 // #################################### Public structures ##########################################
 
