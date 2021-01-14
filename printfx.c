@@ -14,6 +14,7 @@
 #include	"x_ubuf.h"
 #include	"x_stdio.h"
 #include	"x_struct_union.h"
+#include	"x_terminal.h"
 #include	"x_utilities.h"
 
 #if		defined(ESP_PLATFORM)
@@ -791,20 +792,13 @@ void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
  * @param Val	U32 value treated as 4x U8 being SGR color/attribute codes
  */
 void	vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
-	char * 	pTmp, Buffer[xpfMAX_LEN_SGR] ;
+	char Buffer[xpfMAX_LEN_SGR] ;
 	sgr_info_t sSGR ;
 	sSGR.u32 = Val ;
-	pTmp	= Buffer ;
-	*pTmp++	= CHR_ESC ;
-	*pTmp++	= CHR_L_SQUARE ;
-	pTmp	+= xU32ToDecStr(sSGR.a, pTmp) ;
-	for (int32_t Idx = 2; sSGR.u8[Idx] && Idx >= 0; --Idx) {
-		*pTmp++	= CHR_SEMICOLON ;
-		pTmp	+= xU32ToDecStr(sSGR.u8[Idx], pTmp) ;
-	}
-	*pTmp++ = CHR_m ;
-	*pTmp	= CHR_NUL ;									// terminate
-	xPrintChars(psXPC, Buffer) ;
+	if (pcANSIlocate(Buffer, sSGR.c, sSGR.d) != Buffer)
+		xPrintChars(psXPC, Buffer) ;
+	if (pcANSIattrib(Buffer, sSGR.a, sSGR.b) != Buffer)
+		xPrintChars(psXPC, Buffer) ;
 }
 
 /* ################################# The HEART of the PRINTFX matter ###############################
