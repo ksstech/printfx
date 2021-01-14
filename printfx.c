@@ -1190,7 +1190,7 @@ void	printfx_lock(void) { xRtosSemaphoreTake(&printfxMux, portMAX_DELAY) ; }
 
 void	printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux) ; }
 
-int		xPrintStdOut(xpc_t * psXPC, int cChr) { return x_uputc(configSTDIO_UART_CHAN, cChr) ; }
+int		xPrintStdOut(xpc_t * psXPC, int cChr) { return putcx(cChr, configSTDIO_UART_CHAN) ; }
 
 int 	vnprintfx(size_t count, const char * format, va_list vArgs) {
 	printfx_lock() ;
@@ -1235,7 +1235,7 @@ int 	printfx_nolock(const char * format, ...) {
  * Output directly to the [possibly redirected] stdout/UART channel
  */
 
-int		xPrintToStdout(xpc_t * psXPC, int cChr) { return x_putchar(cChr) ; }
+int		xPrintToStdout(xpc_t * psXPC, int cChr) { return putcharx(cChr) ; }
 
 int 	vcprintfx(const char * format, va_list vArgs) {
 	xRtosSemaphoreTake(&cprintfxMux, portMAX_DELAY) ;
