@@ -113,6 +113,18 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
 // Following line was used to test for the details of the anomaly
 //	if (pStr != NULL && halCONFIG_inMEM(pStr) == false) ets_printf("pOOR 0x%08x\n", pStr) ;
 	pStr = halCONFIG_inMEM(pStr) ? pStr : pStr == NULL ? STRING_NULL : STRING_OOR ;
+#if 1
+	int32_t Len = psXPC->f.precis ? psXPC->f.precis : xstrlen(pStr) ;
+	int32_t PadLen = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;
+	int32_t PadChr = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
+	if (psXPC->f.ljust == 0 && PadLen)					// If right justified & we must pad
+		while (PadLen--)	vPrintChar(psXPC, PadChr) ;	// do left pad
+
+	while (*pStr && Len--)	vPrintChar(psXPC, *pStr++) ;
+
+	if (psXPC->f.ljust && PadLen)						// If left justified & we must pad
+		while (PadLen--)	vPrintChar(psXPC, PadChr) ;	// do right pad
+#else
 	int32_t Len = xstrlen(pStr) ;
 	int32_t PadLen = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;	// calc required number of padding chars
 	int32_t PadChr = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
@@ -124,6 +136,7 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
 
 	if (psXPC->f.ljust && PadLen)						// If left justified & we must pad
 		while (PadLen--)	vPrintChar(psXPC, PadChr) ;	// do right pad
+#endif
 }
 
 /**
