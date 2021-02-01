@@ -5,6 +5,8 @@
  *
  */
 
+#include	"hal_config.h"
+
 #include	"printfx.h"
 #include	"FreeRTOS_Support.h"
 #include	"x_string_general.h"						// xinstring function
@@ -18,11 +20,8 @@
 #include	"x_utilities.h"
 
 #if		defined(ESP_PLATFORM)
-	#include	"hal_config.h"
 	#include	"hal_debug.h"							// need ASSERT
 	#include	"hal_nvic.h"
-#else
-	#include	"alt_config.h"
 #endif
 
 #include	<string.h>
@@ -1158,11 +1157,25 @@ int 	sprintfx(char * pBuf, const char * format, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-void	printfx_lock(void) { xRtosSemaphoreTake(&printfxMux, portMAX_DELAY) ; }
+void	printfx_lock(void) {
+#ifdef	ESP_PLATFORM
+	xRtosSemaphoreTake(&printfxMux, portMAX_DELAY) ;
+#endif
+}
 
-void	printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux) ; }
+void	printfx_unlock(void) {
+#ifdef	ESP_PLATFORM
+	xRtosSemaphoreGive(&printfxMux) ;
+#endif
+}
 
-int		xPrintStdOut(xpc_t * psXPC, int cChr) { return putcx(cChr, configSTDIO_UART_CHAN) ; }
+int		xPrintStdOut(xpc_t * psXPC, int cChr) {
+#ifdef	ESP_PLATFORM
+	return putcx(cChr, configSTDIO_UART_CHAN) ;
+#else
+	return putchar(cChr) ;
+#endif
+}
 
 int 	vnprintfx(size_t count, const char * format, va_list vArgs) {
 	printfx_lock() ;
@@ -1199,27 +1212,6 @@ int 	printfx_nolock(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
 	int iRV = PrintFX(xPrintStdOut, stdout, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	va_end(vArgs) ;
-	return iRV ;
-}
-
-/* ################################## Destination = UART/TELNET ####################################
- * Output directly to the [possibly redirected] stdout/UART channel
- */
-
-int		xPrintToStdout(xpc_t * psXPC, int cChr) { return putcharx(cChr) ; }
-
-int 	vcprintfx(const char * format, va_list vArgs) {
-	xRtosSemaphoreTake(&cprintfxMux, portMAX_DELAY) ;
-	int iRV = PrintFX(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	xRtosSemaphoreGive(&cprintfxMux) ;
-	return iRV ;
-}
-
-int 	cprintfx(const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int iRV = vcprintfx(format, vArgs) ;
 	va_end(vArgs) ;
 	return iRV ;
 }
@@ -1283,6 +1275,28 @@ int		dprintfx(int32_t fd, const char * format, ...) {
 	return count ;
 }
 
+#ifdef	ESP_PLATFORM
+/* ################################## Destination = UART/TELNET ####################################
+ * Output directly to the [possibly redirected] stdout/UART channel
+ */
+
+int		xPrintToStdout(xpc_t * psXPC, int cChr) { return putcharx(cChr) ; }
+
+int 	vcprintfx(const char * format, va_list vArgs) {
+	xRtosSemaphoreTake(&cprintfxMux, portMAX_DELAY) ;
+	int iRV = PrintFX(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	xRtosSemaphoreGive(&cprintfxMux) ;
+	return iRV ;
+}
+
+int 	cprintfx(const char * format, ...) {
+	va_list vArgs ;
+	va_start(vArgs, format) ;
+	int iRV = vcprintfx(format, vArgs) ;
+	va_end(vArgs) ;
+	return iRV ;
+}
+
 // ################################### Destination = DEVICE ########################################
 
 int		xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
@@ -1337,6 +1351,8 @@ int		uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 	va_end(vArgs) ;
 	return count ;
 }
+
+#endif		// ESP_PLATFORM
 
 // ############################# Aliases for NEW/STDLIB supplied functions #########################
 
