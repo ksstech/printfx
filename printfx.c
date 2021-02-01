@@ -677,18 +677,20 @@ void	vPrintURL(xpc_t * psXPC, char * pStr) {
  * 				'+'		Add the ASCII char equivalents to the right of the hex output
  */
 void	vPrintHexDump(xpc_t * psXPC, uint32_t Len, char * pStr) {
-	int32_t	Size = 1 << psXPC->f.size ;
-	uint32_t	Count ;
 	for (uint32_t Idx = 0; Idx < Len; Idx += xpfHEXDUMP_WIDTH) {
+#if		(xpfSUPPORT_POINTER == 1)
 		if (psXPC->f.ljust == 0) {						// display absolute or relative address
 			vPrintPointer(psXPC, psXPC->f.rel_val ? Idx : (uint32_t) (pStr + Idx)) ;
 			xPrintChars(psXPC, (char *) ": ") ;
 		}
+#endif
 		// then the actual series of values in 8-32 bit groups
 		int32_t Width = ((Len - Idx) > xpfHEXDUMP_WIDTH) ? xpfHEXDUMP_WIDTH : Len - Idx ;
 		vPrintHexValues(psXPC, Width, pStr + Idx) ;
 		if (psXPC->f.plus == 1) {						// handle values dumped as ASCII chars
 		// handle space padding for ASCII dump to line up
+			uint32_t	Count ;
+			int32_t	Size = 1 << psXPC->f.size ;
 			Count = (Len > xpfHEXDUMP_WIDTH) ? ((xpfHEXDUMP_WIDTH - Width) / Size) * ((Size * 2) + (psXPC->f.form ? 1 : 0)) + 1 : 1 ;
 			while (Count--)	vPrintChar(psXPC, CHR_SPACE) ;
 			// handle same values dumped as ASCII characters
