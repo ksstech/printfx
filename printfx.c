@@ -112,8 +112,8 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
 // Required to avoid crash when wifi message is intercepted and a string pointer parameter
 // is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
 // Following line was used to test for the details of the anomaly
-//	if (pStr != NULL && INRANGE_MEM(pStr) == false) ets_printf("pOOR 0x%08x\n", pStr) ;
-	pStr = INRANGE_MEM(pStr) ? pStr : pStr == NULL ? STRING_NULL : STRING_OOR ;
+//	if (pStr != NULL && halCONFIG_inMEM(pStr) == false) ets_printf("pOOR 0x%08x\n", pStr) ;
+	pStr = halCONFIG_inMEM(pStr) ? pStr : pStr == NULL ? STRING_NULL : STRING_OOR ;
 	int32_t Len = xstrlen(pStr) ;
 	int32_t PadLen = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;	// calc required number of padding chars
 	int32_t PadChr = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
@@ -643,7 +643,7 @@ void	vPrintDateTime(xpc_t * psXPC, uint64_t uSecs) {
  * @param pString
  */
 void	vPrintURL(xpc_t * psXPC, char * pStr) {
-	if (INRANGE_MEM(pStr)) {
+	if (halCONFIG_inMEM(pStr)) {
 		char cIn ;
 		while ((cIn = *pStr++) != CHR_NUL) {
 			if (INRANGE(CHR_A, cIn, CHR_Z, char) ||
