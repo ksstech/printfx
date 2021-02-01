@@ -412,9 +412,9 @@ void	vPrintHexValues(xpc_t * psXPC, int32_t Num, char * pStr) {
 	int32_t	Idx	= 0 ;
 	while (Idx < Num) {
 		switch (psXPC->f.size) {
-		case 0:	x64Val.u8[0]  = *((uint8_t *) pStr) ; 	vPrintHexU8(psXPC, x64Val.u8[0]) ; 		break ;
-		case 1:	x64Val.u16[0] = *((uint16_t *) pStr) ;	vPrintHexU16(psXPC, x64Val.u16[0]) ;	break ;
-		case 2:	x64Val.u32[0] = *((uint32_t *) pStr) ;	vPrintHexU32(psXPC, x64Val.u32[0]) ;	break ;
+		case 0:	x64Val.x8[0].u8	  = *((uint8_t *) pStr) ; 	vPrintHexU8(psXPC, x64Val.x8[0].u8) ; 		break ;
+		case 1:	x64Val.x16[0].u16 = *((uint16_t *) pStr) ;	vPrintHexU16(psXPC, x64Val.x16[0].u16) ;	break ;
+		case 2:	x64Val.x32[0].u32 = *((uint32_t *) pStr) ;	vPrintHexU32(psXPC, x64Val.x32[0].u32) ;	break ;
 		case 3:	x64Val.u64	  = *((uint64_t *) pStr) ;	vPrintHexU64(psXPC, x64Val.u64) ; 		break ;
 		}
 		// step to the next 8/16/32/64 bit value
