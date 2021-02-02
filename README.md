@@ -11,6 +11,9 @@
 	Numeric output scaling
 	#	Alternate format will scale value downwards and adding SI indicator based on thresholds being
 		10^3=K  10^6=M  10^9=G  10^12=T
+		
+	Text center justify
+	#	Place string in center of field
 
 	Date and/or time output in POSIX or other formats.
 	D	date using pointer to TSZ_t structure
@@ -103,8 +106,16 @@
 	||||*--------> SIGN leading '+' or '-',	DTZ=Add full TZ info, HEXDUMP add ASCII info
 	|||*---------> Minwid or precision variable provided
 	||*----------> Xxx=3 digits group, DTZ "::." -> "hms"	MAC/DUMP use '|-+'
-	|*-----------> Xxx=Scaling, DTZ=alt form (Sun, 10 Sep 2017 20:50:37 GMT) IP=ntohl() Hex=Reverse order
-	*------------> DTZ=elapsed time,	DUMP=relative addr, MAC=use ':' separator
+	|*-----------> AltForm: Values, DTZ, IP, STRing, DUMP,
+	*------------> Abs_Rel: DTZ=relative time, DUMP=relative addr
+	
+	AltForm usage:
+		Values		Scaling down in SI units to fit.
+		DateTime		Sun, 10 Sep 2017 20:50:37 GMT
+		IP addr		order for network <> host correction
+		MAC addr		Use ':' seperator
+		STRing		Center justified
+		HexDump		Reverse Start <> End addresses
 
 # Examples:
 	%'03llJ			- print binary representation, optional separator, llong & field width modifiers

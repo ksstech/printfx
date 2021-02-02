@@ -50,6 +50,9 @@ extern "C" {
 #define	xpfMAXIMUM_DECIMALS				15
 #define	xpfDEFAULT_DECIMALS				6
 
+#define	xpfMAX_TIME_FRAC				6		// control resolution mS/uS/nS
+#define	xpfDEF_TIME_FRAC				3
+
 #ifdef ESP_PLATFORM
 		/* Specifically for the ESP-IDF we1`	 * as x[v]fprintf(stdout, format, ...) with locking enabled */
 	#define	xpfSUPPORT_ALIASES			1
@@ -116,6 +119,10 @@ extern "C" {
 
 #define	xpfSGR(a,b,c,d)					(((uint8_t) a << 24) + ((uint8_t) b << 16) + ((uint8_t) c << 8) + (uint8_t) d)
 
+// ####################################### enumerations ############################################
+
+enum { srcS, srcF, srcT, srcN } ;
+
 // #################################### Public structures ##########################################
 
 typedef union {
@@ -134,10 +141,10 @@ typedef	struct __attribute__((packed)) xpf_u {
 		} ;
 	} ;
 	union {
-		uint32_t	limits ;							// minwid & precis
+		uint32_t	limits ;
 		struct __attribute__((packed)) {
-			uint32_t	minwid		: xpfMINWID_BITS ;		// minimum field width
-			uint32_t	precis		: xpfPRECIS_BITS ;		// number of decimal digits or width of string
+			uint32_t	minwid		: xpfMINWID_BITS ;	// min field width
+			uint32_t	precis		: xpfPRECIS_BITS ;	// float precision or max string length
 		} ;
 	} ;
 	union {
@@ -150,7 +157,7 @@ typedef	struct __attribute__((packed)) xpf_u {
 			uint8_t		Ucase		: 1 ;				// true = 'a' or false = 'A'
 			uint8_t		pad0		: 1 ;				// true = pad with leading'0'
 			uint8_t		llong		: 1 ;				// long long override flag
-			uint8_t		radix		: 1 ;				// radix found flag
+			uint8_t		radix		: 1 ;
 			uint8_t		rel_val		: 1 ;				// relative address / elapsed time
 		// byte 1
 			uint8_t		nbase 		: 5 ;				// 2, 8, 10 or 16
@@ -160,12 +167,14 @@ typedef	struct __attribute__((packed)) xpf_u {
 			uint8_t		form		: 2 ;				// format specifier FLOAT, DUMP & TIME
 			uint8_t		signval		: 1 ;				// true = content is signed value
 			uint8_t		plus		: 1 ;				// true = force use of '+' or '-' signed
-			uint8_t		arg_width	: 1 ;				// read arg for width
-			uint8_t		arg_prec	: 1 ;				// read arg for precis
+			uint8_t		arg_width	: 1 ;				// minwid specified
+			uint8_t		arg_prec	: 1 ;				// precis specified
 			uint8_t		no_zone		: 1 ;				// 1=delay doing 'Z'
 			uint8_t		dbg			: 1 ;
 		// byte 3
-			uint8_t		spare		: 8 ;				// SPARE !!!
+			uint8_t		Pspc		: 1 ;
+			uint8_t		src			: 2 ;				// src?
+			uint8_t		spare		: 5 ;				// SPARE !!!
 		} ;
 	} ;
 } xpf_t ;
