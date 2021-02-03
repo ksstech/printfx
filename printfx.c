@@ -1115,7 +1115,8 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 #if		(xpfSUPPORT_POINTER == 1)						// pointer value UC/lc
 			case CHR_p:
 			{	void * pVoid	= va_arg(vArgs, void *) ;
-				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pVoid)) ;
+				// Does cause crash if pointer not currently mapped
+//				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pVoid)) ;
 				vPrintPointer(&sXPC, pVoid) ;
 				break ;
 			}
