@@ -26,12 +26,12 @@
 
 	Hexdump (debug style) in byte, short, word or double word formats
     ?/?	format specifier selectable upper/lower case output (bhw vs BHW).
-	b/B	Byte (8 bit) width display
-	h/H	Half word (16 bit) width display
-	w/W	Word (32 bit) width display
+	b/B		Byte (8 bit) width display
+	h/H		Half word (16 bit) width display
+	w/W		Word (32 bit) width display
     !	modifier to change absolute -> relative address preceding each line of hexdump output.
     -	modifier to remove the default address preceding each line of output
-    '	modifier to enable seperators between byte/short/word/llong values using '|: -' on 32/16/8/4 bit boundaries
+    `	modifier to enable seperators between byte/short/word/llong values using '|: -' on 32/16/8/4 bit boundaries
     +	modifier to enable addition of ASCII character display at end of each line.
     	PLEASE NOTE: Requires 2 parameters being LENGTH and POINTER
 
