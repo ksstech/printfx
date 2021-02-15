@@ -903,7 +903,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 						IF_myASSERT(debugTRACK, sXPC.f.radix == 1 && Siz == 0) ;
 						++format ;
 						Siz	= va_arg(vArgs, size_t) ;
-						IF_myASSERT(debugTRACK, Siz <= xpfPRECIS_BITS) ;
+						IF_myASSERT(debugTRACK, Siz <= xpfPRECIS_MAXVAL) ;
 						sXPC.f.precis = Siz ;
 						sXPC.f.arg_prec	= 1 ;
 						Siz = 0 ;
@@ -918,7 +918,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 						sXPC.f.minwid	= Siz ;
 						sXPC.f.arg_width= 1 ;
 					} else if (sXPC.f.arg_prec == 0 && sXPC.f.radix == 1) {
-						IF_myASSERT(debugTRACK, Siz <= xpfPRECIS_BITS) ;
+						IF_myASSERT(debugTRACK, Siz <= xpfPRECIS_MAXVAL) ;
 						sXPC.f.precis	= Siz ;
 						sXPC.f.arg_prec	= 1 ;
 					} else {
