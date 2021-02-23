@@ -1064,7 +1064,7 @@ int		PrintFX(int (handler)(xpc_t *, int), void * pVoid, size_t BufSize, const ch
 				sXPC.f.form		= sXPC.f.group ? xpfFORMAT_1_F : xpfFORMAT_0_G ;
 				char * pChr	= va_arg(vArgs, char *) ;
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pChr)) ;
-				vPrintHexValues(&sXPC, configMAC_ADDRESS_LENGTH, pChr) ;
+				vPrintHexValues(&sXPC, lenMAC_ADDRESS, pChr) ;
 				break ;
 			}
 #endif
