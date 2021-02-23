@@ -20,7 +20,6 @@
 #include	"x_utilities.h"
 
 #if		defined(ESP_PLATFORM)
-	#include	"hal_debug.h"							// need ASSERT
 	#include	"hal_nvic.h"
 #endif
 

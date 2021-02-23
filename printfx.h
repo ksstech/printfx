@@ -19,6 +19,7 @@ extern "C" {
 // #################################################################################################
 
 // "format" used by ALL tracking macros.
+extern unsigned long long RunTime ;
 #define	_TRACK_(f)						"%!.R: %s:%d " f "\n", RunTime, __FUNCTION__, __LINE__
 
 #define	TRACK(f, ...)					printfx(_TRACK_(f), ##__VA_ARGS__)
