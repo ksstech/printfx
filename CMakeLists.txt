@@ -22,7 +22,7 @@ string( SUBSTRING ${vNow} ${vBaseLen} ${p4L} p4S )
 
 if( p1S MATCHES esp/irmacs OR p2S MATCHES esp/test)
 	idf_component_register(
-		SRCS "printfx.c"
+		SRCS "printfx.c" "printfx_tests.c"
 		INCLUDE_DIRS "."
 		REQUIRES common rtos-support
 		PRIV_REQUIRES stringsX values socketsX
