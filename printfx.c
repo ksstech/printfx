@@ -585,7 +585,7 @@ void	vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 		psXPC->f.signval	= 0 ;						// TZ offset minutes unsigned
 		psXPC->f.plus		= 0 ;
 		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXPC->f.minwid = 2) ;
-#if		(buildTIME_TZTYPE_SELECTED == buildTIME_TZTYPE_POINTER)
+#if		(timexTZTYPE_SELECTED == timexTZTYPE_POINTER)
 		if (psTSZ->pTZ->pcTZName) {					// handle TZ name (as string pointer) if there
 			Buffer[Len++]	= CHR_L_ROUND ;			// add separating ' ('
 			psXPC->f.minwid = 0 ;					// then complete with the TZ name
@@ -597,7 +597,7 @@ void	vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 			Len += psXPC->f.minwid ;
 			Buffer[Len++]	= CHR_R_ROUND ;			// and wrap it up...
 		}
-#elif	(buildTIME_TZTYPE_SELECTED == buildTIME_TZTYPE_FOURCHARS)
+#elif	(timexTZTYPE_SELECTED == timexTZTYPE_FOURCHARS)
 		// Now handle the TZ name if there, check to ensure max 4 chars all UCase
 		if (xstrverify(&psTSZ->pTZ->tzname[0], CHR_A, CHR_Z, configTIME_MAX_LEN_TZNAME) == erSUCCESS) {
 			Buffer[Len++]	= CHR_L_ROUND ;			// add separating ' ('
@@ -612,7 +612,7 @@ void	vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 			Len += psXPC->f.minwid ;
 			Buffer[Len++]	= CHR_R_ROUND ;			// and wrap it up...
 		}
-#elif	(buildTIME_TZTYPE_SELECTED == buildTIME_TZTYPE_RFC3164)
+#elif	(timexTZTYPE_SELECTED == timexTZTYPE_RFC3164)
 		// nothing added other than the time offset
 #endif
 	} else {
