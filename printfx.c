@@ -74,8 +74,8 @@ static	const double round_nums[xpfMAXIMUM_DECIMALS+1] = {
  */
 void	vPrintChar(xpc_t * psXPC, char cChr) {
 #if 	(xpfSUPPORT_FILTER_NUL == 1)
-		if (cChr == CHR_NUL)
-			return ;
+	if (cChr == CHR_NUL)
+		return ;
 #endif
 	if (psXPC->f.maxlen == 0 || psXPC->f.curlen < psXPC->f.maxlen) {
 		if (psXPC->handler(psXPC, cChr) == cChr)		// successfully written ?
@@ -106,9 +106,13 @@ int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
  */
 void	vPrintString (xpc_t * psXPC, char * pStr) {
 	// determine natural or limited length of string
-	size_t	Len	 = psXPC->f.precis ? psXPC->f.precis : xstrlen(pStr) ;
+	size_t	Len ;
+	if (psXPC->f.arg_prec && psXPC->f.arg_width && psXPC->f.precis < psXPC->f.minwid)
+		Len = xstrnlen(pStr, psXPC->f.precis) ;
+	else
+		Len	 = psXPC->f.precis ? psXPC->f.precis : xstrlen(pStr) ;
 
-	size_t	Tpad = psXPC->f.arg_width && (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0 ;
+	size_t	Tpad = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;
 	size_t	Lpad = 0, Rpad = 0 ;
 	uint8_t	Cpad = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
 	if (Tpad) {
@@ -1157,15 +1161,17 @@ int		xPrintToString(xpc_t * psXPC, int cChr) {
 }
 
 int 	vsnprintfx(char * pBuf, size_t BufSize, const char * format, va_list vArgs) {
-	if (pBuf && (BufSize == 1)) {						// buffer specified, but no space ?
-		*pBuf = CHR_NUL ;								// yes, terminate
+	if (BufSize == 1) {									// no space ?
+		if (pBuf)										// yes, pointer specified ?
+			*pBuf = CHR_NUL ;							// yes, terminate
 		return 0 ; 										// & return
 	}
 	int iRV = PrintFX(xPrintToString, pBuf, BufSize, format, vArgs) ;
-	if (pBuf && (iRV == BufSize))						// buffer specified and FULL?
-		iRV-- ; 										// yes, adjust the length for terminator
-	if (pBuf)											// buffer specified ?
-		pBuf[iRV] = CHR_NUL ; 							// yes, terminate
+	if (pBuf) {											// Buffer specified ?
+		if (iRV == BufSize)								// yes, full?
+			--iRV ;										// yes, make space for terminator
+		pBuf[iRV] = CHR_NUL ;							// terminate
+	}
 	return iRV ;
 }
 
