@@ -472,6 +472,14 @@ seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 	return Seconds ;
 }
 
+size_t	xPrintTimeCalcSize(xpc_t * psXPC, int i32Val) {
+	if (!psXPC->f.rel_val || psXPC->f.pad0 || i32Val > 9) {
+		return psXPC->f.minwid = 2 ;
+	}
+	psXPC->f.minwid = 1 ;
+	return xDigitsInI32(i32Val, psXPC->f.group) ;
+}
+
 size_t	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid	= 0 ;
 	size_t Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_year + YEAR_BASE_MIN), pBuffer, 4) ;
@@ -481,23 +489,14 @@ size_t	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 }
 
 size_t	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
-	psXPC->f.minwid	= 2 ;
-	size_t Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_mon + 1), pBuffer, 2) ;
+	size_t Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_mon + 1), pBuffer, psXPC->f.minwid = 2) ;
 	pBuffer[Len++] = psXPC->f.alt_form ? CHR_SPACE :
 					(psXPC->f.form == xpfFORMAT_3) ? CHR_FWDSLASH : CHR_MINUS ;
 	return Len ;
 }
 
 size_t	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
-	size_t szBuf ;
-	if (psXPC->f.rel_val) {
-		psXPC->f.minwid	= 1 ;
-		szBuf = xDigitsInU32(psTM->tm_mday, psXPC->f.group) ;
-	} else {
-		psXPC->f.minwid	= 2 ;
-		szBuf = 2 ;
-	}
-	size_t Len = xPrintXxx(psXPC, (uint64_t) psTM->tm_mday, pBuffer, szBuf) ;
+	size_t Len = xPrintXxx(psXPC, (uint64_t) psTM->tm_mday, pBuffer, xPrintTimeCalcSize(psXPC, psTM->tm_mday)) ;
 	pBuffer[Len++] = psXPC->f.alt_form ? CHR_SPACE :
 					(psXPC->f.form == xpfFORMAT_3 && psXPC->f.rel_val) ? CHR_d :
 					(psXPC->f.form == xpfFORMAT_3) ? CHR_SPACE : CHR_T ;
@@ -530,13 +529,12 @@ void	vPrintDate(xpc_t * psXPC, struct tm * psTM) {
 }
 
 void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
-	psXPC->f.form	= psXPC->f.group ? xpfFORMAT_3 : xpfFORMAT_0_G ;
-	psXPC->f.minwid = 2 ;
-	size_t	Len ;
 	char	Buffer[xpfMAX_LEN_TIME] ;
+	size_t	Len ;
+	psXPC->f.form	= psXPC->f.group ? xpfFORMAT_3 : xpfFORMAT_0_G ;
 	// Part 1: hours
 	if (psTM->tm_hour || psXPC->f.pad0) {
-		Len = xPrintXxx(psXPC, (uint64_t) psTM->tm_hour, Buffer, 2) ;
+		Len = xPrintXxx(psXPC, (uint64_t) psTM->tm_hour, Buffer, xPrintTimeCalcSize(psXPC, psTM->tm_hour)) ;
 		Buffer[Len++]	= psXPC->f.form == xpfFORMAT_3 ? CHR_h :  CHR_COLON ;
 		psXPC->f.pad0	= 1 ;
 	} else
@@ -544,14 +542,13 @@ void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 
 	// Part 2: minutes
 	if (psTM->tm_min || psXPC->f.pad0) {
-		Len += xPrintXxx(psXPC, (uint64_t) psTM->tm_min, Buffer+Len, 2) ;
+		Len += xPrintXxx(psXPC, (uint64_t) psTM->tm_min, Buffer+Len, xPrintTimeCalcSize(psXPC, psTM->tm_min)) ;
 		Buffer[Len++]	= psXPC->f.form == xpfFORMAT_3 ? CHR_m :  CHR_COLON ;
 		psXPC->f.pad0	= 1 ;
 	}
 
 	// Part 3: seconds
-	Len += xPrintXxx(psXPC, (uint64_t) psTM->tm_sec, Buffer+Len, 2) ;
-
+	Len += xPrintXxx(psXPC, (uint64_t) psTM->tm_sec, Buffer+Len, xPrintTimeCalcSize(psXPC, psTM->tm_sec)) ;
 	// Part 4: [.xxxxxx]
 	if (psXPC->f.radix && psXPC->f.alt_form == 0) {
 		Buffer[Len++]	= psXPC->f.form == xpfFORMAT_3 ? CHR_s :  CHR_FULLSTOP ;
@@ -563,8 +560,7 @@ void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 		psXPC->f.pad0	= 1 ;						// need leading '0's
 		psXPC->f.signval= 0 ;
 		psXPC->f.ljust	= 0 ;						// force R-just
-		psXPC->f.minwid	= psXPC->f.precis ;
-		Len += xPrintXxx(psXPC, uSecs, Buffer+Len, psXPC->f.precis) ;
+		Len += xPrintXxx(psXPC, uSecs, Buffer+Len, psXPC->f.minwid	= psXPC->f.precis) ;
 	} else if (psXPC->f.form == xpfFORMAT_3) {
 		Buffer[Len++]	= CHR_s ;
 	}
