@@ -111,7 +111,6 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
 		Len = xstrnlen(pStr, psXPC->f.precis) ;
 	else
 		Len	 = psXPC->f.precis ? psXPC->f.precis : xstrlen(pStr) ;
-
 	size_t	Tpad = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;
 	size_t	Lpad = 0, Rpad = 0 ;
 	uint8_t	Cpad = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
@@ -331,9 +330,10 @@ void	vPrintF64(xpc_t * psXPC, double f64Val) {
 	psXPC->f.minwid	= psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;
 	Len += xPrintXxx(psXPC, x64Value.u64, Buffer, xpfMAX_LEN_F64 - 1 - Len) ;
 
-	psXPC->f.limits	= xpf.limits ;						// restore original limits & flags
-	psXPC->f.flags	= xpf.flags ;
-	psXPC->f.precis	= 0 ;								// enable full string to be output (subject to minwid padding on right)
+	psXPC->f.arg_prec	= 1 ;
+	psXPC->f.precis		= Len ;
+	psXPC->f.arg_width	= xpf.arg_width ;
+	psXPC->f.minwid		= xpf.minwid ;
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64 - 1 - Len)) ;
 }
 
