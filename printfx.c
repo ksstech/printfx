@@ -109,15 +109,15 @@ int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
  */
 void	vPrintString (xpc_t * psXPC, char * pStr) {
 	// determine natural or limited length of string
-	size_t	Len ;
+	int	Len ;
 	if (psXPC->f.arg_prec && psXPC->f.arg_width && psXPC->f.precis < psXPC->f.minwid) {
 		Len = xstrnlen(pStr, psXPC->f.precis) ;
 	} else {
 		Len	 = psXPC->f.precis ? psXPC->f.precis : xstrlen(pStr) ;
-	size_t	Tpad = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;
-	size_t	Lpad = 0, Rpad = 0 ;
-	uint8_t	Cpad = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
 	}
+	int	Tpad = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;
+	int	Lpad = 0, Rpad = 0 ;
+	uint8_t	Cpad = psXPC->f.pad0 ? '0' : ' ' ;
 	if (Tpad) {
 		if (psXPC->f.alt_form) {
 			Rpad = Tpad >> 1 ; Lpad = Tpad - Rpad ;
