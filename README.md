@@ -25,13 +25,13 @@
     +	modifier to enable TZ information being output
 
 	Hexdump (debug style) in byte, short, word or double word formats
-    ?/?	format specifier selectable upper/lower case output (bhw vs BHW).
-	b/B		Byte (8 bit) width display
-	h/H		Half word (16 bit) width display
-	w/W		Word (32 bit) width display
+    ll?	format specifier selectable upper/lower case output (bhw vs BHW).
+		B	Byte (8 bit) width display
+		H	Half word (16 bit) width display
+		W	Word (32 bit) width display
     !	modifier to change absolute -> relative address preceding each line of hexdump output.
     -	modifier to remove the default address preceding each line of output
-    `	modifier to enable seperators between byte/short/word/llong values using '|: -' on 32/16/8/4 bit boundaries
+    `	modifier to enable seperators between values using '|: -' on 32/16/8/4 bit boundaries
     +	modifier to enable addition of ASCII character display at end of each line.
     	PLEASE NOTE: Requires 2 parameters being LENGTH and POINTER
 
@@ -58,46 +58,49 @@
 	U	format specifier
   	  
 # Valid formatting characters:
-	!#'*+-%0.0-9ABC D EFGHI J KL MNO PQR S T U VWXYZ
-	|||||||||\_/ab|c|defgh|i|jk|lmn|opq|r|s|t|uvwxy|z
-	||||||||| | |||||||||||||||||||||||||||||||||||||
-	||||||||| | ||||||||||||||||||||||||||||||||||||*----> UNUSED (z)
-	||||||||| | |||||||||||||||||||||||||||||||||||*-----> DT(Z)
-	||||||||| | ||||||||||||||||||||||||||||||||||*------> UNUSED (Yy)
-	||||||||| | |||||||||||||||||||||||||||||||||*---> HEX UC/lc value
-	||||||||| | ||||||||||||||||||||||||||||||||*--------> HEXDUMP, word (u32) sized values UC/lc
-	||||||||| | |||||||||||||||||||||||||||||||*---------> UNUSED (Vv)
-	||||||||| | ||||||||||||||||||||||||||||||*------> (u)NSIGNED number (uint32_t)
-	||||||||| | |||||||||||||||||||||||||||||*-----------> UNUSED (U)
-	||||||||| | ||||||||||||||||||||||||||||*--------> Not implemented (t)
-	||||||||| | |||||||||||||||||||||||||||*-------------> (T)IME uSec based
-	||||||||| | ||||||||||||||||||||||||||*----------> STRING null terminated ascii
-	||||||||| | |||||||||||||||||||||||||*-----------> Not implemented (S)
-	||||||||| | ||||||||||||||||||||||||*----------------> (r) DateTime U32 Sec based
-	||||||||| | |||||||||||||||||||||||*-----------------> (R) DateTime U64 uSec based
-	||||||||| | ||||||||||||||||||||||*------------------> UNUSED (Qq)
-	||||||||| | |||||||||||||||||||||*--------------> POINTER U32 address with (0x/0X) prefix
-	||||||||| | ||||||||||||||||||||*---------------> (o)CTAL value
-	||||||||| | |||||||||||||||||||*---------------------> UNUSED (O)
-	||||||||| | ||||||||||||||||||*-----------------> Not implemented (Nn)
-	||||||||| | |||||||||||||||||*-----------------------> MAC address UC/lc
-	||||||||| | ||||||||||||||||*-------------------> LLONG modifier
-	||||||||| | |||||||||||||||*--------------------> Not implemented (L)
-	||||||||| | ||||||||||||||*--------------------------> UNUSED (Kk)
-	||||||||| | |||||||||||||*----------------------> Not implemented (j)
-	||||||||| | ||||||||||||*----------------------------> (J) BINARY U32 string
-	||||||||| | |||||||||||*------------------------> (i)NTEGER same as 'd
-	||||||||| | ||||||||||*------------------------------> (I)P address
-	||||||||| | |||||||||*-------------------------------> HEXDUMP, halfword (u16) sized values UC/lc
-	||||||||| | ||||||||*---------------------------> FLOAT generic format
-	||||||||| | |||||||*----------------------------> FLOAT fixed format
-	||||||||| | ||||||*-----------------------------> FLOAT exponential format
-	||||||||| | |||||*------------------------------> (d)ECIMAL signed formatted long
-	||||||||| | ||||*------------------------------------> (D)ATE formatted
-	||||||||| | |||*--------------------------------> (c)HAR single U8
-	||||||||| | ||*--------------------------------------> (C) ANSI SGR Color support
-	||||||||| | |*---------------------------------------> (Bb) HEXDUMP, byte (u8) sized values UC/lc
-	||||||||| | *-----------------------------------> (Aa) Not implemented!!
+	!#'*+-%0.0-9AB C D EFGH I J KL MNO PQR S T U VW XYZ
+	|||||||||\_/a|b|c|defg h|i|jk|lmn|opq|r|s|t|uv|wxy|z
+	||||||||| | ||||||||||||||||||||||||||||||||||||||||
+	||||||||| | |||||||||||||||||||||||||||||||||||||||*----> UNUSED (z)
+	||||||||| | ||||||||||||||||||||||||||||||||||||||*---------> (Z) DTZone
+	||||||||| | |||||||||||||||||||||||||||||||||||||*------> (Yy) UNUSED
+	||||||||| | ||||||||||||||||||||||||||||||||||||*-------> HEX UC/lc value
+	||||||||| | |||||||||||||||||||||||||||||||||||*--------> (w) UNUSED
+	||||||||| | ||||||||||||||||||||||||||||||||||*-------------> (W) HEXDUMP, word (u32) sized values
+	||||||||| | |||||||||||||||||||||||||||||||||*----------> (Vv) UNUSED
+	||||||||| | ||||||||||||||||||||||||||||||||*-----------> (u)NSIGNED number (uint32_t)
+	||||||||| | |||||||||||||||||||||||||||||||*------------> UNUSED (U)
+	||||||||| | ||||||||||||||||||||||||||||||*-------------> Not implemented (t)
+	||||||||| | |||||||||||||||||||||||||||||*------------------> (T)IME uSec based
+	||||||||| | ||||||||||||||||||||||||||||*---------------> STRING null terminated ascii
+	||||||||| | |||||||||||||||||||||||||||*----------------> (S) Not implemented
+	||||||||| | ||||||||||||||||||||||||||*---------------------> (r) DateTime U32 Sec based
+	||||||||| | |||||||||||||||||||||||||*----------------------> (R) DateTime U64 uSec based
+	||||||||| | ||||||||||||||||||||||||*-------------------> (Qq) UNUSED
+	||||||||| | |||||||||||||||||||||||*--------------------> POINTER U32 address with (0x/0X) prefix
+	||||||||| | ||||||||||||||||||||||*---------------------> (o)CTAL value
+	||||||||| | |||||||||||||||||||||*----------------------> (O) UNUSED
+	||||||||| | ||||||||||||||||||||*-----------------------> (Nn) Not implemented
+	||||||||| | |||||||||||||||||||*----------------------------> (M)AC address UC/lc
+	||||||||| | ||||||||||||||||||*-------------------------> LLONG modifier
+	||||||||| | |||||||||||||||||*--------------------------> (L) Not implemented
+	||||||||| | ||||||||||||||||*---------------------------> (Kk) UNUSED
+	||||||||| | |||||||||||||||*----------------------------> (j) Not implemented
+	||||||||| | ||||||||||||||*---------------------------------> (J) BINARY U32 string
+	||||||||| | |||||||||||||*------------------------------> (i)NTEGER same as 'd
+	||||||||| | ||||||||||||*-----------------------------------> (I)P address
+	||||||||| | |||||||||||*--------------------------------> (h) Not implemented !!!
+	||||||||| | ||||||||||*-------------------------------------> HEXDUMP, halfword (u16) sized values
+	||||||||| | |||||||||*----------------------------------> FLOAT generic format
+	||||||||| | ||||||||*-----------------------------------> FLOAT fixed format
+	||||||||| | |||||||*------------------------------------> FLOAT exponential format
+	||||||||| | ||||||*-------------------------------------> (d)ECIMAL signed formatted long
+	||||||||| | |||||*------------------------------------------> (D)ATE formatted
+	||||||||| | ||||*---------------------------------------> (c)HAR single U8
+	||||||||| | |||*--------------------------------------------> (C) ANSI SGR Color support
+	||||||||| | ||*-----------------------------------------> (b) UNUSED
+	||||||||| | |*----------------------------------------------> (B) HEXDUMP, byte (u8) sized values
+	||||||||| | *-------------------------------------------> (Aa) Not implemented !!!
 	||||||||| *--> field width specifiers
 	||||||||*----> FLOAT fractional field size separator
 	|||||||*-----> PAD0 enable flag
@@ -134,7 +137,8 @@
 
 # What is NOT supported:
 	Specifiers:
-	'a', 'A' or 'n'
+	'a' or 'A'	treated as 'g' or 'G' DECIMAL not HEX format
+	'n'
 	Sub-specifiers:
 	'b' conversion specifier
 	'h' or 'hh' as applied to any specifiers
