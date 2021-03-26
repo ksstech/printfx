@@ -54,9 +54,9 @@ void 	vLogPrintf(uint32_t flag, const char * format, ...) {
 int32_t	xI8ArrayPrint(const char * pHeader, uint8_t * pArray, int32_t ArraySize) {
 	int32_t iRV = 0 ;
 	if (pHeader)
-		iRV += PRINT(pHeader) ;
+		iRV += printfx(pHeader) ;
 	for (int32_t Idx = 0; Idx < ArraySize; ++Idx)
-		iRV += PRINT("  #%d=%d", Idx, pArray[Idx]) ;
-	iRV += PRINT("\n") ;
+		iRV += printfx("  #%d=%d", Idx, pArray[Idx]) ;
+	iRV += printfx("\n") ;
 	return iRV ;
 }
