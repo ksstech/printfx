@@ -37,9 +37,6 @@
 
 const char vPrintStr1[] = {						// table of characters where lc/UC is applicable
 		'X',									// hex formatted 'x' or 'X' values, always there
-#if		(xpfSUPPORT_HEXDUMP == 1)
-		'B', 'H', 'W',							// byte, half and word UC/LC formatting
-#endif
 #if		(xpfSUPPORT_MAC_ADDR == 1)
 		'M',									// MAC address UC/LC
 #endif
@@ -1039,9 +1036,9 @@ int		xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 #endif
 
 #if		(xpfSUPPORT_HEXDUMP == 1)
-			case CHR_b:									// HEXDUMP byte sized UC/lc
-			case CHR_h:									// HEXDUMP halfword sized UC/lc
-			case CHR_w:									// HEXDUMP word sized UC/lc
+			case CHR_B:									// HEXDUMP 8bit sized
+			case CHR_H:									// HEXDUMP 16bit sized
+			case CHR_W:									// HEXDUMP 32bit sized
 				IF_myASSERT(debugTRACK, !psXPC->f.arg_width && !psXPC->f.arg_prec) ;
 				/* In order for formatting to work  the "*" or "." radix specifiers
 				 * should not be used. The requirement for a second parameter is implied and assumed */
