@@ -1216,21 +1216,11 @@ int 	sprintfx(char * pBuf, const char * format, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-#ifdef	ESP_PLATFORM
-	static SemaphoreHandle_t	printfxMux = NULL ;
-#endif
+static SemaphoreHandle_t	printfxMux = NULL ;
 
-void	printfx_lock(void) {
-#ifdef	ESP_PLATFORM
-	xRtosSemaphoreTake(&printfxMux, portMAX_DELAY) ;
-#endif
-}
+void	printfx_lock(void) { xRtosSemaphoreTake(&printfxMux, portMAX_DELAY) ; }
 
-void	printfx_unlock(void) {
-#ifdef	ESP_PLATFORM
-	xRtosSemaphoreGive(&printfxMux) ;
-#endif
-}
+void	printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux) ; }
 
 int		xPrintStdOut(xpc_t * psXPC, int cChr) {
 #ifdef	ESP_PLATFORM
@@ -1354,10 +1344,10 @@ int		dprintfx(int32_t fd, const char * format, ...) {
 int		xPrintToStdout(xpc_t * psXPC, int cChr) { return putcharx(cChr) ; }
 
 int 	vcprintfx(const char * format, va_list vArgs) {
-	static SemaphoreHandle_t Mux = NULL ;
-	xRtosSemaphoreTake(&Mux, portMAX_DELAY) ;
-	xRtosSemaphoreGive(&Mux) ;
+//	static SemaphoreHandle_t Mux = NULL ;
+//	xRtosSemaphoreTake(&Mux, portMAX_DELAY) ;
 	int iRV = xprintfx(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
+//	xRtosSemaphoreGive(&Mux) ;
 	return iRV ;
 }
 
