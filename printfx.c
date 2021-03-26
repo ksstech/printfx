@@ -33,6 +33,13 @@
 #define	debugPARAM					(debugFLAG_GLOBAL & debugFLAG & 0x4000)
 #define	debugRESULT					(debugFLAG_GLOBAL & debugFLAG & 0x8000)
 
+// ####################################### Enumerations ############################################
+
+//FLOAT "Gg"	"Ff"	"Ee"	None
+//Dump	None	':'		'-'		Complex
+//Other			'!'				'`'
+enum { form0G, form1F, form2E, form3X } ;
+
 // ######################## Character and value translation & rounding tables ######################
 
 const char vPrintStr1[] = {						// table of characters where lc/UC is applicable
