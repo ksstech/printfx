@@ -41,7 +41,7 @@ const char vPrintStr1[] = {						// table of characters where lc/UC is applicabl
 		'M',									// MAC address UC/LC
 #endif
 #if		(xpfSUPPORT_IEEE754 == 1)
-		'E', 'G',								// float exponential of general
+		'A', 'E', 'G',							// float hex/exponential/general
 #endif
 #if		(xpfSUPPORT_POINTER == 1)
 		'P',									// Pointer lc/0x or UC/0X
@@ -1101,6 +1101,7 @@ int		xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			case CHR_f:									// form = 1
 				psXPC->f.form++ ;
 				/* FALLTHRU */ /* no break */
+			case CHR_a:									// stopgap, HEX format no supported
 			case CHR_g:									// form = 0
 				psXPC->f.signval = 1 ;					// float always signed value.
 				/* https://en.cppreference.com/w/c/io/fprintf
