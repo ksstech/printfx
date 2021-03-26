@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-21 Andre M Maree / KSS Technologies (Pty) Ltd.
+ * Copyright 2014-21 Andre M. Maree / KSS Technologies (Pty) Ltd.
  *
  *	printfx.h
  */
@@ -93,12 +93,6 @@ extern unsigned long long RunTime ;
 #define	xpfSIZING_WORD					2			// 32 bit word
 #define	xpfSIZING_DWORD					3			// 64 bit long long word
 
-//														FLOAT			MAC/DUMP
-#define	xpfFORMAT_0_G					0			// 'G' or 'g'		NONE		(default)
-#define	xpfFORMAT_1_F					1			// 'F' or 'f'		COLON		('!' select)
-#define	xpfFORMAT_2_E					2			// 'E' or 'e'		MINUS
-#define	xpfFORMAT_3						3			//					COMPLEX		('`' select)
-
 /* For HEXDUMP functionality the size is as follows
  * ( 0x12345678 {32 x 3} [ 32 x Char]) = 142 plus some safety = 160 characters max.
  * When done in stages max size about 96 */
@@ -127,13 +121,13 @@ enum { srcS, srcF, srcT, srcN } ;
 // #################################### Public structures ##########################################
 
 typedef union {
-	struct { uint8_t	d, c, b, a ; } ;
+	struct __attribute__((packed)) { uint8_t	d, c, b, a ; } ;
 	uint8_t		u8[sizeof(uint32_t)] ;
 	uint32_t	u32 ;
 } sgr_info_t ;
 DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4) ;
 
-typedef	struct __attribute__((packed)) xpf_u {
+typedef	struct __attribute__((packed)) xpf_t {
 	union {
 		uint32_t	lengths ;							// maxlen & curlen ;
 		struct __attribute__((packed)) {
@@ -181,25 +175,24 @@ typedef	struct __attribute__((packed)) xpf_u {
 } xpf_t ;
 DUMB_STATIC_ASSERT(sizeof(xpf_t) == 12) ;
 
-typedef	struct __attribute__((packed)) xpc_s {
-	int 	(*handler)(struct xpc_s * , int ) ;
+typedef	struct __attribute__((packed)) xpc_t {
+	int 	(*handler)(struct xpc_t * , int ) ;
 	union {
 		void *			pVoid ;
-		char *			pStr ;
-		FILE *			stream ;
-		struct netx_s *	psSock ;						// socket context pointer
-		struct ubuf_s *	psUBuf ;
+		char *			pStr ;							// string buffer
+		FILE *			stream ;						// file stream
+		struct netx_t *	psSock ;						// socket context
+		struct ubuf_s *	psUBuf ;						// ubuf
 		int				fd ;							// file descriptor/handle
-		int 			(*DevPutc)(int ) ;
+		int 			(*DevPutc)(int ) ;				// custom device driver
 	} ;
 	xpf_t	f ;
 } xpc_t ;
 DUMB_STATIC_ASSERT(sizeof(xpc_t) == (12 + sizeof(int *) + sizeof(void *))) ;
 
-// ################################### Public variables ############################################
-
-
 // ################################### Public functions ############################################
+
+
 
 /* Public function prototypes for extended functionality version of stdio supplied functions
  * These names MUST be used if any of the extended functionality is used in a format string
@@ -250,8 +243,8 @@ int 	devprintfx(int (* handler)(int), const char *, ...) ;
 
 // #################################### Destination : SOCKET #######################################
 
-int 	vsocprintfx(struct netx_s *, const char *, va_list) ;
-int 	socprintfx(struct netx_s *, const char *, ...) ;
+int 	vsocprintfx(struct netx_t *, const char *, va_list) ;
+int 	socprintfx(struct netx_t *, const char *, ...) ;
 
 // #################################### Destination : UBUF #########################################
 
