@@ -51,7 +51,7 @@ const char vPrintStr1[] = {						// table of characters where lc/UC is applicabl
 		'A', 'E', 'G',							// float hex/exponential/general
 #endif
 #if		(xpfSUPPORT_POINTER == 1)
-		'P',									// Pointer lc/0x or UC/0X
+		'P',									// Pointer lc=0x or UC=0X
 #endif
 		'\0' } ;								// terminated
 
@@ -71,7 +71,7 @@ static	const double round_nums[xpfMAXIMUM_DECIMALS+1] = {
  * \brief	output a single character using/via the preselected function
  * 			before output verify against specified width
  * 			adjust character count (if required) & remaining width
- * \param	psXPC - pointer to PrintFX control structure to be referenced/updated
+ * \param	psXPC - pointer to control structure to be referenced/updated
  * 			c - char to be output
  * \return	1 or 0 based on whether char was '\000'
  */
@@ -90,7 +90,7 @@ void	vPrintChar(xpc_t * psXPC, char cChr) {
  * xPrintChars()
  * \brief	perform a RAW string output to the selected "stream"
  * \brief	Does not perform ANY padding, justification or length checking
- * \param	psXPC - pointer to PrintFX structure controlling the operation
+ * \param	psXPC - pointer to structure controlling the operation
  * 			string - pointer to the string to be output
  * \return	number of ACTUAL characters output.
  */
@@ -103,24 +103,29 @@ int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
 /**
  * vPrintString
  * \brief	perform formatted output of a string to the preselected device/string/buffer/file
- * \param	psXPC - pointer to PrintFX structure controlling the operation
+ * \param	psXPC - pointer to structure controlling the operation
  * 			string - pointer to the string to be output
  * \return	number of ACTUAL characters output.
  */
 void	vPrintString (xpc_t * psXPC, char * pStr) {
 	// determine natural or limited length of string
 	size_t	Len ;
-	if (psXPC->f.arg_prec && psXPC->f.arg_width && psXPC->f.precis < psXPC->f.minwid)
+	if (psXPC->f.arg_prec && psXPC->f.arg_width && psXPC->f.precis < psXPC->f.minwid) {
 		Len = xstrnlen(pStr, psXPC->f.precis) ;
-	else
+	} else {
 		Len	 = psXPC->f.precis ? psXPC->f.precis : xstrlen(pStr) ;
 	size_t	Tpad = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;
 	size_t	Lpad = 0, Rpad = 0 ;
 	uint8_t	Cpad = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
+	}
 	if (Tpad) {
-		if (psXPC->f.alt_form)		{ Rpad = Tpad >> 1 ; Lpad = Tpad - Rpad ; }
-		else if (psXPC->f.ljust)	Rpad = Tpad ;
-		else						Lpad = Tpad ;
+		if (psXPC->f.alt_form) {
+			Rpad = Tpad >> 1 ; Lpad = Tpad - Rpad ;
+		} else if (psXPC->f.ljust) {
+			Rpad = Tpad ;
+		} else {
+			Lpad = Tpad ;
+		}
 	}
 	for (;Lpad--; vPrintChar(psXPC, Cpad)) ;
 	for (;Len-- && *pStr; vPrintChar(psXPC, *pStr++)) ;
@@ -246,7 +251,7 @@ void	vPrintX64(xpc_t * psXPC, uint64_t Value) {
 /**
  * vPrintF64()
  * \brief	convert double value based on flags supplied and output via control structure
- * \param[in]	psXPC - pointer to PrintFX control structure
+ * \param[in]	psXPC - pointer to control structure
  * \param[in]	dbl - double value to be converted
  * \return		none
  *
@@ -487,7 +492,7 @@ int	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid	= 0 ;
 	int Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_year + YEAR_BASE_MIN), pBuffer, 4) ;
 	if (psXPC->f.alt_form == 0)							// no extra ' ' at end for alt_form
-		pBuffer[Len++] = psXPC->f.form == xpfFORMAT_3 ? CHR_FWDSLASH : CHR_MINUS ;
+		pBuffer[Len++] = psXPC->f.form == form3X ? '/' : '-' ;
 	return Len ;
 }
 
@@ -593,7 +598,7 @@ void	vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 			Buffer[Len++]	= '(' ;
 			psXPC->f.minwid = 0 ;						// then complete with the TZ name
 			while (psXPC->f.minwid < configTIME_MAX_LEN_TZNAME &&
-					psTSZ->pTZ->pcTZName[psXPC->f.minwid] != CHR_NUL) {
+					psTSZ->pTZ->pcTZName[psXPC->f.minwid] != 0) {
 				Buffer[Len + psXPC->f.minwid] = psTSZ->pTZ->pcTZName[psXPC->f.minwid] ;
 				psXPC->f.minwid++ ;
 			}
