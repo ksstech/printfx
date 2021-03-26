@@ -192,12 +192,12 @@ DUMB_STATIC_ASSERT(sizeof(xpc_t) == (12 + sizeof(int *) + sizeof(void *))) ;
 
 // ################################### Public functions ############################################
 
+int		xpcprintfx(xpc_t * psXPC, const char * format, va_list vArgs) ;
 
+int		xprintfx(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list) ;
 
 /* Public function prototypes for extended functionality version of stdio supplied functions
- * These names MUST be used if any of the extended functionality is used in a format string
- */
-int		PrintFX(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list) ;
+ * These names MUST be used if any of the extended functionality is used in a format string */
 
 // ##################################### Destination = STRING ######################################
 
