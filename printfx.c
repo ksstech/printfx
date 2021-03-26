@@ -148,7 +148,7 @@ char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
  * 				'0'		Zero pad to the left of the value to fill the field
  * Protection against buffer overflow based on correct sized buffer being allocated in calling function
  */
-int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, size_t BufSize) {
+int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
 	int32_t	Len = 0, Count = 0, iTemp = 0 ;
 	char * pTemp = pBuffer + BufSize - 1 ;				// Point to last space in buffer
 	if (ullVal) {
@@ -390,7 +390,7 @@ void	vPrintHexU64(xpc_t * psXPC, uint64_t Value) {
  *					'`'	select grouping separators ':' (byte) '-' (short) ' ' (word) '|' (dword)
  *					'#' via alt_form select reverse order (little vs big endian) interpretation
  */
-void	vPrintHexValues(xpc_t * psXPC, size_t Num, char * pStr) {
+void	vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 	int32_t	Size = 1 << psXPC->f.size ;
 	if (psXPC->f.alt_form)								// '#' specified to invert order ?
 		pStr += Num - Size ;							// working backwards so point to last
@@ -468,7 +468,7 @@ seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 	return Seconds ;
 }
 
-size_t	xPrintTimeCalcSize(xpc_t * psXPC, int i32Val) {
+int	xPrintTimeCalcSize(xpc_t * psXPC, int i32Val) {
 	if (!psXPC->f.rel_val || psXPC->f.pad0 || i32Val > 9) {
 		return psXPC->f.minwid = 2 ;
 	}
@@ -476,23 +476,23 @@ size_t	xPrintTimeCalcSize(xpc_t * psXPC, int i32Val) {
 	return xDigitsInI32(i32Val, psXPC->f.group) ;
 }
 
-size_t	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
+int	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid	= 0 ;
-	size_t Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_year + YEAR_BASE_MIN), pBuffer, 4) ;
+	int Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_year + YEAR_BASE_MIN), pBuffer, 4) ;
 	if (psXPC->f.alt_form == 0)							// no extra ' ' at end for alt_form
 		pBuffer[Len++] = psXPC->f.form == xpfFORMAT_3 ? CHR_FWDSLASH : CHR_MINUS ;
 	return Len ;
 }
 
-size_t	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
-	size_t Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_mon + 1), pBuffer, psXPC->f.minwid = 2) ;
+int	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
+	int Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_mon + 1), pBuffer, psXPC->f.minwid = 2) ;
 	pBuffer[Len++] = psXPC->f.alt_form ? ' ' :
 					(psXPC->f.form == form3X) ? '/' : '-' ;
 	return Len ;
 }
 
-size_t	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
-	size_t Len = xPrintXxx(psXPC, (uint64_t) psTM->tm_mday, pBuffer, xPrintTimeCalcSize(psXPC, psTM->tm_mday)) ;
+int	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
+	int Len = xPrintXxx(psXPC, (uint64_t) psTM->tm_mday, pBuffer, xPrintTimeCalcSize(psXPC, psTM->tm_mday)) ;
 	pBuffer[Len++] = psXPC->f.alt_form ? ' ' :
 					(psXPC->f.form == form3X && psXPC->f.rel_val) ? 'd' :
 					(psXPC->f.form == form3X) ? ' ' : 'T' ;
@@ -501,7 +501,7 @@ size_t	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 }
 
 void	vPrintDate(xpc_t * psXPC, struct tm * psTM) {
-	size_t	Len = 0 ;
+	int	Len = 0 ;
 	char	Buffer[xpfMAX_LEN_DATE] ;
 	psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
 	if (psXPC->f.alt_form) {
@@ -526,7 +526,7 @@ void	vPrintDate(xpc_t * psXPC, struct tm * psTM) {
 
 void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 	char	Buffer[xpfMAX_LEN_TIME] ;
-	size_t	Len ;
+	int	Len ;
 	psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
 	// Part 1: hours
 	if (psTM->tm_hour || psXPC->f.pad0) {
@@ -567,7 +567,7 @@ void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 }
 
 void	vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
-	size_t	Len = 0 ;
+	int	Len = 0 ;
 	char	Buffer[configTIME_MAX_LEN_TZINFO] ;
 	if (psTSZ->pTZ == 0 || psXPC->f.plus == 0) {		// If no TZ info supplied or TZ info not wanted...
 		Buffer[Len++]	= 'z' ;						// add 'Z' for Zulu/zero time zone
@@ -675,8 +675,8 @@ void	vPrintURL(xpc_t * psXPC, char * pStr) {
  *						Relative/absolute address prefixed using format '0x12345678:'
  * 				'+'		Add the ASCII char equivalents to the right of the hex output
  */
-void	vPrintHexDump(xpc_t * psXPC, size_t Siz, char * pStr) {
-	for (size_t Now = 0; Now < Siz; Now += xpfHEXDUMP_WIDTH) {
+void	vPrintHexDump(xpc_t * psXPC, int Siz, char * pStr) {
+	for (int Now = 0; Now < Siz; Now += xpfHEXDUMP_WIDTH) {
 #if		(xpfSUPPORT_POINTER == 1)
 		if (psXPC->f.ljust == 0) {						// display absolute or relative address
 			vPrintPointer(psXPC, psXPC->f.rel_val ? (void *) Now : (void *)(pStr + Now)) ;
@@ -775,7 +775,7 @@ void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
 	Buffer[xpfMAX_LEN_IP - 1] = 0 ;
 
 	// then convert the IP address, LSB first
-	size_t	Idx, Len ;
+	int	Idx, Len ;
 	for (Idx = 0, Len = 0; Idx < sizeof(Val); ++Idx) {
 		uint64_t u64Val = (uint8_t) pChr[Idx] ;
 		Len += xPrintXxx(psXPC, u64Val, Buffer + xpfMAX_LEN_IP - 5 - Len, 4) ;
@@ -827,7 +827,8 @@ int		xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			}
 			/* In order for the optional modifiers to work correctly, especially in cases such as HEXDUMP
 			 * the modifiers MUST be in correct sequence of interpretation being [ ! # ' * + - % 0 ] */
-			int32_t	cFmt ;
+			int	cFmt ;
+			int Siz = 0 ;
 			while ((cFmt = xinstring("!#'*+- 0%", *fmt)) != erFAILURE) {
 				switch (cFmt) {
 				case 0:									// '!' HEXDUMP absolute->relative address
@@ -870,8 +871,8 @@ int		xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 				}
 			}
 			// handle pre and post decimal field width/precision indicators
-				size_t Siz = 0 ;
 			if (*fmt == '.' || INRANGE('0', *fmt, '9', char)) {
+				Siz = 0 ;
 				while (1) {
 					if (INRANGE('0', *fmt, '9', char)) {
 						Siz *= 10 ;
@@ -1320,7 +1321,7 @@ int 	fprintfx(FILE * stream, const char * format, ...) {
 
 int		xPrintToHandle(xpc_t * psXPC, int cChr) {
 	char cChar = cChr ;
-	ssize_t size = write(psXPC->fd, &cChar, sizeof(cChar)) ;
+	int size = write(psXPC->fd, &cChar, sizeof(cChar)) ;
 	return size == 1 ? cChr : size ;
 }
 
