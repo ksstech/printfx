@@ -208,19 +208,19 @@ uint64_t	my_llong = 0x98765432 ;
 #if		(TEST_HEXDUMP == 1)
 	uint8_t DumpData[] = "0123456789abcdef0123456789ABCDEF~!@#$%^&*()_+-={}[]:|;'\\<>?,./`01234" ;
 	#define DUMPSIZE	(sizeof(DumpData)-1)
-	printfx("DUMP absolute lc byte\n%+b", DUMPSIZE, DumpData) ;
-	printfx("DUMP absolute lc byte\n%'+b", DUMPSIZE, DumpData) ;
+	printfx("DUMP absolute lc byte\n%+B", DUMPSIZE, DumpData) ;
+	printfx("DUMP absolute lc byte\n%'+B", DUMPSIZE, DumpData) ;
 
 	printfx("DUMP absolute UC half\n%+H", DUMPSIZE, DumpData) ;
 	printfx("DUMP absolute UC half\n%'+H", DUMPSIZE, DumpData) ;
 
-	printfx("DUMP relative lc word\n%!+w", DUMPSIZE, DumpData) ;
-	printfx("DUMP relative lc word\n%!'+w", DUMPSIZE, DumpData) ;
+	printfx("DUMP relative lc word\n%!+W", DUMPSIZE, DumpData) ;
+	printfx("DUMP relative lc word\n%!'+W", DUMPSIZE, DumpData) ;
 
 	printfx("DUMP relative UC dword\n%!+llW", DUMPSIZE, DumpData) ;
 	printfx("DUMP relative UC dword\n%!'+llW", DUMPSIZE, DumpData) ;
 	for (int32_t idx = 0; idx < 16; idx++) {
-		printfx("\nDUMP relative lc BYTE %!'+b", idx, DumpData) ;
+		printfx("\nDUMP relative lc BYTE %!'+B", idx, DumpData) ;
 	}
 #endif
 
