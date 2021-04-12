@@ -182,7 +182,7 @@ typedef	struct __attribute__((packed)) xpc_t {
 		char *			pStr ;							// string buffer
 		FILE *			stream ;						// file stream
 		struct netx_t *	psSock ;						// socket context
-		struct ubuf_s *	psUBuf ;						// ubuf
+		struct ubuf_t *	psUBuf ;						// ubuf
 		int				fd ;							// file descriptor/handle
 		int 			(*DevPutc)(int ) ;				// custom device driver
 	} ;
@@ -248,8 +248,8 @@ int 	socprintfx(struct netx_t *, const char *, ...) ;
 
 // #################################### Destination : UBUF #########################################
 
-int     vuprintfx(struct ubuf_s *, const char * , va_list) ;
-int     uprintfx(struct ubuf_s *, const char * , ...) ;
+int     vuprintfx(struct ubuf_t *, const char * , va_list) ;
+int     uprintfx(struct ubuf_t *, const char * , ...) ;
 
 // ##################################### functional tests ##########################################
 
