@@ -496,7 +496,7 @@ seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 	return Seconds ;
 }
 
-int	xPrintTimeCalcSize(xpc_t * psXPC, int i32Val) {
+int		xPrintTimeCalcSize(xpc_t * psXPC, int i32Val) {
 	if (!psXPC->f.rel_val || psXPC->f.pad0 || i32Val > 9) {
 		return psXPC->f.minwid = 2 ;
 	}
@@ -504,22 +504,22 @@ int	xPrintTimeCalcSize(xpc_t * psXPC, int i32Val) {
 	return xDigitsInI32(i32Val, psXPC->f.group) ;
 }
 
-int	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
+int		xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid	= 0 ;
 	int Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_year + YEAR_BASE_MIN), pBuffer, 4) ;
-	if (psXPC->f.alt_form == 0)							// no extra ' ' at end for alt_form
-		pBuffer[Len++] = psXPC->f.form == form3X ? '/' : '-' ;
+	if (psXPC->f.alt_form == 0)	{						// no extra ' ' at end for alt_form
+		pBuffer[Len++] = (psXPC->f.form == form3X) ? '/' : '-' ;
+	}
 	return Len ;
 }
 
-int	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
+int		xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	int Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_mon + 1), pBuffer, psXPC->f.minwid = 2) ;
-	pBuffer[Len++] = psXPC->f.alt_form ? ' ' :
-					(psXPC->f.form == form3X) ? '/' : '-' ;
+	pBuffer[Len++] = psXPC->f.alt_form ? ' ' : (psXPC->f.form == form3X) ? '/' : '-' ;
 	return Len ;
 }
 
-int	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
+int		xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	int Len = xPrintXxx(psXPC, (uint64_t) psTM->tm_mday, pBuffer, xPrintTimeCalcSize(psXPC, psTM->tm_mday)) ;
 	pBuffer[Len++] = psXPC->f.alt_form ? ' ' :
 					(psXPC->f.form == form3X && psXPC->f.rel_val) ? 'd' :
@@ -544,8 +544,9 @@ void	vPrintDate(xpc_t * psXPC, struct tm * psTM) {
 			Len += xPrintDate_Year(psXPC, psTM, Buffer + Len) ;
 			Len += xPrintDate_Month(psXPC, psTM, Buffer + Len) ;
 		}
-		if (psTM->tm_mday || psXPC->f.pad0)
+		if (psTM->tm_mday || psXPC->f.pad0) {
 			Len += xPrintDate_Day(psXPC, psTM, Buffer + Len) ;
+		}
 	}
 	Buffer[Len] = 0 ;								// converted L to R, so terminate
 	psXPC->f.limits	= 0 ;								// enable full string
@@ -576,11 +577,12 @@ void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 	// Part 4: [.xxxxxx]
 	if (psXPC->f.radix && psXPC->f.alt_form == 0) {
 		Buffer[Len++]	= psXPC->f.form == form3X ? 's' :  '.' ;
-		psXPC->f.precis	= psXPC->f.precis == 0 ? xpfDEF_TIME_FRAC :
-						  psXPC->f.precis > xpfMAX_TIME_FRAC ? xpfMAX_TIME_FRAC :
+		psXPC->f.precis	= (psXPC->f.precis == 0) ? xpfDEF_TIME_FRAC :
+						  (psXPC->f.precis > xpfMAX_TIME_FRAC) ? xpfMAX_TIME_FRAC :
 						  psXPC->f.precis ;
-		if (psXPC->f.precis < xpfMAX_TIME_FRAC)
+		if (psXPC->f.precis < xpfMAX_TIME_FRAC) {
 			uSecs /= u32pow(10, xpfMAX_TIME_FRAC - psXPC->f.precis) ;
+		}
 		psXPC->f.pad0	= 1 ;						// need leading '0's
 		psXPC->f.signval= 0 ;
 		psXPC->f.ljust	= 0 ;						// force R-just
@@ -598,7 +600,7 @@ void	vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 	int	Len = 0 ;
 	char	Buffer[configTIME_MAX_LEN_TZINFO] ;
 	if (psTSZ->pTZ == 0 || psXPC->f.plus == 0) {		// If no TZ info supplied or TZ info not wanted...
-		Buffer[Len++]	= 'z' ;						// add 'Z' for Zulu/zero time zone
+		Buffer[Len++]	= 'Z' ;							// add 'Z' for Zulu/zero time zone
 	} else if (psXPC->f.alt_form) {						// TZ info available but '#' format specified
 		Len = xstrncpy(Buffer, (char *) " GMT", 4) ;	// show as GMT (ie UTC)
 	} else if (psXPC->f.plus) {							// TZ info available & '+x:xx(???)' format requested
@@ -642,7 +644,7 @@ void	vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 	} else {
 		IF_myASSERT(debugTRACK, 0) ;
 	}
-	Buffer[Len]		= 0 ;							// converted L to R, so add terminating NUL
+	Buffer[Len]		= 0 ;								// converted L to R, so add terminating NUL
 	psXPC->f.limits	= 0 ;								// enable full string
 	vPrintString(psXPC, Buffer) ;
 }
@@ -657,8 +659,9 @@ void	vPrintDateTime(xpc_t * psXPC, uint64_t uSecs) {
 		psXPC->f.limits = limits ;
 	}
 	vPrintTime(psXPC, &sTM, (uint32_t) (uSecs % MICROS_IN_SECOND)) ;
-	if (psXPC->f.no_zone == 0 && psXPC->f.rel_val == 0)
+	if (psXPC->f.no_zone == 0 && psXPC->f.rel_val == 0) {
 		vPrintChar(psXPC, 'Z') ;
+	}
 	psXPC->f.limits = limits ;
 }
 
