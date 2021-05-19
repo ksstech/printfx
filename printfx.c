@@ -1075,7 +1075,7 @@ int		xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 				/* In order for formatting to work  the "*" or "." radix specifiers
 				 * should not be used. The requirement for a second parameter is implied and assumed */
 				psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
-				psXPC->f.size = cFmt == 'b' ? xpfSIZING_BYTE : cFmt == 'h' ? xpfSIZING_SHORT : xpfSIZING_WORD ;
+				psXPC->f.size = cFmt == 'B' ? xpfSIZING_BYTE : cFmt == 'H' ? xpfSIZING_SHORT : xpfSIZING_WORD ;
 				psXPC->f.size	+= psXPC->f.llong ? 1 : 0 ; 	// apply ll modifier to size
 				Siz	= va_arg(vArgs, int) ;
 				px.pc8	= va_arg(vArgs, char *) ;
