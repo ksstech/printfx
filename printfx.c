@@ -167,7 +167,16 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
 #if		(xpfSUPPORT_SCALING == 1)
 		uint8_t	ScaleChr = 0 ;
 		if (psXPC->f.alt_form) {
-			if (ullVal > 10000000000000ULL) {
+			if (ullVal > 10000000000000000000ULL) {
+				ullVal		/= 1000000000000000000ULL ;
+				ScaleChr	= 's' ;
+			} else if (ullVal > 10000000000000000000ULL) {
+				ullVal		/= 1000000000000000000ULL ;
+				ScaleChr	= 'Q' ;
+			} else if (ullVal > 10000000000000000ULL) {
+				ullVal		/= 1000000000000000ULL ;
+				ScaleChr	= 'q' ;
+			} else if (ullVal > 10000000000000ULL) {
 				ullVal		/= 1000000000000ULL ;
 				ScaleChr	= 'T' ;
 			} else if (ullVal > 10000000000ULL) {
