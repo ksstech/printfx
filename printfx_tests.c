@@ -5,8 +5,8 @@
  *
  */
 
-#include	"printfx.h"
 #include	"hal_variables.h"
+#include	"printfx.h"
 
 #include	<string.h>
 #include	<float.h>									// DBL_MIN/MAX

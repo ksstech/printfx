@@ -77,12 +77,10 @@ static	const double round_nums[xpfMAXIMUM_DECIMALS+1] = {
  */
 void	vPrintChar(xpc_t * psXPC, char cChr) {
 #if 	(xpfSUPPORT_FILTER_NUL == 1)
-	if (cChr == 0)
-		return ;
+	if (cChr == 0) return ;
 #endif
 	if (psXPC->f.maxlen == 0 || psXPC->f.curlen < psXPC->f.maxlen) {
-		if (psXPC->handler(psXPC, cChr) == cChr)		// successfully written ?
-			psXPC->f.curlen++ ;							// yes, adjust count
+		if (psXPC->handler(psXPC, cChr) == cChr) psXPC->f.curlen++ ;	// adjust count
 	}
 }
 
@@ -94,8 +92,8 @@ void	vPrintChar(xpc_t * psXPC, char cChr) {
  * 			string - pointer to the string to be output
  * \return	number of ACTUAL characters output.
  */
-int32_t	xPrintChars (xpc_t * psXPC, char * pStr) {
-	int32_t len ;
+int	xPrintChars (xpc_t * psXPC, char * pStr) {
+	int len ;
 	for (len = 0; *pStr; vPrintChar(psXPC, *pStr++), ++len) ;
 	return len ;
 }
@@ -160,8 +158,8 @@ char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
  * 				'0'		Zero pad to the left of the value to fill the field
  * Protection against buffer overflow based on correct sized buffer being allocated in calling function
  */
-int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
-	int32_t	Len = 0, Count = 0, iTemp = 0 ;
+int	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
+	int	Len = 0, Count = 0, iTemp = 0 ;
 	char * pTemp = pBuffer + BufSize - 1 ;				// Point to last space in buffer
 	if (ullVal) {
 #if		(xpfSUPPORT_SCALING == 1)
@@ -221,25 +219,22 @@ int32_t	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
 	 * whilst '0' padding it is  [-0000000xxxxx]
 	 */
 		Count = (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0 ;
-	// If we are padding with ' ' and leading '+' or '-' is required, do that first
+		// If we are padding with ' ' and leading '+' or '-' is required, do that first
 		if (psXPC->f.pad0 == 0 && (psXPC->f.negvalue || psXPC->f.plus)) {	// If a sign is required
 			*pTemp-- = psXPC->f.negvalue ? '-' : '+' ;			// start by prepend of '+' or '-'
 			--Count ;
 			++Len ;
 		}
 		if (Count > 0) {								// If any space left to pad
-			iTemp = psXPC->f.pad0 ? '0' : ' ' ;	// define applicable padding char
+			iTemp = psXPC->f.pad0 ? '0' : ' ' ;			// define applicable padding char
 			Len += Count ;								// Now do the actual padding
 			while (Count--) *pTemp-- = iTemp ;
 		}
-	// If we are padding with '0' AND a sign is required (-value or +requested), do that first
+		// If we are padding with '0' AND a sign is required (-value or +requested), do that first
 		if (psXPC->f.pad0 && (psXPC->f.negvalue || psXPC->f.plus)) {	// If +/- sign is required
-			if (pTemp[1] == ' ' || pTemp[1] == '0') {
-				++pTemp ;								// set overwrite last with '+' or '-'
-			} else {
-				++Len ;									// set to add extra '+' or '-'
-			}
-			*pTemp = psXPC->f.negvalue ? '-' : '+' ;
+			if (pTemp[1] == ' ' || pTemp[1] == '0') ++pTemp;	// set overwrite last with '+' or '-'
+			else ++Len;											// set to add extra '+' or '-'
+			*pTemp = psXPC->f.negvalue ? '-' : '+';
 		}
 	} else {
 		if (psXPC->f.negvalue || psXPC->f.plus) {		// If a sign is required
@@ -276,13 +271,13 @@ void	vPrintF64(xpc_t * psXPC, double F64) {
 		return ;
 	}
 	psXPC->f.negvalue	= F64 < 0.0 ? 1 : 0 ;			// set negvalue if < 0.0
-	F64				*= psXPC->f.negvalue ? -1.0 : 1.0 ;	// convert to positive number
-	xpf_t	xpf ;
-	xpf.limits			= psXPC->f.limits ;				// save original flags
-	xpf.flags			= psXPC->f.flags ;
-	x64_t X64 		= { 0 } ;
+	F64	*= psXPC->f.negvalue ? -1.0 : 1.0 ;				// convert to positive number
+	xpf_t xpf ;
+	xpf.limits	= psXPC->f.limits ;						// save original flags
+	xpf.flags	= psXPC->f.flags ;
+	x64_t X64 	= { 0 } ;
 
-	int32_t	Exp = 0 ;									// if exponential format requested, calculate the exponent
+	int	Exp = 0 ;										// if exponential format requested, calculate the exponent
 	if (F64 != 0.0) {									// if not 0 and...
 		if (psXPC->f.form != form1F) {					// any of "eEgG" specified ?
 			X64.f64	= F64 ;
@@ -302,16 +297,14 @@ void	vPrintF64(xpc_t * psXPC, double F64) {
 	} else {
 		AdjForm = psXPC->f.form ;
 	}
-	if (AdjForm == form2E) {							// based on format change value if exponent format
-		F64 = X64.f64 ;									// change to exponent adjusted value
-	}
+	if (AdjForm == form2E) F64 = X64.f64 ;				// change to exponent adjusted value
 	if (F64 < (DBL_MAX - round_nums[psXPC->f.precis])) {// if addition of rounding value will NOT cause overflow.
 		F64 += round_nums[psXPC->f.precis] ;			// round by adding .5LSB to the value
 	}
 	char	Buffer[xpfMAX_LEN_F64] ;
 	Buffer[xpfMAX_LEN_F64 - 1] = 0 ;					// building R to L, ensure buffer NULL-term
 
-	int32_t Len = 0 ;
+	int Len = 0 ;
 	if (AdjForm == form2E) {							// If required, handle the exponent
 		psXPC->f.minwid		= 2 ;
 		psXPC->f.pad0		= 1 ;						// MUST left pad with '0'
@@ -484,7 +477,7 @@ void	vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
  * \param[out]	psXPC - updated based on characters displayed
  * \return		none
  */
-void	vPrintPointer(xpc_t * psXPC, void * pVoid) {
+void vPrintPointer(xpc_t * psXPC, void * pVoid) {
 	xPrintChars(psXPC, (char *) "0x") ;
 	vPrintHexU32(psXPC, (uint32_t) pVoid) ;
 }
@@ -505,30 +498,26 @@ seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
 	return Seconds ;
 }
 
-int		xPrintTimeCalcSize(xpc_t * psXPC, int i32Val) {
-	if (!psXPC->f.rel_val || psXPC->f.pad0 || i32Val > 9) {
-		return psXPC->f.minwid = 2 ;
-	}
+int	xPrintTimeCalcSize(xpc_t * psXPC, int i32Val) {
+	if (!psXPC->f.rel_val || psXPC->f.pad0 || i32Val > 9) return psXPC->f.minwid = 2 ;
 	psXPC->f.minwid = 1 ;
 	return xDigitsInI32(i32Val, psXPC->f.group) ;
 }
 
-int		xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
+int	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	psXPC->f.minwid	= 0 ;
 	int Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_year + YEAR_BASE_MIN), pBuffer, 4) ;
-	if (psXPC->f.alt_form == 0)	{						// no extra ' ' at end for alt_form
-		pBuffer[Len++] = (psXPC->f.form == form3X) ? '/' : '-' ;
-	}
+	if (psXPC->f.alt_form == 0)	pBuffer[Len++] = (psXPC->f.form == form3X) ? '/' : '-' ;
 	return Len ;
 }
 
-int		xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
+int	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	int Len = xPrintXxx(psXPC, (uint64_t) (psTM->tm_mon + 1), pBuffer, psXPC->f.minwid = 2) ;
 	pBuffer[Len++] = psXPC->f.alt_form ? ' ' : (psXPC->f.form == form3X) ? '/' : '-' ;
 	return Len ;
 }
 
-int		xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
+int	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	int Len = xPrintXxx(psXPC, (uint64_t) psTM->tm_mday, pBuffer, xPrintTimeCalcSize(psXPC, psTM->tm_mday)) ;
 	pBuffer[Len++] = psXPC->f.alt_form ? ' ' :
 					(psXPC->f.form == form3X && psXPC->f.rel_val) ? 'd' :
@@ -537,9 +526,9 @@ int		xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 	return Len ;
 }
 
-void	vPrintDate(xpc_t * psXPC, struct tm * psTM) {
+void vPrintDate(xpc_t * psXPC, struct tm * psTM) {
 	int	Len = 0 ;
-	char	Buffer[xpfMAX_LEN_DATE] ;
+	char Buffer[xpfMAX_LEN_DATE] ;
 	psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
 	if (psXPC->f.alt_form) {
 		Len += xstrncpy(Buffer, xTimeGetDayName(psTM->tm_wday), 3) ;		// "Sun"
@@ -553,17 +542,15 @@ void	vPrintDate(xpc_t * psXPC, struct tm * psTM) {
 			Len += xPrintDate_Year(psXPC, psTM, Buffer + Len) ;
 			Len += xPrintDate_Month(psXPC, psTM, Buffer + Len) ;
 		}
-		if (psTM->tm_mday || psXPC->f.pad0) {
-			Len += xPrintDate_Day(psXPC, psTM, Buffer + Len) ;
-		}
+		if (psTM->tm_mday || psXPC->f.pad0) Len += xPrintDate_Day(psXPC, psTM, Buffer + Len) ;
 	}
-	Buffer[Len] = 0 ;								// converted L to R, so terminate
+	Buffer[Len] = 0 ;									// converted L to R, so terminate
 	psXPC->f.limits	= 0 ;								// enable full string
 	vPrintString(psXPC, Buffer) ;
 }
 
-void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
-	char	Buffer[xpfMAX_LEN_TIME] ;
+void vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
+	char Buffer[xpfMAX_LEN_TIME] ;
 	int	Len ;
 	psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
 	// Part 1: hours
@@ -589,9 +576,7 @@ void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 		psXPC->f.precis	= (psXPC->f.precis == 0) ? xpfDEF_TIME_FRAC :
 						  (psXPC->f.precis > xpfMAX_TIME_FRAC) ? xpfMAX_TIME_FRAC :
 						  psXPC->f.precis ;
-		if (psXPC->f.precis < xpfMAX_TIME_FRAC) {
-			uSecs /= u32pow(10, xpfMAX_TIME_FRAC - psXPC->f.precis) ;
-		}
+		if (psXPC->f.precis < xpfMAX_TIME_FRAC) uSecs /= u32pow(10, xpfMAX_TIME_FRAC - psXPC->f.precis);
 		psXPC->f.pad0	= 1 ;						// need leading '0's
 		psXPC->f.signval= 0 ;
 		psXPC->f.ljust	= 0 ;						// force R-just
@@ -605,9 +590,9 @@ void	vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 	vPrintString(psXPC, Buffer) ;
 }
 
-void	vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
+void vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 	int	Len = 0 ;
-	char	Buffer[configTIME_MAX_LEN_TZINFO] ;
+	char Buffer[configTIME_MAX_LEN_TZINFO] ;
 	if (psTSZ->pTZ == 0 || psXPC->f.plus == 0) {		// If no TZ info supplied or TZ info not wanted...
 		Buffer[Len++]	= 'Z' ;							// add 'Z' for Zulu/zero time zone
 	} else if (psXPC->f.alt_form) {						// TZ info available but '#' format specified
@@ -658,7 +643,7 @@ void	vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 	vPrintString(psXPC, Buffer) ;
 }
 
-void	vPrintDateTime(xpc_t * psXPC, uint64_t uSecs) {
+void vPrintDateTime(xpc_t * psXPC, uint64_t uSecs) {
 	struct	tm 	sTM ;
 	seconds_t	Seconds = xTimeStampAsSeconds(uSecs) ;
 	xTimeGMTime(Seconds, &sTM, psXPC->f.rel_val) ;
@@ -668,9 +653,7 @@ void	vPrintDateTime(xpc_t * psXPC, uint64_t uSecs) {
 		psXPC->f.limits = limits ;
 	}
 	vPrintTime(psXPC, &sTM, (uint32_t) (uSecs % MICROS_IN_SECOND)) ;
-	if (psXPC->f.no_zone == 0 && psXPC->f.rel_val == 0) {
-		vPrintChar(psXPC, 'Z') ;
-	}
+	if (psXPC->f.no_zone == 0 && psXPC->f.rel_val == 0) vPrintChar(psXPC, 'Z');
 	psXPC->f.limits = limits ;
 }
 
@@ -679,14 +662,14 @@ void	vPrintDateTime(xpc_t * psXPC, uint64_t uSecs) {
  * @param psXPC
  * @param pString
  */
-void	vPrintURL(xpc_t * psXPC, char * pStr) {
+void vPrintURL(xpc_t * psXPC, char * pStr) {
 	if (halCONFIG_inMEM(pStr)) {
 		char cIn ;
 		while ((cIn = *pStr++) != 0) {
-			if (INRANGE('A', cIn, 'Z', char) ||
-				INRANGE('a', cIn, 'z', char) ||
-				INRANGE('0', cIn, '9', char) ||
-				cIn == '-' || cIn == '.' || cIn == '_' || cIn == '~') {
+			if (INRANGE('A', cIn, 'Z', char)
+			||	INRANGE('a', cIn, 'z', char)
+			||	INRANGE('0', cIn, '9', char)
+			||	cIn == '-' || cIn == '.' || cIn == '_' || cIn == '~') {
 				vPrintChar(psXPC, cIn) ;
 			} else {
 				vPrintChar(psXPC, '%') ;
@@ -715,7 +698,7 @@ void	vPrintURL(xpc_t * psXPC, char * pStr) {
  *						Relative/absolute address prefixed using format '0x12345678:'
  * 				'+'		Add the ASCII char equivalents to the right of the hex output
  */
-void	vPrintHexDump(xpc_t * psXPC, int Siz, char * pStr) {
+void vPrintHexDump(xpc_t * psXPC, int Siz, char * pStr) {
 	for (int Now = 0; Now < Siz; Now += xpfHEXDUMP_WIDTH) {
 #if		(xpfSUPPORT_POINTER == 1)
 		if (psXPC->f.ljust == 0) {						// display absolute or relative address
@@ -724,12 +707,12 @@ void	vPrintHexDump(xpc_t * psXPC, int Siz, char * pStr) {
 		}
 #endif
 		// then the actual series of values in 8-32 bit groups
-		int32_t Width = (Siz - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : Siz - Now ;
+		int Width = (Siz - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : Siz - Now ;
 		vPrintHexValues(psXPC, Width, pStr + Now) ;
 		if (psXPC->f.plus == 1) {						// handle values dumped as ASCII chars
 		// handle space padding for ASCII dump to line up
 			uint32_t	Count ;
-			int32_t	Size = 1 << psXPC->f.size ;
+			int	Size = 1 << psXPC->f.size ;
 			Count = (Siz > xpfHEXDUMP_WIDTH) ? ((xpfHEXDUMP_WIDTH - Width) / Size) * ((Size * 2) + (psXPC->f.form ? 1 : 0)) + 1 : 1 ;
 			while (Count--)	vPrintChar(psXPC, ' ') ;
 			// handle same values dumped as ASCII characters
@@ -743,8 +726,7 @@ void	vPrintHexDump(xpc_t * psXPC, int Siz, char * pStr) {
 			}
 			vPrintChar(psXPC, ' ') ;
 		}
-		if (Now < Siz && Siz > xpfHEXDUMP_WIDTH)
-			xPrintChars(psXPC, (char *) "\n") ;
+		if (Now < Siz && Siz > xpfHEXDUMP_WIDTH) xPrintChars(psXPC, (char *) "\n");
 	}
 }
 
@@ -759,15 +741,11 @@ void	vPrintHexDump(xpc_t * psXPC, int Siz, char * pStr) {
  * \comment		Honour & interpret the following modifier flags
  * 				'`'		Group digits using '|' (bytes) and '-' (nibbles)
  */
-void	vPrintBinary(xpc_t * psXPC, uint64_t ullVal) {
-	int32_t		len ;
-	if (psXPC->f.minwid == 0) {							// not specified
-		len = (psXPC->f.llong == 1) ? 64 : 32 ;			// set to 32 or 64 ...
-	} else if (psXPC->f.llong == 1) {					// width specified, but check validity...
-		len = (psXPC->f.minwid > 64) ? 64 : psXPC->f.minwid ;
-	} else {
-		len = (psXPC->f.minwid > 32) ? 32 : psXPC->f.minwid ;
-	}
+void vPrintBinary(xpc_t * psXPC, uint64_t ullVal) {
+	int	len ;
+	if (psXPC->f.minwid == 0)		len = (psXPC->f.llong == 1) ? 64 : 32 ;
+	else if (psXPC->f.llong == 1)	len = (psXPC->f.minwid > 64) ? 64 : psXPC->f.minwid ;
+	else len = (psXPC->f.minwid > 32) ? 32 : psXPC->f.minwid ;
 	uint64_t mask	= 1ULL << (len - 1) ;
 	psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
 	while (mask) {
@@ -795,7 +773,7 @@ void	vPrintBinary(xpc_t * psXPC, uint64_t ullVal) {
  * 				'-'		Left align the individual numbers between the '.'
  * 				'0'		Zero pad the individual numbers between the '.'
  */
-void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
+void vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
 	psXPC->f.minwid		= psXPC->f.ljust ? 0 : 3 ;
 	psXPC->f.signval	= 0 ;							// ensure interpreted as unsigned
 	psXPC->f.plus		= 0 ;							// and no sign to be shown
@@ -819,9 +797,7 @@ void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
 	for (Idx = 0, Len = 0; Idx < sizeof(Val); ++Idx) {
 		uint64_t u64Val = (uint8_t) pChr[Idx] ;
 		Len += xPrintXxx(psXPC, u64Val, Buffer + xpfMAX_LEN_IP - 5 - Len, 4) ;
-		if (Idx < 3) {
-			Buffer[xpfMAX_LEN_IP - 1 - ++Len] = '.' ;
-		}
+		if (Idx < 3) Buffer[xpfMAX_LEN_IP - 1 - ++Len] = '.';
 	}
 	// then send the formatted output to the correct stream
 	psXPC->f.limits	= 0 ;
@@ -833,14 +809,12 @@ void	vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
  * @param psXPC
  * @param Val	U32 value treated as 4x U8 being SGR color/attribute codes
  */
-void	vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
+void vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
 	char Buffer[xpfMAX_LEN_SGR] ;
 	sgr_info_t sSGR ;
 	sSGR.u32 = Val ;
-	if (pcANSIlocate(Buffer, sSGR.c, sSGR.d) != Buffer)
-		xPrintChars(psXPC, Buffer) ;
-	if (pcANSIattrib(Buffer, sSGR.a, sSGR.b) != Buffer)
-		xPrintChars(psXPC, Buffer) ;
+	if (pcANSIlocate(Buffer, sSGR.c, sSGR.d) != Buffer) xPrintChars(psXPC, Buffer) ;
+	if (pcANSIattrib(Buffer, sSGR.a, sSGR.b) != Buffer) xPrintChars(psXPC, Buffer) ;
 }
 
 /* ################################# The HEART of the PRINTFX matter ###############################
@@ -854,7 +828,7 @@ void	vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
  * \return	void (other than updated info in the original structure passed by reference
  */
 
-int		xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
+int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 	for (; *fmt != 0; ++fmt) {
 	// start by expecting format indicator
 		if (*fmt == '%') {
@@ -862,9 +836,7 @@ int		xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			psXPC->f.limits	= 0 ;						// reset field specific limits
 			psXPC->f.nbase	= BASE10 ;					// default number base
 			++fmt ;
-			if (*fmt == 0)	{							// terminating NULL at end of format string...
-				break ;
-			}
+			if (*fmt == 0) break;
 			/* In order for the optional modifiers to work correctly, especially in cases such as HEXDUMP
 			 * the modifiers MUST be in correct sequence of interpretation being [ ! # ' * + - % 0 ] */
 			int	cFmt ;
@@ -1150,9 +1122,7 @@ int		xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 				 * https://docs.microsoft.com/en-us/cpp/c-runtime-library/format-specification-syntax-printf-and-wprintf-functions?view=msvc-160
 				 */
 				if (psXPC->f.arg_prec) {				// explicit precision specified ?
-					psXPC->f.precis = psXPC->f.precis > xpfMAXIMUM_DECIMALS
-									? xpfMAXIMUM_DECIMALS
-									: psXPC->f.precis ;
+					psXPC->f.precis = psXPC->f.precis > xpfMAXIMUM_DECIMALS ? xpfMAXIMUM_DECIMALS : psXPC->f.precis ;
 				} else {
 					psXPC->f.precis	= xpfDEFAULT_DECIMALS ;
 				}
@@ -1200,7 +1170,7 @@ out_lbl:
 	return psXPC->f.curlen ;
 }
 
-int		xprintfx(int (Hdlr)(xpc_t *, int), void * pVoid, size_t szBuf, const char * fmt, va_list vArgs) {
+int	xprintfx(int (Hdlr)(xpc_t *, int), void * pVoid, size_t szBuf, const char * fmt, va_list vArgs) {
 	xpc_t	sXPC ;
 	sXPC.handler	= Hdlr ;
 	sXPC.pVoid		= pVoid ;
@@ -1211,43 +1181,37 @@ int		xprintfx(int (Hdlr)(xpc_t *, int), void * pVoid, size_t szBuf, const char *
 
 // ##################################### Destination = STRING ######################################
 
-int		xPrintToString(xpc_t * psXPC, int cChr) {
-	if (psXPC->pStr) {
-		*psXPC->pStr++ = cChr ;
-	}
+int	xPrintToString(xpc_t * psXPC, int cChr) {
+	if (psXPC->pStr) *psXPC->pStr++ = cChr;
 	return cChr ;
 }
 
-int 	vsnprintfx(char * pBuf, size_t szBuf, const char * format, va_list vArgs) {
+int vsnprintfx(char * pBuf, size_t szBuf, const char * format, va_list vArgs) {
 	if (szBuf == 1) {									// no space ?
-		if (pBuf) {										// yes, pointer specified ?
-			*pBuf = 0 ;									// yes, terminate
-		}
+		if (pBuf) *pBuf = 0 ;							// yes, terminate
 		return 0 ; 										// & return
 	}
 	int iRV = xprintfx(xPrintToString, pBuf, szBuf, format, vArgs) ;
 	if (pBuf) {											// Buffer specified ?
-		if (iRV == szBuf)	{							// yes, full?
-			--iRV ;										// yes, make space for terminator
-		}
+		if (iRV == szBuf) --iRV ;						// make space for terminator
 		pBuf[iRV] = 0 ;									// terminate
 	}
 	return iRV ;
 }
 
-int 	snprintfx(char * pBuf, size_t szBuf, const char * format, ...) {
+int snprintfx(char * pBuf, size_t szBuf, const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
-	int32_t count = vsnprintfx(pBuf, szBuf, format, vArgs) ;
+	int count = vsnprintfx(pBuf, szBuf, format, vArgs) ;
 	va_end(vArgs) ;
 	return count ;
 }
 
-int 	vsprintfx(char * pBuf, const char * format, va_list vArgs) {
+int vsprintfx(char * pBuf, const char * format, va_list vArgs) {
 	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vArgs) ;
 }
 
-int 	sprintfx(char * pBuf, const char * format, ...) {
+int sprintfx(char * pBuf, const char * format, ...) {
 	va_list	vArgs ;
 	va_start(vArgs, format) ;
 	int count = vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vArgs) ;
@@ -1259,11 +1223,11 @@ int 	sprintfx(char * pBuf, const char * format, ...) {
 
 static SemaphoreHandle_t	printfxMux = NULL ;
 
-void	printfx_lock(void) { xRtosSemaphoreTake(&printfxMux, portMAX_DELAY) ; }
+void printfx_lock(void) { xRtosSemaphoreTake(&printfxMux, portMAX_DELAY) ; }
 
-void	printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux) ; }
+void printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux) ; }
 
-int		xPrintStdOut(xpc_t * psXPC, int cChr) {
+int	 xPrintStdOut(xpc_t * psXPC, int cChr) {
 #ifdef	ESP_PLATFORM
 	return putcx(cChr, configSTDIO_UART_CHAN) ;
 #else
@@ -1271,18 +1235,16 @@ int		xPrintStdOut(xpc_t * psXPC, int cChr) {
 #endif
 }
 
-int 	vnprintfx(size_t szLen, const char * format, va_list vArgs) {
+int vnprintfx(size_t szLen, const char * format, va_list vArgs) {
 	printfx_lock() ;
-	int32_t iRV = xprintfx(xPrintStdOut, stdout, szLen, format, vArgs) ;
+	int iRV = xprintfx(xPrintStdOut, stdout, szLen, format, vArgs) ;
 	printfx_unlock() ;
 	return iRV ;
 }
 
-int 	vprintfx(const char * format, va_list vArgs) {
-	return vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int vprintfx(const char * format, va_list vArgs) { return vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs); }
 
-int 	nprintfx(size_t szLen, const char * format, ...) {
+int nprintfx(size_t szLen, const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
 	int iRV = vnprintfx(szLen, format, vArgs) ;
@@ -1290,7 +1252,7 @@ int 	nprintfx(size_t szLen, const char * format, ...) {
 	return iRV ;
 }
 
-int 	printfx(const char * format, ...) {
+int printfx(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
 	int iRV = vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs) ;
@@ -1302,11 +1264,9 @@ int 	printfx(const char * format, ...) {
  * vnprintfx_nolock() - print to stdout without any semaphore locking.
  * 					securing the channel must be done manually
  */
-int 	vnprintfx_nolock(size_t szLen, const char * format, va_list vArgs) {
-	return xprintfx(xPrintStdOut, stdout, szLen, format, vArgs) ;
-}
+int vnprintfx_nolock(size_t szLen, const char * format, va_list vArgs) { return xprintfx(xPrintStdOut, stdout, szLen, format, vArgs); }
 
-int 	printfx_nolock(const char * format, ...) {
+int printfx_nolock(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
 	int iRV = xprintfx(xPrintStdOut, stdout, xpfMAXLEN_MAXVAL, format, vArgs) ;
@@ -1324,10 +1284,10 @@ int 	printfx_nolock(const char * format, ...) {
  * It is the responsibility of the calling function to control (un/lock) access.
  */
 
-int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
+int	wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
 	va_list vArgs ;
 	va_start(vArgs, pcFormat) ;
-	int32_t iRV ;
+	int iRV ;
 	if (*ppcBuf && (*pSize > 1)) {
 		iRV = vsnprintfx(*ppcBuf, *pSize, pcFormat, vArgs) ;
 		if (iRV > 0) {
@@ -1343,13 +1303,11 @@ int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
 
 // ################################### Destination = FILE PTR ######################################
 
-int		xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
+int	xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
 
-int 	vfprintfx(FILE * stream, const char * format, va_list vArgs) {
-	return xprintfx(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int vfprintfx(FILE * stream, const char * format, va_list vArgs) { return xprintfx(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs); }
 
-int 	fprintfx(FILE * stream, const char * format, ...) {
+int fprintfx(FILE * stream, const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
 	int count = vfprintfx(stream, format, vArgs) ;
@@ -1359,17 +1317,15 @@ int 	fprintfx(FILE * stream, const char * format, ...) {
 
 // ################################### Destination = HANDLE ########################################
 
-int		xPrintToHandle(xpc_t * psXPC, int cChr) {
+int	xPrintToHandle(xpc_t * psXPC, int cChr) {
 	char cChar = cChr ;
 	int size = write(psXPC->fd, &cChar, sizeof(cChar)) ;
 	return size == 1 ? cChr : size ;
 }
 
-int		vdprintfx(int32_t fd, const char * format, va_list vArgs) {
-	return xprintfx(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ;
-}
+int	vdprintfx(int fd, const char * format, va_list vArgs) { return xprintfx(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ; }
 
-int		dprintfx(int32_t fd, const char * format, ...) {
+int	dprintfx(int fd, const char * format, ...) {
 	va_list	vArgs ;
 	va_start(vArgs, format) ;
 	int count = vdprintfx(fd, format, vArgs) ;
@@ -1382,17 +1338,11 @@ int		dprintfx(int32_t fd, const char * format, ...) {
  * Output directly to the [possibly redirected] stdout/UART channel
  */
 
-int		xPrintToStdout(xpc_t * psXPC, int cChr) { return putcharx(cChr) ; }
+int	xPrintToStdout(xpc_t * psXPC, int cChr) { return putcharx(cChr) ; }
 
-int 	vcprintfx(const char * format, va_list vArgs) {
-//	static SemaphoreHandle_t Mux = NULL ;
-//	xRtosSemaphoreTake(&Mux, portMAX_DELAY) ;
-	int iRV = xprintfx(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs) ;
-//	xRtosSemaphoreGive(&Mux) ;
-	return iRV ;
-}
+int vcprintfx(const char * format, va_list vArgs) { return xprintfx(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs); }
 
-int 	cprintfx(const char * format, ...) {
+int cprintfx(const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
 	int iRV = vcprintfx(format, vArgs) ;
@@ -1402,13 +1352,13 @@ int 	cprintfx(const char * format, ...) {
 
 // ################################### Destination = DEVICE ########################################
 
-int		xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
+int	xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
 
-int 	vdevprintfx(int (* Hdlr)(int ), const char * format, va_list vArgs) {
+int vdevprintfx(int (* Hdlr)(int ), const char * format, va_list vArgs) {
 	return xprintfx(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, format, vArgs) ;
 }
 
-int 	devprintfx(int (* Hdlr)(int ), const char * format, ...) {
+int devprintfx(int (* Hdlr)(int ), const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
 	int iRV = xprintfx(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, format, vArgs) ;
@@ -1420,23 +1370,21 @@ int 	devprintfx(int (* Hdlr)(int ), const char * format, ...) {
  * SOCKET directed formatted print support. Problem here is that MSG_MORE is primarily supported on
  * TCP sockets, UDP support officially in LwIP 2.6 but has not been included into ESP-IDF yet. */
 
-int		xPrintToSocket(xpc_t * psXPC, int cChr) {
+int	xPrintToSocket(xpc_t * psXPC, int cChr) {
 	char cBuf = cChr ;
-	if (xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf))) {
-		return EOF ;
-	}
+	if (xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf))) return EOF ;
 	return cChr ;
 }
 
-int 	vsocprintfx(netx_t * psSock, const char * format, va_list vArgs) {
+int vsocprintfx(netx_t * psSock, const char * format, va_list vArgs) {
 	int	Fsav	= psSock->flags ;
 	psSock->flags	|= MSG_MORE ;
-	int32_t iRV = xprintfx(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
+	int iRV = xprintfx(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
 	psSock->flags	= Fsav ;
 	return (psSock->error == 0) ? iRV : erFAILURE ;
 }
 
-int 	socprintfx(netx_t * psSock, const char * format, ...) {
+int socprintfx(netx_t * psSock, const char * format, ...) {
 	va_list vArgs ;
 	va_start(vArgs, format) ;
 	int count = vsocprintfx(psSock, format, vArgs) ;
@@ -1446,20 +1394,19 @@ int 	socprintfx(netx_t * psSock, const char * format, ...) {
 
 // #################################### Destination : UBUF #########################################
 
-int		xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr) ; }
+int	xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr) ; }
 
-int		vuprintfx(ubuf_t * psUBuf, const char * format, va_list vArgs) {
+int	vuprintfx(ubuf_t * psUBuf, const char * format, va_list vArgs) {
 	return xprintfx(xPrintToUBuf, psUBuf, xUBufSpace(psUBuf), format, vArgs) ;
 }
 
-int		uprintfx(ubuf_t * psUBuf, const char * format, ...) {
+int	uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 	va_list	vArgs ;
 	va_start(vArgs, format) ;
 	int count = vuprintfx(psUBuf, format, vArgs) ;
 	va_end(vArgs) ;
 	return count ;
 }
-
 #endif		// ESP_PLATFORM
 
 // ############################# Aliases for NEW/STDLIB supplied functions #########################
@@ -1474,40 +1421,40 @@ int		uprintfx(ubuf_t * psUBuf, const char * format, ...) {
  *
  * 	Alternative is to ensure that the printfx.obj is specified at the start to be linked with !!
  */
-#if		(xpfSUPPORT_ALIASES == 1)		// standard library [?]printf functions
-	int		printf(const char * format, ...) __attribute__((alias("printfx"), unused)) ;
-	int		printf_r(const char * format, ...) __attribute__((alias("printfx"), unused)) ;
+#if		(xpfSUPPORT_ALIASES == 1)
+	int	printf(const char * format, ...) __attribute__((alias("printfx"), unused)) ;
+	int	printf_r(const char * format, ...) __attribute__((alias("printfx"), unused)) ;
 
-	int		vprintf(const char * format, va_list vArgs) __attribute__((alias("vprintfx"), unused)) ;
-	int		vprintf_r(const char * format, va_list vArgs) __attribute__((alias("vprintfx"), unused)) ;
+	int	vprintf(const char * format, va_list vArgs) __attribute__((alias("vprintfx"), unused)) ;
+	int	vprintf_r(const char * format, va_list vArgs) __attribute__((alias("vprintfx"), unused)) ;
 
-	int		sprintf(char * pBuf, const char * format, ...) __attribute__((alias("sprintfx"), unused)) ;
-	int		sprintf_r(char * pBuf, const char * format, ...) __attribute__((alias("sprintfx"), unused)) ;
+	int	sprintf(char * pBuf, const char * format, ...) __attribute__((alias("sprintfx"), unused)) ;
+	int	sprintf_r(char * pBuf, const char * format, ...) __attribute__((alias("sprintfx"), unused)) ;
 
-	int		vsprintf(char * pBuf, const char * format, va_list vArgs) __attribute__((alias("vsprintfx"), unused)) ;
-	int		vsprintf_r(char * pBuf, const char * format, va_list vArgs) __attribute__((alias("vsprintfx"), unused)) ;
+	int	vsprintf(char * pBuf, const char * format, va_list vArgs) __attribute__((alias("vsprintfx"), unused)) ;
+	int	vsprintf_r(char * pBuf, const char * format, va_list vArgs) __attribute__((alias("vsprintfx"), unused)) ;
 
-	int 	snprintf(char * pBuf, size_t BufSize, const char * format, ...) __attribute__((alias("snprintfx"), unused)) ;
-	int 	snprintf_r(char * pBuf, size_t BufSize, const char * format, ...) __attribute__((alias("snprintfx"), unused)) ;
+	int snprintf(char * pBuf, size_t BufSize, const char * format, ...) __attribute__((alias("snprintfx"), unused)) ;
+	int snprintf_r(char * pBuf, size_t BufSize, const char * format, ...) __attribute__((alias("snprintfx"), unused)) ;
 
-	int 	vsnprintf(char * pBuf, size_t BufSize, const char * format, va_list vArgs) __attribute__((alias("vsnprintfx"), unused)) ;
-	int 	vsnprintf_r(char * pBuf, size_t BufSize, const char * format, va_list vArgs) __attribute__((alias("vsnprintfx"), unused)) ;
+	int vsnprintf(char * pBuf, size_t BufSize, const char * format, va_list vArgs) __attribute__((alias("vsnprintfx"), unused)) ;
+	int vsnprintf_r(char * pBuf, size_t BufSize, const char * format, va_list vArgs) __attribute__((alias("vsnprintfx"), unused)) ;
 
-	int 	fprintf(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
-	int 	fprintf_r(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
+	int fprintf(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
+	int fprintf_r(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
 
-	int 	vfprintf(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("vfprintfx"), unused)) ;
-	int 	vfprintf_r(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("vfprintfx"), unused)) ;
+	int vfprintf(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("vfprintfx"), unused)) ;
+	int vfprintf_r(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("vfprintfx"), unused)) ;
 
-	int 	dprintf(int fd, const char * format, ...) __attribute__((alias("dprintfx"), unused)) ;
-	int 	dprintf_r(int fd, const char * format, ...) __attribute__((alias("dprintfx"), unused)) ;
+	int dprintf(int fd, const char * format, ...) __attribute__((alias("dprintfx"), unused)) ;
+	int dprintf_r(int fd, const char * format, ...) __attribute__((alias("dprintfx"), unused)) ;
 
-	int 	vdprintf(int fd, const char * format, va_list vArgs) __attribute__((alias("vdprintfx"), unused)) ;
-	int 	vdprintf_r(int fd, const char * format, va_list vArgs) __attribute__((alias("vdprintfx"), unused)) ;
+	int vdprintf(int fd, const char * format, va_list vArgs) __attribute__((alias("vdprintfx"), unused)) ;
+	int vdprintf_r(int fd, const char * format, va_list vArgs) __attribute__((alias("vdprintfx"), unused)) ;
 
-	int 	fiprintf(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
-	int 	fiprintf_r(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
+	int fiprintf(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
+	int fiprintf_r(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
 
-	int 	vfiprintf(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("vfprintfx"), unused)) ;
-	int 	vfiprintf_r(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("vfprintfx"), unused)) ;
+	int vfiprintf(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("vfprintfx"), unused)) ;
+	int vfiprintf_r(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("vfprintfx"), unused)) ;
 #endif
