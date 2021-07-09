@@ -1099,11 +1099,12 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 				break ;
 
 			case CHR_o:									// unsigned octal "ddddd"
-			case CHR_u:									// unsigned decimal "ddddd"
 			case CHR_x:									// hex as in "789abcd" UC/LC
+				psXPC->f.group = 0 ;					// disable grouping
+				/* FALLTHRU */ /* no break */
+			case CHR_u:									// unsigned decimal "ddddd"
 				x64Val.u64	= psXPC->f.llong ? va_arg(vArgs, uint64_t) : va_arg(vArgs, uint32_t) ;
 				psXPC->f.nbase = cFmt == 'x' ? BASE16 : cFmt == 'o' ? BASE08 : BASE10 ;
-				psXPC->f.group = 0 ;						// disable grouping
 				vPrintX64(psXPC, x64Val.u64) ;
 				break ;
 
