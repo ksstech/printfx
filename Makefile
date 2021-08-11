@@ -99,14 +99,14 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(CMAKE_COMMAND) -E cmake_progress_start /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest/CMakeFiles /Users/andremaree/Dropbox/devs/ws/z-components/printf//CMakeFiles/progress.marks
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 /Users/andremaree/Dropbox/devs/ws/z-components/printf/all
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(CMAKE_COMMAND) -E cmake_progress_start /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest/CMakeFiles /Users/andremaree/Dropbox/devs/ws/z-comp/printf//CMakeFiles/progress.marks
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 /Users/andremaree/Dropbox/devs/ws/z-comp/printf/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 /Users/andremaree/Dropbox/devs/ws/z-components/printf/clean
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 /Users/andremaree/Dropbox/devs/ws/z-comp/printf/clean
 .PHONY : clean
 
 # The main clean target
@@ -116,12 +116,12 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 /Users/andremaree/Dropbox/devs/ws/z-components/printf/preinstall
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 /Users/andremaree/Dropbox/devs/ws/z-comp/printf/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 /Users/andremaree/Dropbox/devs/ws/z-components/printf/preinstall
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 /Users/andremaree/Dropbox/devs/ws/z-comp/printf/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
@@ -130,18 +130,18 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-/Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/rule:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/rule
-.PHONY : /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/rule
+/Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/rule:
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/rule
+.PHONY : /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/rule
 
 # Convenience name for target.
-common: /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/rule
+common: /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/rule
 
 .PHONY : common
 
 # fast build rule for target.
 common/fast:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build
 .PHONY : common/fast
 
 x_errors_events.o: x_errors_events.c.o
@@ -150,7 +150,7 @@ x_errors_events.o: x_errors_events.c.o
 
 # target to build an object file
 x_errors_events.c.o:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_errors_events.c.o
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_errors_events.c.o
 .PHONY : x_errors_events.c.o
 
 x_errors_events.i: x_errors_events.c.i
@@ -159,7 +159,7 @@ x_errors_events.i: x_errors_events.c.i
 
 # target to preprocess a source file
 x_errors_events.c.i:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_errors_events.c.i
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_errors_events.c.i
 .PHONY : x_errors_events.c.i
 
 x_errors_events.s: x_errors_events.c.s
@@ -168,7 +168,7 @@ x_errors_events.s: x_errors_events.c.s
 
 # target to generate assembly for a file
 x_errors_events.c.s:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_errors_events.c.s
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_errors_events.c.s
 .PHONY : x_errors_events.c.s
 
 x_stdio.o: x_stdio.c.o
@@ -177,7 +177,7 @@ x_stdio.o: x_stdio.c.o
 
 # target to build an object file
 x_stdio.c.o:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_stdio.c.o
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_stdio.c.o
 .PHONY : x_stdio.c.o
 
 x_stdio.i: x_stdio.c.i
@@ -186,7 +186,7 @@ x_stdio.i: x_stdio.c.i
 
 # target to preprocess a source file
 x_stdio.c.i:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_stdio.c.i
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_stdio.c.i
 .PHONY : x_stdio.c.i
 
 x_stdio.s: x_stdio.c.s
@@ -195,7 +195,7 @@ x_stdio.s: x_stdio.c.s
 
 # target to generate assembly for a file
 x_stdio.c.s:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_stdio.c.s
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_stdio.c.s
 .PHONY : x_stdio.c.s
 
 x_terminal.o: x_terminal.c.o
@@ -204,7 +204,7 @@ x_terminal.o: x_terminal.c.o
 
 # target to build an object file
 x_terminal.c.o:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_terminal.c.o
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_terminal.c.o
 .PHONY : x_terminal.c.o
 
 x_terminal.i: x_terminal.c.i
@@ -213,7 +213,7 @@ x_terminal.i: x_terminal.c.i
 
 # target to preprocess a source file
 x_terminal.c.i:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_terminal.c.i
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_terminal.c.i
 .PHONY : x_terminal.c.i
 
 x_terminal.s: x_terminal.c.s
@@ -222,7 +222,7 @@ x_terminal.s: x_terminal.c.s
 
 # target to generate assembly for a file
 x_terminal.c.s:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_terminal.c.s
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_terminal.c.s
 .PHONY : x_terminal.c.s
 
 x_time.o: x_time.c.o
@@ -231,7 +231,7 @@ x_time.o: x_time.c.o
 
 # target to build an object file
 x_time.c.o:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_time.c.o
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_time.c.o
 .PHONY : x_time.c.o
 
 x_time.i: x_time.c.i
@@ -240,7 +240,7 @@ x_time.i: x_time.c.i
 
 # target to preprocess a source file
 x_time.c.i:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_time.c.i
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_time.c.i
 .PHONY : x_time.c.i
 
 x_time.s: x_time.c.s
@@ -249,7 +249,7 @@ x_time.s: x_time.c.s
 
 # target to generate assembly for a file
 x_time.c.s:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_time.c.s
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_time.c.s
 .PHONY : x_time.c.s
 
 x_utilities.o: x_utilities.c.o
@@ -258,7 +258,7 @@ x_utilities.o: x_utilities.c.o
 
 # target to build an object file
 x_utilities.c.o:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_utilities.c.o
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_utilities.c.o
 .PHONY : x_utilities.c.o
 
 x_utilities.i: x_utilities.c.i
@@ -267,7 +267,7 @@ x_utilities.i: x_utilities.c.i
 
 # target to preprocess a source file
 x_utilities.c.i:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_utilities.c.i
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_utilities.c.i
 .PHONY : x_utilities.c.i
 
 x_utilities.s: x_utilities.c.s
@@ -276,7 +276,7 @@ x_utilities.s: x_utilities.c.s
 
 # target to generate assembly for a file
 x_utilities.c.s:
-	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-components/printf/CMakeFiles/common.dir/x_utilities.c.s
+	cd /Users/andremaree/Dropbox/devs/ws/osx/ComponentTest && $(MAKE) $(MAKESILENT) -f /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/build.make /Users/andremaree/Dropbox/devs/ws/z-comp/printf/CMakeFiles/common.dir/x_utilities.c.s
 .PHONY : x_utilities.c.s
 
 # Help Target

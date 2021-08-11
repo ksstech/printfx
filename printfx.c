@@ -3,28 +3,26 @@
  * <snf>printfx -  set of routines to replace equivalent printf functionality
  */
 
-#include	<string.h>
-#include	<stdarg.h>
-#include	<math.h>									// isnan()
-#include	<float.h>									// DBL_MIN/MAX
-
 #include	"hal_config.h"
 
 #include	"printfx.h"
 #include	"FreeRTOS_Support.h"
-#include	"x_string_general.h"						// xinstring function
-#include	"x_errors_events.h"
-#include	"x_values_to_string.h"
+
 #include	"socketsX.h"
 #include	"x_ubuf.h"
+
+#include	"x_string_general.h"						// xinstring function
+
+#include	"x_errors_events.h"
 #include	"x_stdio.h"
-#include	"x_struct_union.h"
 #include	"x_terminal.h"
 #include	"x_utilities.h"
+#include	"struct_union.h"
 
-#ifdef	ESP_PLATFORM
-	#include	"hal_nvic.h"
-#endif
+#include	<string.h>
+#include	<stdarg.h>
+#include	<math.h>									// isnan()
+#include	<float.h>									// DBL_MIN/MAX
 
 #define	debugFLAG					0xE001
 

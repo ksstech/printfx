@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include	"x_definitions.h"
+#include	"definitions.h"
 
 #include	<stdarg.h>
 #include	<stdint.h>
