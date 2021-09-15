@@ -165,12 +165,10 @@ typedef	struct __attribute__((packed)) xpf_t {
 			uint8_t		plus		: 1 ;				// true = force use of '+' or '-' signed
 			uint8_t		arg_width	: 1 ;				// minwid specified
 			uint8_t		arg_prec	: 1 ;				// precis specified
-			uint8_t		no_zone		: 1 ;				// 1=delay doing 'Z'
 			uint8_t		dbg			: 1 ;
-		// byte 3
 			uint8_t		Pspc		: 1 ;
-			uint8_t		src			: 2 ;				// src?
-			uint8_t		spare		: 5 ;				// SPARE !!!
+			// byte 3
+			uint8_t		spare		: 8 ;				// SPARE !!!
 		} ;
 	} ;
 } xpf_t ;

@@ -25,14 +25,13 @@
     +	modifier to enable TZ information being output
 
 	Hexdump (debug style) in byte, short, word or double word formats
-    ll?	format specifier selectable upper/lower case output (bhw vs BHW).
-		B	Byte (8 bit) width display
-		H	Half word (16 bit) width display
-		W	Word (32 bit) width display
     !	modifier to change absolute -> relative address preceding each line of hexdump output.
     -	modifier to remove the default address preceding each line of output
     `	modifier to enable seperators between values using '|: -' on 32/16/8/4 bit boundaries
     +	modifier to enable addition of ASCII character display at end of each line.
+	B	Byte (8 bit) width display
+	H	Half word (16 bit) width display
+	W	Word (32 bit) width display
     	PLEASE NOTE: Requires 2 parameters being LENGTH and POINTER
 
 	IP address output:
@@ -74,7 +73,7 @@
 	||||||||| | |||||||||||||||||||||||||||||*------------------> (T)IME uSec based
 	||||||||| | ||||||||||||||||||||||||||||*---------------> STRING null terminated ascii
 	||||||||| | |||||||||||||||||||||||||||*----------------> (S) Not implemented
-	||||||||| | ||||||||||||||||||||||||||*---------------------> (r) DateTime U32 Sec based
+	||||||||| | ||||||||||||||||||||||||||*-----------------> (r) UNUSED
 	||||||||| | |||||||||||||||||||||||||*----------------------> (R) DateTime U64 uSec based
 	||||||||| | ||||||||||||||||||||||||*-------------------> (Qq) UNUSED
 	||||||||| | |||||||||||||||||||||||*--------------------> POINTER U32 address with (0x/0X) prefix

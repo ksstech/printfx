@@ -589,13 +589,13 @@ void vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 }
 
 void vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
-	int	Len = 0 ;
-	char Buffer[configTIME_MAX_LEN_TZINFO] ;
-	if (psTSZ->pTZ == 0 || psXPC->f.plus == 0) {		// If no TZ info supplied or TZ info not wanted...
+	int	Len = 0;
+	char Buffer[configTIME_MAX_LEN_TZINFO];
+	if (psTSZ->pTZ == 0) {								// If no TZ info supplied
 		Buffer[Len++]	= 'Z' ;							// add 'Z' for Zulu/zero time zone
 	} else if (psXPC->f.alt_form) {						// TZ info available but '#' format specified
 		Len = xstrncpy(Buffer, (char *) " GMT", 4) ;	// show as GMT (ie UTC)
-	} else if (psXPC->f.plus) {							// TZ info available & '+x:xx(???)' format requested
+	} else {											// TZ info available & '+x:xx(???)' format requested
 		psXPC->f.signval	= 1 ;						// TZ hours offset is a signed value
 		psXPC->f.plus		= 1 ;						// force display of sign
 		Len = xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXPC->f.minwid = 3) ;
@@ -603,7 +603,9 @@ void vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 		psXPC->f.signval	= 0 ;						// TZ offset minutes unsigned
 		psXPC->f.plus		= 0 ;
 		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXPC->f.minwid = 2) ;
-#if		(timexTZTYPE_SELECTED == timexTZTYPE_POINTER)
+#if	(timexTZTYPE_SELECTED == timexTZTYPE_RFC3164)
+		// nothing added other than the time offset
+#elif (timexTZTYPE_SELECTED == timexTZTYPE_POINTER)
 		if (psTSZ->pTZ->pcTZName) {						// handle TZ name (as string pointer) if there
 			Buffer[Len++]	= '(' ;
 			psXPC->f.minwid = 0 ;						// then complete with the TZ name
@@ -615,7 +617,7 @@ void vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 			Len += psXPC->f.minwid ;
 			Buffer[Len++]	= ')' ;
 		}
-#elif	(timexTZTYPE_SELECTED == timexTZTYPE_FOURCHARS)
+#elif (timexTZTYPE_SELECTED == timexTZTYPE_FOURCHARS)
 		// Now handle the TZ name if there, check to ensure max 4 chars all UCase
 		if (xstrverify(&psTSZ->pTZ->tzname[0], 'A', 'Z', configTIME_MAX_LEN_TZNAME) == erSUCCESS) {
 			Buffer[Len++]	= '(' ;
@@ -630,29 +632,27 @@ void vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 			Len += psXPC->f.minwid ;
 			Buffer[Len++]	= ')' ;
 		}
-#elif	(timexTZTYPE_SELECTED == timexTZTYPE_RFC3164)
-		// nothing added other than the time offset
 #endif
-	} else {
-		IF_myASSERT(debugTRACK, 0) ;
 	}
 	Buffer[Len]		= 0 ;								// converted L to R, so add terminating NUL
 	psXPC->f.limits	= 0 ;								// enable full string
 	vPrintString(psXPC, Buffer) ;
 }
 
-void vPrintDateTime(xpc_t * psXPC, uint64_t uSecs) {
-	struct	tm 	sTM ;
-	seconds_t	Seconds = xTimeStampAsSeconds(uSecs) ;
-	xTimeGMTime(Seconds, &sTM, psXPC->f.rel_val) ;
-	uint32_t	limits = psXPC->f.limits ;
-	if (psXPC->f.rel_val == 0 || sTM.tm_mday) {
-		vPrintDate(psXPC, &sTM) ;
-		psXPC->f.limits = limits ;
+void vPrintLocalDTZ(xpc_t * psXPC, TSZ_t * psTSZ, uint8_t cFmt) {
+	struct tm sTM;
+	psXPC->f.pad0 = 1;
+	uint32_t flags = psXPC->f.flags;
+	seconds_t tSec = xTimeStampAsSeconds(psTSZ->usecs) + psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
+	xTimeGMTime(tSec, &sTM, psXPC->f.rel_val);
+	if (cFmt == CHR_D || cFmt == CHR_Z)
+		vPrintDate(psXPC, &sTM);
+	if (cFmt == CHR_T || cFmt == CHR_Z)
+		vPrintTime(psXPC, &sTM, (uint32_t)(psTSZ->usecs % MICROS_IN_SECOND));
+	if (cFmt == CHR_Z) {
+		psXPC->f.flags = flags;
+		vPrintZone(psXPC, psTSZ);
 	}
-	vPrintTime(psXPC, &sTM, (uint32_t) (uSecs % MICROS_IN_SECOND)) ;
-	if (psXPC->f.no_zone == 0 && psXPC->f.rel_val == 0) vPrintChar(psXPC, 'Z');
-	psXPC->f.limits = limits ;
 }
 
 /**
@@ -838,7 +838,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			/* In order for the optional modifiers to work correctly, especially in cases such as HEXDUMP
 			 * the modifiers MUST be in correct sequence of interpretation being [ ! # ' * + - % 0 ] */
 			int	cFmt ;
-			int Siz = 0 ;
+			x32_t X32 = { 0 } ;
 			while ((cFmt = xinstring("!#'*+- 0%", *fmt)) != erFAILURE) {
 				switch (cFmt) {
 				case 0:									// '!' HEXDUMP absolute->relative address
@@ -854,10 +854,10 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 					psXPC->f.group = 1 ;
 					break ;
 				case 3:									// '*' indicate argument will supply field width
-					Siz	= va_arg(vArgs, int) ;
-					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && Siz <= xpfMINWID_MAXVAL) ;
+					X32.i32	= va_arg(vArgs, int) ;
+					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.i32 <= xpfMINWID_MAXVAL) ;
 					++fmt ;
-					psXPC->f.minwid = Siz ;
+					psXPC->f.minwid = X32.i32 ;
 					psXPC->f.arg_width = 1 ;
 					break ;
 				case 4:									// '+' force leading +/- signed
@@ -882,44 +882,44 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			}
 			// handle pre and post decimal field width/precision indicators
 			if (*fmt == '.' || INRANGE('0', *fmt, '9', char)) {
-				Siz = 0 ;
+				X32.i32 = 0;
 				while (1) {
 					if (INRANGE('0', *fmt, '9', char)) {
-						Siz *= 10 ;
-						Siz += *fmt - '0' ;
-						++fmt ;
+						X32.i32 *= 10;
+						X32.i32 += *fmt - '0';
+						++fmt;
 					} else if (*fmt == '.') {
-						IF_myASSERT(debugTRACK, psXPC->f.radix == 0) ;//  2x radix not allowed
-						++fmt ;
-						psXPC->f.radix = 1 ;
-						if (Siz > 0) {
-							IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && Siz <= xpfMINWID_MAXVAL) ;
-							psXPC->f.minwid = Siz ;
-							psXPC->f.arg_width = 1 ;
-							Siz = 0 ;
+						IF_myASSERT(debugTRACK, psXPC->f.radix == 0);	// 2x radix not allowed
+						++fmt;
+						psXPC->f.radix = 1;
+						if (X32.i32 > 0) {
+							IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.i32 <= xpfMINWID_MAXVAL);
+							psXPC->f.minwid = X32.i32;
+							psXPC->f.arg_width = 1;
+							X32.i32 = 0;
 						}
 					} else if (*fmt == '*') {
-						IF_myASSERT(debugTRACK, psXPC->f.radix == 1 && Siz == 0) ;
-						++fmt ;
-						Siz	= va_arg(vArgs, int) ;
-						IF_myASSERT(debugTRACK, Siz <= xpfPRECIS_MAXVAL) ;
-						psXPC->f.precis = Siz ;
-						psXPC->f.arg_prec = 1 ;
-						Siz = 0 ;
+						IF_myASSERT(debugTRACK, psXPC->f.radix == 1 && X32.i32 == 0);
+						++fmt;
+						X32.i32	= va_arg(vArgs, int);
+						IF_myASSERT(debugTRACK, X32.i32 <= xpfPRECIS_MAXVAL);
+						psXPC->f.precis = X32.i32;
+						psXPC->f.arg_prec = 1;
+						X32.i32 = 0;
 					} else {
-						break ;
+						break;
 					}
 				}
 				// Save possible parsed value in cFmt
-				if (Siz > 0) {
+				if (X32.i32 > 0) {
 					if (psXPC->f.arg_width == 0 && psXPC->f.radix == 0) {
-						IF_myASSERT(debugTRACK, Siz <= xpfMINWID_MAXVAL) ;
-						psXPC->f.minwid	= Siz ;
-						psXPC->f.arg_width = 1 ;
+						IF_myASSERT(debugTRACK, X32.i32 <= xpfMINWID_MAXVAL);
+						psXPC->f.minwid	= X32.i32;
+						psXPC->f.arg_width = 1;
 					} else if (psXPC->f.arg_prec == 0 && psXPC->f.radix == 1) {
-						IF_myASSERT(debugTRACK, Siz <= xpfPRECIS_MAXVAL) ;
-						psXPC->f.precis	= Siz ;
-						psXPC->f.arg_prec = 1 ;
+						IF_myASSERT(debugTRACK, X32.i32 <= xpfPRECIS_MAXVAL) ;
+						psXPC->f.precis	= X32.i32;
+						psXPC->f.arg_prec = 1;
 					} else {
 						IF_myASSERT(debugTRACK, 0) ;
 					}
@@ -940,10 +940,9 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			x64_t	x64Val ;							// default x64 variable
 			px_t	px ;
 #if		(xpfSUPPORT_DATETIME == 1)
-			struct	tm 	sTM ;
 			TSZ_t * psTSZ ;
+			struct tm sTM;
 #endif
-
 			switch (cFmt) {
 #if		(xpfSUPPORT_SGR == 1)
 			/* XXX: Since we are using the same command handler to process (UART, HTTP & TNET)
@@ -977,7 +976,8 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			 *			'/' or '-' (years)
 			 *			'/' or '-' (months)
 			 *			'T' or ' ' (days)
-			 *			':' or 'h' (hours and minutes)
+			 *			':' or 'h' (hours)
+			 *			':' or 'm' (minutes)
 			 *			'.' or 's' (seconds)
 			 * 	'!'		Treat time value as elapsed and not epoch [micro] seconds
 			 * 	'.'		append 1 -> 6 digit(s) fractional seconds
@@ -985,56 +985,41 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			 * Norm 2	1970-01-01 00h00m00s
 			 * Altform	Mon, 01 Jan 1970 00:00:00 GMT
 			 */
-			case CHR_D:				// epoch (psTSZ) DATE
-				IF_myASSERT(debugTRACK, !psXPC->f.rel_val && !psXPC->f.group) ;
-				psXPC->f.pad0 = 1 ;
+			case CHR_D:				// Local TZ date
+			case CHR_T:				// Local TZ time
+			case CHR_Z:				// Local TZ DATE+TIME+ZONE
+				IF_myASSERT(debugTRACK, !psXPC->f.rel_val && !psXPC->f.group);
 				psTSZ = va_arg(vArgs, TSZ_t *) ;
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(psTSZ)) ;
-				xPrintCalcSeconds(psXPC, psTSZ, &sTM) ;
-				vPrintDate(psXPC, &sTM) ;
-				vPrintZone(psXPC, psTSZ) ;
+				psXPC->f.pad0 = 1;
+				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs) + psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
+				xTimeGMTime(X32.u32, &sTM, psXPC->f.rel_val);
+				if (cFmt == CHR_D || cFmt == CHR_Z)
+					vPrintDate(psXPC, &sTM);
+				if (cFmt == CHR_T || cFmt == CHR_Z)
+					vPrintTime(psXPC, &sTM, (uint32_t)(psTSZ->usecs % MICROS_IN_SECOND));
+				if (cFmt == CHR_Z) {
+					vPrintZone(psXPC, psTSZ);
+				}
 				break ;
 
 			case CHR_R:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
-				IF_myASSERT(debugTRACK, !psXPC->f.plus && !psXPC->f.pad0 && !psXPC->f.group) ;
+				IF_myASSERT(debugTRACK, !psXPC->f.plus && !psXPC->f.pad0 && !psXPC->f.group);
+				x64Val.u64 = va_arg(vArgs, uint64_t);
 				if (psXPC->f.alt_form) {
 					psXPC->f.group = 1 ;
 					psXPC->f.alt_form = 0 ;
 				}
-				if (!psXPC->f.rel_val) {
-					psXPC->f.pad0 = 1 ;
+				X32.u32 = xTimeStampAsSeconds(x64Val.u64) ;
+				xTimeGMTime(X32.u32, &sTM, psXPC->f.rel_val) ;
+				if (psXPC->f.rel_val == 0) psXPC->f.pad0 = 1;
+				if (psXPC->f.rel_val == 0 || sTM.tm_mday) {
+					uint32_t limits = psXPC->f.limits ;
+					vPrintDate(psXPC, &sTM) ;
+					psXPC->f.limits = limits ;
 				}
-				x64Val.u64 = va_arg(vArgs, uint64_t) ;
-				vPrintDateTime(psXPC, x64Val.u64) ;
-				break ;
-
-			case CHR_T:				// psTSZ epoch TIME
-				IF_myASSERT(debugTRACK, !psXPC->f.rel_val && !psXPC->f.group) ;
-				psXPC->f.pad0 = 1 ;
-				psTSZ = va_arg(vArgs, TSZ_t *) ;
-				IF_myASSERT(debugTRACK, halCONFIG_inMEM(psTSZ)) ;
-				xPrintCalcSeconds(psXPC, psTSZ, &sTM) ;
-				vPrintTime(psXPC, &sTM, (uint32_t) (psTSZ->usecs % MICROS_IN_SECOND)) ;
-				vPrintZone(psXPC, psTSZ) ;
-				break ;
-
-			case CHR_Z:				// psTSZ epoch DATE+TIME+ZONE
-				IF_myASSERT(debugTRACK, !psXPC->f.rel_val && !psXPC->f.plus && !psXPC->f.group) ;
-				psXPC->f.pad0 = 1 ;
-				psXPC->f.no_zone = 1 ;
-				uint32_t flags = psXPC->f.flags ;
-				psTSZ = va_arg(vArgs, TSZ_t *) ;
-				IF_myASSERT(debugTRACK, halCONFIG_inMEM(psTSZ)) ;
-				vPrintDateTime(psXPC, xTimeMakeTimestamp(xPrintCalcSeconds(psXPC, psTSZ, NULL), psTSZ->usecs % MICROS_IN_SECOND)) ;
-				psXPC->f.flags = flags ;
-				vPrintZone(psXPC, psTSZ) ;
-				break ;
-
-			case CHR_r:				// U32->U64 epoch (yr+mth+day) or relative (days) + TIME
-				IF_myASSERT(debugTRACK, !psXPC->f.alt_form && !psXPC->f.plus && !psXPC->f.pad0 && !psXPC->f.radix && !psXPC->f.group) ;
-				psXPC->f.pad0 = 1 ;
-				x64Val.u64 = (uint64_t) va_arg(vArgs, uint32_t) * MILLION ;
-				vPrintDateTime(psXPC, x64Val.u64) ;
+				vPrintTime(psXPC, &sTM, (uint32_t) (x64Val.u64 % MICROS_IN_SECOND)) ;
+				if (psXPC->f.rel_val == 0) vPrintChar(psXPC, 'Z');
 				break ;
 #endif
 
@@ -1056,10 +1041,10 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 				psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
 				psXPC->f.size = cFmt == 'B' ? xpfSIZING_BYTE : cFmt == 'H' ? xpfSIZING_SHORT : xpfSIZING_WORD ;
 				psXPC->f.size	+= psXPC->f.llong ? 1 : 0 ; 	// apply ll modifier to size
-				Siz	= va_arg(vArgs, int) ;
+				X32.i32	= va_arg(vArgs, int) ;
 				px.pc8	= va_arg(vArgs, char *) ;
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(px.pc8)) ;
-				vPrintHexDump(psXPC, Siz, px.pc8) ;
+				vPrintHexDump(psXPC, X32.i32, px.pc8) ;
 				break ;
 #endif
 
@@ -1081,8 +1066,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 #endif
 
 			case CHR_c:
-				x64Val.x32[0].i32 = va_arg(vArgs, int32_t) ;
-				vPrintChar(psXPC, x64Val.x32[0].i32) ;
+				vPrintChar(psXPC, va_arg(vArgs, int)) ;
 				break ;
 
 			case CHR_d:									// signed decimal "[-]ddddd"
@@ -1090,8 +1074,8 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 				psXPC->f.signval = 1 ;
 				x64Val.i64	= psXPC->f.llong ? va_arg(vArgs, int64_t) : va_arg(vArgs, int32_t) ;
 				if (x64Val.i64 < 0LL)	{
-					psXPC->f.negvalue	= 1 ;
-					x64Val.i64 		*= -1 ; 		// convert the value to unsigned
+					psXPC->f.negvalue = 1;
+					x64Val.i64 *= -1; 					// convert the value to unsigned
 				}
 				vPrintX64(psXPC, x64Val.i64) ;
 				break ;
@@ -1125,17 +1109,14 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 				} else {
 					psXPC->f.precis	= xpfDEFAULT_DECIMALS ;
 				}
-				x64Val.f64 = va_arg(vArgs, double) ;
-				vPrintF64(psXPC, x64Val.f64) ;
+				vPrintF64(psXPC, va_arg(vArgs, double));
 				break ;
 #endif
 
 #if		(xpfSUPPORT_POINTER == 1)						// pointer value UC/lc
 			case CHR_p:
-				px.pv = va_arg(vArgs, void *) ;
 				// Does cause crash if pointer not currently mapped
-//				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pVoid)) ;
-				vPrintPointer(psXPC, px.pv) ;
+				vPrintPointer(psXPC, va_arg(vArgs, void *)) ;
 				break ;
 #endif
 
@@ -1228,7 +1209,7 @@ void printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux) ; }
 
 int	 xPrintStdOut(xpc_t * psXPC, int cChr) {
 #ifdef	ESP_PLATFORM
-	return putcx(cChr, configSTDIO_UART_CHAN) ;
+	return putcharX(cChr, configSTDIO_UART_CHAN) ;
 #else
 	return putchar(cChr) ;
 #endif
@@ -1337,7 +1318,7 @@ int	dprintfx(int fd, const char * format, ...) {
  * Output directly to the [possibly redirected] stdout/UART channel
  */
 
-int	xPrintToStdout(xpc_t * psXPC, int cChr) { return putcharx(cChr) ; }
+int	xPrintToStdout(xpc_t * psXPC, int cChr) { return putcharRT(cChr) ; }
 
 int vcprintfx(const char * format, va_list vArgs) { return xprintfx(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs); }
 

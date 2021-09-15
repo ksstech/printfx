@@ -22,8 +22,8 @@
 void	vLogPrePend(uint32_t flag) {
 	if (flag & FLAG_CB_FG_MASK)		vANSIattrib(formMASK(flag, FLAG_CB_FG_MASK, 29, 30), 0) ;
 	if (flag & FLAG_CB_BG_MASK)		vANSIattrib(formMASK(flag, FLAG_CB_BG_MASK, 25, 40), 0) ;
-    if (flag & FLAG_CB_PRE_CL)		putcx(CHR_LF, configSTDIO_UART_CHAN) ;
-    if (flag & FLAG_CB_PRE_SPC)    	putcx(CHR_SPACE, configSTDIO_UART_CHAN) ;
+    if (flag & FLAG_CB_PRE_CL)		putcharX(CHR_LF, configSTDIO_UART_CHAN) ;
+    if (flag & FLAG_CB_PRE_SPC)    	putcharX(CHR_SPACE, configSTDIO_UART_CHAN) ;
 }
 
 /*
@@ -36,10 +36,10 @@ void	vLogPrePend(uint32_t flag) {
 void	vLogPostPend(uint32_t flag) {
 	if (flag & FLAG_CB_FG_MASK)		vANSIattrib(formMASK(FLAG_CB_FG_WHITE, FLAG_CB_FG_MASK, 29, 30), 0) ;
 	if (flag & FLAG_CB_BG_MASK)		vANSIattrib(formMASK(FLAG_CB_BG_BLACK, FLAG_CB_BG_MASK, 25, 40), 0) ;
-    if (flag & FLAG_CB_POST_COMMA)	putcx(CHR_COMMA, configSTDIO_UART_CHAN) ;
-    if (flag & FLAG_CB_POST_SPC)	putcx(CHR_SPACE, configSTDIO_UART_CHAN) ;
-    if (flag & FLAG_CB_POST_TAB)	putcx(CHR_TAB, configSTDIO_UART_CHAN) ;
-    if (flag & FLAG_CB_POST_CL)		putcx(CHR_LF, configSTDIO_UART_CHAN) ;
+    if (flag & FLAG_CB_POST_COMMA)	putcharX(CHR_COMMA, configSTDIO_UART_CHAN) ;
+    if (flag & FLAG_CB_POST_SPC)	putcharX(CHR_SPACE, configSTDIO_UART_CHAN) ;
+    if (flag & FLAG_CB_POST_TAB)	putcharX(CHR_TAB, configSTDIO_UART_CHAN) ;
+    if (flag & FLAG_CB_POST_CL)		putcharX(CHR_LF, configSTDIO_UART_CHAN) ;
 }
 
 void 	vLogPrintf(uint32_t flag, const char * format, ...) {
