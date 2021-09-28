@@ -696,8 +696,8 @@ void vPrintURL(xpc_t * psXPC, char * pStr) {
  *						Relative/absolute address prefixed using format '0x12345678:'
  * 				'+'		Add the ASCII char equivalents to the right of the hex output
  */
-void vPrintHexDump(xpc_t * psXPC, int Siz, char * pStr) {
-	for (int Now = 0; Now < Siz; Now += xpfHEXDUMP_WIDTH) {
+void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
+	for (int Now = 0; Now < xLen; Now += xpfHEXDUMP_WIDTH) {
 #if		(xpfSUPPORT_POINTER == 1)
 		if (psXPC->f.ljust == 0) {						// display absolute or relative address
 			vPrintPointer(psXPC, psXPC->f.rel_val ? (void *) Now : (void *)(pStr + Now)) ;
@@ -705,13 +705,14 @@ void vPrintHexDump(xpc_t * psXPC, int Siz, char * pStr) {
 		}
 #endif
 		// then the actual series of values in 8-32 bit groups
-		int Width = (Siz - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : Siz - Now ;
+		int Width = (xLen - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : xLen - Now ;
 		vPrintHexValues(psXPC, Width, pStr + Now) ;
 		if (psXPC->f.plus == 1) {						// handle values dumped as ASCII chars
 		// handle space padding for ASCII dump to line up
 			uint32_t	Count ;
 			int	Size = 1 << psXPC->f.size ;
-			Count = (Siz > xpfHEXDUMP_WIDTH) ? ((xpfHEXDUMP_WIDTH - Width) / Size) * ((Size * 2) + (psXPC->f.form ? 1 : 0)) + 1 : 1 ;
+			Count = (xLen <= xpfHEXDUMP_WIDTH) ? 1 :
+					((xpfHEXDUMP_WIDTH - Width) / Size) * (Size*2 + (psXPC->f.form ? 1 : 0)) + 1;
 			while (Count--)	vPrintChar(psXPC, ' ') ;
 			// handle same values dumped as ASCII characters
 			for (Count = 0; Count < Width; ++Count) {
@@ -724,7 +725,7 @@ void vPrintHexDump(xpc_t * psXPC, int Siz, char * pStr) {
 			}
 			vPrintChar(psXPC, ' ') ;
 		}
-		if (Now < Siz && Siz > xpfHEXDUMP_WIDTH) xPrintChars(psXPC, (char *) "\n");
+		if ((Now < xLen) && (xLen > xpfHEXDUMP_WIDTH)) xPrintChars(psXPC, (char *) "\n");
 	}
 }
 
