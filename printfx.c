@@ -1245,10 +1245,12 @@ int printfx(const char * format, ...) {
 }
 
 /*
- * vnprintfx_nolock() - print to stdout without any semaphore locking.
+ * [v[n]]printfx_nolock() - print to stdout without any semaphore locking.
  * 					securing the channel must be done manually
  */
-int vnprintfx_nolock(size_t szLen, const char * format, va_list vArgs) { return xprintfx(xPrintStdOut, stdout, szLen, format, vArgs); }
+int vnprintfx_nolock(size_t szLen, const char * format, va_list vArgs) {
+	return xprintfx(xPrintStdOut, stdout, szLen, format, vArgs);
+}
 
 int printfx_nolock(const char * format, ...) {
 	va_list vArgs ;
