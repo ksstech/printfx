@@ -113,7 +113,7 @@ extern unsigned long long RunTime ;
  * http://www.termsys.demon.co.uk/vtansi.htm#colors
  */
 
-#define	xpfSGR(a,b,c,d)					(((uint8_t) a << 24) + ((uint8_t) b << 16) + ((uint8_t) c << 8) + (uint8_t) d)
+#define	xpfSGR(a,b,c,d)					(((uint8_t) d << 24) + ((uint8_t) c << 16) + ((uint8_t) b << 8) + (uint8_t) a)
 
 // ####################################### enumerations ############################################
 
@@ -122,9 +122,9 @@ enum { srcS, srcF, srcT, srcN } ;
 // #################################### Public structures ##########################################
 
 typedef union {
-	struct __attribute__((packed)) { uint8_t	d, c, b, a ; } ;
-	uint8_t		u8[sizeof(uint32_t)] ;
-	uint32_t	u32 ;
+	struct __attribute__((packed)) { uint8_t a, b, c, d ; } ;
+	uint8_t u8[sizeof(uint32_t)];
+	uint32_t u32;
 } sgr_info_t ;
 DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4) ;
 
