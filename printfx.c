@@ -812,8 +812,10 @@ void vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
 	char Buffer[xpfMAX_LEN_SGR] ;
 	sgr_info_t sSGR ;
 	sSGR.u32 = Val ;
-	if (pcANSIlocate(Buffer, sSGR.c, sSGR.d) != Buffer) xPrintChars(psXPC, Buffer) ;
-	if (pcANSIattrib(Buffer, sSGR.a, sSGR.b) != Buffer) xPrintChars(psXPC, Buffer) ;
+	if (pcANSIlocate(Buffer, sSGR.c, sSGR.d) != Buffer)
+		xPrintChars(psXPC, Buffer) ;
+	if (pcANSIattrib(Buffer, sSGR.a, sSGR.b) != Buffer)
+		xPrintChars(psXPC, Buffer) ;
 }
 
 /* ################################# The HEART of the PRINTFX matter ###############################
@@ -1210,7 +1212,7 @@ void printfx_lock(void) { xRtosSemaphoreTake(&printfxMux, portMAX_DELAY) ; }
 void printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux) ; }
 
 int	 xPrintStdOut(xpc_t * psXPC, int cChr) {
-#ifdef	ESP_PLATFORM
+#if	defined(ESP_PLATFORM)
 	return putcharX(cChr, configSTDIO_UART_CHAN) ;
 #else
 	return putchar(cChr) ;
@@ -1315,7 +1317,7 @@ int	dprintfx(int fd, const char * format, ...) {
 	return count ;
 }
 
-#ifdef	ESP_PLATFORM
+#if	defined(ESP_PLATFORM)
 /* ################################## Destination = UART/TELNET ####################################
  * Output directly to the [possibly redirected] stdout/UART channel
  */
