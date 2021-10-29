@@ -59,7 +59,7 @@ extern unsigned long long RunTime ;
 		/* Specifically for the ESP-IDF we1`	 * as x[v]fprintf(stdout, format, ...) with locking enabled */
 	#define	xpfSUPPORT_ALIASES			1
 #else
-	#define	xpfSUPPORT_ALIASES			0
+	#define	xpfSUPPORT_ALIASES			1
 #endif
 #define	xpfSUPPORT_FILTER_NUL			1
 
