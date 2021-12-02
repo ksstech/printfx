@@ -3,26 +3,24 @@
  * <snf>printfx -  set of routines to replace equivalent printf functionality
  */
 
+#include	<string.h>
+#include	<stdarg.h>
+#include	<math.h>									// isnan()
+#include	<float.h>									// DBL_MIN/MAX
+
 #include	"hal_config.h"
+#include	"hal_usart.h"
 
 #include	"printfx.h"
 #include	"FreeRTOS_Support.h"
 
 #include	"socketsX.h"
 #include	"x_ubuf.h"
-
 #include	"x_string_general.h"						// xinstring function
-
 #include	"x_errors_events.h"
-#include	"x_stdio.h"
 #include	"x_terminal.h"
 #include	"x_utilities.h"
 #include	"struct_union.h"
-
-#include	<string.h>
-#include	<stdarg.h>
-#include	<math.h>									// isnan()
-#include	<float.h>									// DBL_MIN/MAX
 
 #define	debugFLAG					0xE001
 
@@ -1211,7 +1209,7 @@ void printfx_lock(void) { xRtosSemaphoreTake(&printfxMux, portMAX_DELAY) ; }
 
 void printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux) ; }
 
-int	 xPrintStdOut(xpc_t * psXPC, int cChr) {
+int xPrintStdOut(xpc_t * psXPC, int cChr) {
 #if	defined(ESP_PLATFORM)
 	return putcharX(cChr, configSTDIO_UART_CHAN) ;
 #else
