@@ -1203,7 +1203,7 @@ int sprintfx(char * pBuf, const char * format, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-static SemaphoreHandle_t	printfxMux = NULL ;
+static SemaphoreHandle_t printfxMux = NULL ;
 
 void printfx_lock(void) { xRtosSemaphoreTake(&printfxMux, portMAX_DELAY) ; }
 
