@@ -1322,9 +1322,9 @@ int	dprintfx(int fd, const char * format, ...) {
  * Output directly to the [possibly redirected] stdout/UART channel
  */
 
-int	xPrintToStdout(xpc_t * psXPC, int cChr) { return putcharRT(cChr) ; }
+int	xPrintToConsole(xpc_t * psXPC, int cChr) { return putcharRT(cChr) ; }
 
-int vcprintfx(const char * format, va_list vArgs) { return xprintfx(xPrintToStdout, NULL, xpfMAXLEN_MAXVAL, format, vArgs); }
+int vcprintfx(const char * format, va_list vArgs) { return xprintfx(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vArgs); }
 
 int cprintfx(const char * format, ...) {
 	va_list vArgs ;
