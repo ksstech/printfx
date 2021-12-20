@@ -30,7 +30,7 @@ extern unsigned long long RunTime ;
 #define	IF_PRINT(T, f, ...)				if (T) PRINT(f, ##__VA_ARGS__)
 
 /* The direct output functions are intended to be used to debug tasks that work
- * with redirected STDOUT such as the HTTP and TelNET tasks */
+ * with redirected STDOUT such as HTTP and TNET tasks */
 #define	CTRACK(f, ...)					cprintfx(_TRACK_(f), ##__VA_ARGS__)
 #define	IF_CTRACK(T, f, ...)			if (T) CTRACK(f, ##__VA_ARGS__)
 #define	CPRINT(f, ...)					cprintfx(f, ##__VA_ARGS__)
