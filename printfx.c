@@ -1205,9 +1205,20 @@ int sprintfx(char * pBuf, const char * format, ...) {
 
 static SemaphoreHandle_t printfxMux = NULL ;
 
-void printfx_lock(void) { xRtosSemaphoreTake(&printfxMux, portMAX_DELAY) ; }
+void printfx_lock(void) {
+	if (debugTRACK && tstSYSFLAG(sysFLAG_TRACKER)) {
+		setSYSFLAG(sysFLAG_PRINTFX);
+	}
+	xRtosSemaphoreTake(&printfxMux, portMAX_DELAY);
+}
 
-void printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux) ; }
+void printfx_unlock(void) {
+	xRtosSemaphoreGive(&printfxMux);
+	if (debugTRACK && tstSYSFLAG(sysFLAG_TRACKER)) {
+		clrSYSFLAG(sysFLAG_PRINTFX);
+	}
+
+}
 
 int xPrintStdOut(xpc_t * psXPC, int cChr) {
 #if	defined(ESP_PLATFORM)
