@@ -1335,7 +1335,12 @@ int	dprintfx(int fd, const char * format, ...) {
 
 int	xPrintToConsole(xpc_t * psXPC, int cChr) { return putcharRT(cChr) ; }
 
-int vcprintfx(const char * format, va_list vArgs) { return xprintfx(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vArgs); }
+int vcprintfx(const char * format, va_list vArgs) {
+	printfx_lock();
+	int iRV = xprintfx(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vArgs);
+	printfx_unlock();
+	return iRV;
+}
 
 int cprintfx(const char * format, ...) {
 	va_list vArgs ;
