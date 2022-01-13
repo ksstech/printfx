@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include	"definitions.h"
-
 #include	<stdarg.h>
 #include	<stdint.h>
 #include	<stdio.h>
+
+#include	"definitions.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,7 +21,10 @@ extern "C" {
 // "format" used by ALL tracking macros.
 extern unsigned long long RunTime ;
 
-//#define	_TRACK_(f)						"%!.R: %s:%d " f "", RunTime, __FUNCTION__, __LINE__
+#define	_TT_(f)							"%!.R: %s:%d " f "", RunTime, __FUNCTION__, __LINE__
+#define	TT(f, ...)						printfx(_TT_(f), ##__VA_ARGS__)
+#define	IF_TT(T, f, ...)				if (T) TT(f, ##__VA_ARGS__)
+
 #define	_TRACK_(f)						"[%s:%d] " f "", __FUNCTION__, __LINE__
 #define	TRACK(f, ...)					printfx(_TRACK_(f), ##__VA_ARGS__)
 #define	IF_TRACK(T, f, ...)				if (T) TRACK(f, ##__VA_ARGS__)
