@@ -21,23 +21,35 @@ extern "C" {
 // "format" used by ALL tracking macros.
 extern unsigned long long RunTime ;
 
-#define	_TT_(f)							"%!.R: %s:%d " f "", RunTime, __FUNCTION__, __LINE__
-#define	TT(f, ...)						printfx(_TT_(f), ##__VA_ARGS__)
-#define	IF_TT(T, f, ...)				if (T) TT(f, ##__VA_ARGS__)
-
-#define	_TRACK_(f)						"[%s:%d] " f "", __FUNCTION__, __LINE__
-#define	TRACK(f, ...)					printfx(_TRACK_(f), ##__VA_ARGS__)
-#define	IF_TRACK(T, f, ...)				if (T) TRACK(f, ##__VA_ARGS__)
-
-#define	PRINT(f, ...)					printfx(f, ##__VA_ARGS__)
-#define	IF_PRINT(T, f, ...)				if (T) PRINT(f, ##__VA_ARGS__)
-
+#define	_TL_(f)						"[%s:%d] " f "", __FUNCTION__, __LINE__
+#define	TL(f, ...)					printfx(_TL_(f), ##__VA_ARGS__)
+#define	IF_TL(T, f, ...)			if (T) TL(f, ##__VA_ARGS__)
 /* The direct output functions are intended to be used to debug tasks that work
  * with redirected STDOUT such as HTTP and TNET tasks */
-#define	CTRACK(f, ...)					cprintfx(_TRACK_(f), ##__VA_ARGS__)
-#define	IF_CTRACK(T, f, ...)			if (T) CTRACK(f, ##__VA_ARGS__)
-#define	CPRINT(f, ...)					cprintfx(f, ##__VA_ARGS__)
-#define	IF_CPRINT(T, f, ...)			if (T) CPRINT(f, ##__VA_ARGS__)
+#define	CTL(f, ...)					cprintfx(_TL_(f), ##__VA_ARGS__)
+#define	IF_CTL(T, f, ...)			if (T) CTL(f, ##__VA_ARGS__)
+
+#define	_TT_(f)						"%!.R: " f "", RunTime
+#define	TT(f, ...)					printfx(_TT_(f), ##__VA_ARGS__)
+#define	IF_TT(T, f, ...)			if (T) TT(f, ##__VA_ARGS__)
+/* The direct output functions are intended to be used to debug tasks that work
+ * with redirected STDOUT such as HTTP and TNET tasks */
+#define	CTT(f, ...)					cprintfx(_TT_(f), ##__VA_ARGS__)
+#define	IF_CTT(T, f, ...)			if (T) CTT(f, ##__VA_ARGS__)
+
+#define	_TTL_(f)					"%!.R: %s:%d " f "", RunTime, __FUNCTION__, __LINE__
+#define	TTL(f, ...)					printfx(_TTL_(f), ##__VA_ARGS__)
+#define	IF_TTL(T, f, ...)			if (T) TTL(f, ##__VA_ARGS__)
+/* The direct output functions are intended to be used to debug tasks that work
+ * with redirected STDOUT such as HTTP and TNET tasks */
+#define	CTTL(f, ...)				cprintfx(_TTL_(f), ##__VA_ARGS__)
+#define	IF_CTTL(T, f, ...)			if (T) CTTL(f, ##__VA_ARGS__)
+
+#define	PRINT(f, ...)				printfx(f, ##__VA_ARGS__)
+#define	IF_PRINT(T, f, ...)			if (T) PRINT(f, ##__VA_ARGS__)
+
+#define	CPRINT(f, ...)				cprintfx(f, ##__VA_ARGS__)
+#define	IF_CPRINT(T, f, ...)		if (T) CPRINT(f, ##__VA_ARGS__)
 
 // ###################### control functionality included in xprintf.c ##############################
 
