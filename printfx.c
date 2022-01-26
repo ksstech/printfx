@@ -1206,17 +1206,17 @@ int sprintfx(char * pBuf, const char * format, ...) {
 static SemaphoreHandle_t printfxMux = NULL ;
 
 void printfx_lock(void) {
-	if (debugTRACK && anySYSFLAGS(sysFLAG_TRACKER)) {
-		setSYSFLAGS(sysFLAG_PRINTFX);
-	}
 	xRtosSemaphoreTake(&printfxMux, portMAX_DELAY);
+	if (debugTRACK && anySYSFLAGS(sfTRACKER)) {
+		setSYSFLAGS(sfPRINTFX);
+	}
 }
 
 void printfx_unlock(void) {
-	xRtosSemaphoreGive(&printfxMux);
-	if (debugTRACK && anySYSFLAGS(sysFLAG_TRACKER)) {
-		clrSYSFLAGS(sysFLAG_PRINTFX);
+	if (debugTRACK && anySYSFLAGS(sfTRACKER)) {
+		clrSYSFLAGS(sfPRINTFX);
 	}
+	xRtosSemaphoreGive(&printfxMux);
 
 }
 
