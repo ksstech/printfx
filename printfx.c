@@ -1207,15 +1207,11 @@ static SemaphoreHandle_t printfxMux = NULL ;
 
 void printfx_lock(void) {
 	xRtosSemaphoreTake(&printfxMux, portMAX_DELAY);
-	if (debugTRACK && anySYSFLAGS(sfTRACKER)) {
-		setSYSFLAGS(sfPRINTFX);
-	}
+	setSYSFLAGS(sfPRINTFX);
 }
 
 void printfx_unlock(void) {
-	if (debugTRACK && anySYSFLAGS(sfTRACKER)) {
-		clrSYSFLAGS(sfPRINTFX);
-	}
+	clrSYSFLAGS(sfPRINTFX);
 	xRtosSemaphoreGive(&printfxMux);
 
 }
