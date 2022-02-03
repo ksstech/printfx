@@ -1205,11 +1205,17 @@ int sprintfx(char * pBuf, const char * format, ...) {
 
 static SemaphoreHandle_t printfxMux = NULL ;
 
+/**
+ * Locks the STDOUT semaphore and sets the status/tracking flag
+ */
 void printfx_lock(void) {
 	xRtosSemaphoreTake(&printfxMux, portMAX_DELAY);
 	setSYSFLAGS(sfPRINTFX);
 }
 
+/**
+ * Unlock the STDOUT semaphore and clears the status/tracking flag
+ */
 void printfx_unlock(void) {
 	clrSYSFLAGS(sfPRINTFX);
 	xRtosSemaphoreGive(&printfxMux);
