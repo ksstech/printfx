@@ -11,7 +11,7 @@
 	Numeric output scaling
 	#	Alternate format will scale value downwards and adding SI indicator based on thresholds being
 		10^3=K  10^6=M  10^9=G  10^12=T
-		
+
 	Text center justify
 	#	Place string in center of field
 
@@ -40,7 +40,7 @@
     -	modifier for left alignment
     0	modifier for leading zero output
 		Leading padding, none, space or zero through field width specifiers
-    
+
 	MAC address output with optional separator characters
     m/M format specifier selectable upper/lower case output.
     # 	alt format modifier for sequence inversion.
@@ -49,10 +49,10 @@
 	BINARY format output
 	J	format specifier taking U32 or U64 value as input
     '	modifier to enable seperator character using '|: -' for 32/16/8/4 bit boundaries
-  
+
 	ANSI Set Graphics Rendition (SGR) support
 	C	format specifier, takes U32 as 4x U8 values
-	
+
 	URL encoding format
 	U	format specifier
   	  
