@@ -1230,8 +1230,9 @@ int xPrintStdOut(xpc_t * psXPC, int cChr) {
 }
 
 int vnprintfx(size_t szLen, const char * format, va_list vArgs) {
-	int iRV = xprintfx(xPrintStdOut, stdout, szLen, format, vArgs) ;
 	printfx_lock();
+	int iRV = xprintfx(xPrintStdOut, NULL, szLen, format, vArgs) ;
+//	int iRV = xprintfx(xPrintStdOut, stdout, szLen, format, vArgs) ;
 	printfx_unlock() ;
 	return iRV ;
 }
