@@ -1219,7 +1219,6 @@ void printfx_lock(void) {
 void printfx_unlock(void) {
 	clrSYSFLAGS(sfPRINTFX);
 	xRtosSemaphoreGive(&printfxMux);
-
 }
 
 int xPrintStdOut(xpc_t * psXPC, int cChr) {
@@ -1231,8 +1230,8 @@ int xPrintStdOut(xpc_t * psXPC, int cChr) {
 }
 
 int vnprintfx(size_t szLen, const char * format, va_list vArgs) {
-	printfx_lock() ;
 	int iRV = xprintfx(xPrintStdOut, stdout, szLen, format, vArgs) ;
+	printfx_lock();
 	printfx_unlock() ;
 	return iRV ;
 }
