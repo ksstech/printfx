@@ -16,7 +16,7 @@
 	#	Place string in center of field
 
 	Date and/or time output in POSIX or other formats.
-	D	date using pointer to TSZ_t structure
+	D	date using pointer to tsz_t structure
 	T	time   "      "     "   "       "
 	Z	d+t+z  "      "     "   "       "
 	R	d+t  using U64 (uSec) value, support "%.?R" to enable uSec display, 3 digits (mSec) default.
@@ -125,7 +125,7 @@
 					  MUST NOT specify "*", ".", "*." or .*", this will screw up the parameter sequence
 	%[-0]I			- print IP address, justified left or right, pad 0 or ' '
 	%[']{Mm}			- prints MAC address, optional ':' separator, upper/lower case
-	%[!']D			- POSIX [relative/altform] date (1 parameter, pointer to TSZ_t
+	%[!']D			- POSIX [relative/altform] date (1 parameter, pointer to tsz_t
 	%[!']T			- POSIX [relative/altform] time
 	%[!']Z			- POSIX [relative/altform] date, time & zone
 
