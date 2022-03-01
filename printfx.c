@@ -600,8 +600,10 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 	char Buffer[configTIME_MAX_LEN_TZINFO];
 	if (psTSZ->pTZ == 0) {								// If no TZ info supplied
 		Buffer[Len++]	= 'Z' ;							// add 'Z' for Zulu/zero time zone
+
 	} else if (psXPC->f.alt_form) {						// TZ info available but '#' format specified
 		Len = xstrncpy(Buffer, (char *) " GMT", 4) ;	// show as GMT (ie UTC)
+
 	} else {											// TZ info available & '+x:xx(???)' format requested
 		psXPC->f.signval	= 1 ;						// TZ hours offset is a signed value
 		psXPC->f.plus		= 1 ;						// force display of sign
@@ -639,7 +641,7 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 			Len += psXPC->f.minwid ;
 			Buffer[Len++]	= ')' ;
 		}
-#endif
+		#endif
 	}
 	Buffer[Len]		= 0 ;								// converted L to R, so add terminating NUL
 	psXPC->f.limits	= 0 ;								// enable full string
