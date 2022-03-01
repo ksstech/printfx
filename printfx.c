@@ -8,10 +8,11 @@
 #include	<math.h>									// isnan()
 #include	<float.h>									// DBL_MIN/MAX
 
+#include	"printfx.h"
+
 #include	"hal_config.h"
 #include	"hal_usart.h"
 
-#include	"printfx.h"
 #include	"FreeRTOS_Support.h"
 
 #include	"socketsX.h"
@@ -21,6 +22,13 @@
 #include	"x_terminal.h"
 #include	"x_utilities.h"
 #include	"struct_union.h"
+
+#ifdef ESP_PLATFORM
+	#include	"esp_log.h"
+	#include	"esp32/rom/crc.h"					// ESP32 ROM routine
+#else
+	#include	"crc-barr.h"						// Barr group CRC
+#endif
 
 #define	debugFLAG					0xE001
 
@@ -1406,6 +1414,30 @@ int	uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 	va_list	vArgs ;
 	va_start(vArgs, format) ;
 	int count = vuprintfx(psUBuf, format, vArgs) ;
+	va_end(vArgs) ;
+	return count ;
+}
+
+// #################################### Destination : CRC32 ########################################
+
+static int xPrintToCRC32(xpc_t * psXPC, int cChr) {
+	#if defined(ESP_PLATFORM)							// use ROM based CRC lookup table
+	uint8_t cBuf = cChr;
+	*psXPC->pU32 = crc32_le(*psXPC->pU32, &cBuf, sizeof(cBuf));
+	#else												// use fastest of external libraries
+	uint32_t MsgCRC = crcSlow((uint8_t *) pBuf, iRV);
+	#endif
+	return cChr;
+}
+
+int	vcrcprintfx(unsigned int * pU32, const char * format, va_list vArgs) {
+	return xprintfx(xPrintToCRC32, pU32, xpfMAXLEN_MAXVAL, format, vArgs) ;
+}
+
+int	crcprintfx(unsigned int * pU32, const char * format, ...) {
+	va_list	vArgs ;
+	va_start(vArgs, format) ;
+	int count = vcrcprintfx(pU32, format, vArgs) ;
 	va_end(vArgs) ;
 	return count ;
 }
