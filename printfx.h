@@ -224,7 +224,8 @@ int vprintfx(const char * , va_list);
 int nprintfx(size_t, const char *, ...);
 int printfx(const char *, ...);
 
-int vnprintfx_nolock(size_t count, const char * format, va_list vArgs);
+int vnprintfx_nolock(size_t count, const char * format, va_list);
+int vprintfx_nolock(const char * format, va_list);
 int printfx_nolock(const char * format, ...);
 
 // ############################## LOW LEVEL DIRECT formatted output ################################
