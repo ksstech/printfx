@@ -853,11 +853,11 @@ void vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
  * 			call the correct routine(s) to perform conversion, formatting & output
  * @param	psXPC - pointer to structure containing formatting and output destination info
  * 			format - pointer to the formatting string
- * 			vArgs - variable number of arguments
+ * 			vaList - variable number of arguments
  * @return	void (other than updated info in the original structure passed by reference
  */
 
-int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
+int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 	if (fmt == NULL)
 		return 0;
 	for (; *fmt != 0; ++fmt) {
@@ -888,7 +888,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 					psXPC->f.group = 1 ;
 					break ;
 				case 3:									// '*' indicate argument will supply field width
-					X32.i32	= va_arg(vArgs, int) ;
+					X32.i32	= va_arg(vaList, int) ;
 					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.i32 <= xpfMINWID_MAXVAL) ;
 					++fmt ;
 					psXPC->f.minwid = X32.i32 ;
@@ -935,7 +935,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 					} else if (*fmt == '*') {
 						IF_myASSERT(debugTRACK, psXPC->f.radix == 1 && X32.i32 == 0);
 						++fmt;
-						X32.i32	= va_arg(vArgs, int);
+						X32.i32	= va_arg(vaList, int);
 						IF_myASSERT(debugTRACK, X32.i32 <= xpfPRECIS_MAXVAL);
 						psXPC->f.precis = X32.i32;
 						psXPC->f.arg_prec = 1;
@@ -986,19 +986,19 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			 * the ESC sequences if the output is going to a socket, one way or another.
 			 */
 			case CHR_C:
-				vPrintSetGraphicRendition(psXPC, va_arg(vArgs, uint32_t)) ;
+				vPrintSetGraphicRendition(psXPC, va_arg(vaList, uint32_t)) ;
 				break ;
 #endif
 
 #if		(xpfSUPPORT_IP_ADDR == 1)						// IP address
 			case CHR_I:
-				vPrintIpAddress(psXPC, va_arg(vArgs, uint32_t)) ;
+				vPrintIpAddress(psXPC, va_arg(vaList, uint32_t)) ;
 				break ;
 #endif
 
 #if		(xpfSUPPORT_BINARY == 1)
 			case CHR_J:
-				x64Val.u64 = psXPC->f.llong ? va_arg(vArgs, uint64_t) : (uint64_t) va_arg(vArgs, uint32_t) ;
+				x64Val.u64 = psXPC->f.llong ? va_arg(vaList, uint64_t) : (uint64_t) va_arg(vaList, uint32_t) ;
 				vPrintBinary(psXPC, x64Val.u64) ;
 				break ;
 #endif
@@ -1023,7 +1023,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			case CHR_T:				// Local TZ time
 			case CHR_Z:				// Local TZ DATE+TIME+ZONE
 				IF_myASSERT(debugTRACK, !psXPC->f.rel_val && !psXPC->f.group);
-				psTSZ = va_arg(vArgs, tsz_t *) ;
+				psTSZ = va_arg(vaList, tsz_t *) ;
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(psTSZ)) ;
 				psXPC->f.pad0 = 1;
 				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs) + psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
@@ -1039,7 +1039,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 
 			case CHR_R:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
 				IF_myASSERT(debugTRACK, !psXPC->f.plus && !psXPC->f.pad0 && !psXPC->f.group);
-				x64Val.u64 = va_arg(vArgs, uint64_t);
+				x64Val.u64 = va_arg(vaList, uint64_t);
 				if (psXPC->f.alt_form) {
 					psXPC->f.group = 1 ;
 					psXPC->f.alt_form = 0 ;
@@ -1061,7 +1061,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 
 #if		(xpfSUPPORT_URL == 1)							// para = pointer to string to be encoded
 			case CHR_U:
-				px.pc8	= va_arg(vArgs, char *) ;
+				px.pc8	= va_arg(vaList, char *) ;
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(px.pc8)) ;
 				vPrintURL(psXPC, px.pc8) ;
 				break ;
@@ -1077,8 +1077,8 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 				psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
 				psXPC->f.size = cFmt == 'B' ? xpfSIZING_BYTE : cFmt == 'H' ? xpfSIZING_SHORT : xpfSIZING_WORD ;
 				psXPC->f.size	+= psXPC->f.llong ? 1 : 0 ; 	// apply ll modifier to size
-				X32.i32	= va_arg(vArgs, int) ;
-				px.pc8	= va_arg(vArgs, char *) ;
+				X32.i32	= va_arg(vaList, int) ;
+				px.pc8	= va_arg(vaList, char *) ;
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(px.pc8)) ;
 				vPrintHexDump(psXPC, X32.i32, px.pc8) ;
 				break ;
@@ -1095,20 +1095,20 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 				psXPC->f.size	= 0 ;
 				psXPC->f.llong	= 0 ;					// force interpretation as sequence of U8 values
 				psXPC->f.form	= psXPC->f.group ? form1F : form0G ;
-				px.pc8	= va_arg(vArgs, char *) ;
+				px.pc8	= va_arg(vaList, char *) ;
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(px.pc8)) ;
 				vPrintHexValues(psXPC, lenMAC_ADDRESS, px.pc8) ;
 				break ;
 #endif
 
 			case CHR_c:
-				vPrintChar(psXPC, va_arg(vArgs, int)) ;
+				vPrintChar(psXPC, va_arg(vaList, int)) ;
 				break ;
 
 			case CHR_d:									// signed decimal "[-]ddddd"
 			case CHR_i:									// signed integer (same as decimal ?)
 				psXPC->f.signval = 1 ;
-				x64Val.i64	= psXPC->f.llong ? va_arg(vArgs, int64_t) : va_arg(vArgs, int32_t) ;
+				x64Val.i64	= psXPC->f.llong ? va_arg(vaList, int64_t) : va_arg(vaList, int32_t) ;
 				if (x64Val.i64 < 0LL)	{
 					psXPC->f.negvalue = 1;
 					x64Val.i64 *= -1; 					// convert the value to unsigned
@@ -1121,7 +1121,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 				psXPC->f.group = 0 ;					// disable grouping
 				/* FALLTHRU */ /* no break */
 			case CHR_u:									// unsigned decimal "ddddd"
-				x64Val.u64	= psXPC->f.llong ? va_arg(vArgs, uint64_t) : va_arg(vArgs, uint32_t) ;
+				x64Val.u64	= psXPC->f.llong ? va_arg(vaList, uint64_t) : va_arg(vaList, uint32_t) ;
 				psXPC->f.nbase = cFmt == 'x' ? BASE16 : cFmt == 'o' ? BASE08 : BASE10 ;
 				vPrintX64(psXPC, x64Val.u64) ;
 				break ;
@@ -1145,19 +1145,19 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 				} else {
 					psXPC->f.precis	= xpfDEFAULT_DECIMALS ;
 				}
-				vPrintF64(psXPC, va_arg(vArgs, double));
+				vPrintF64(psXPC, va_arg(vaList, double));
 				break ;
 #endif
 
 #if		(xpfSUPPORT_POINTER == 1)						// pointer value UC/lc
 			case CHR_p:
 				// Does cause crash if pointer not currently mapped
-				vPrintPointer(psXPC, va_arg(vArgs, void *)) ;
+				vPrintPointer(psXPC, va_arg(vaList, void *)) ;
 				break ;
 #endif
 
 			case CHR_s:
-				px.pv = va_arg(vArgs, char *) ;
+				px.pv = va_arg(vaList, char *) ;
 				// Required to avoid crash when wifi message is intercepted and a string pointer parameter
 				// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
 				px.pc8 = halCONFIG_inMEM(px.pc8) ? px.pc8 : px.pc8 == NULL ? STRING_NULL : STRING_OOR ;
@@ -1186,13 +1186,13 @@ out_lbl:
 	return psXPC->f.curlen ;
 }
 
-int	xprintfx(int (Hdlr)(xpc_t *, int), void * pVoid, size_t szBuf, const char * fmt, va_list vArgs) {
+int	xprintfx(int (Hdlr)(xpc_t *, int), void * pVoid, size_t szBuf, const char * fmt, va_list vaList) {
 	xpc_t	sXPC ;
 	sXPC.handler	= Hdlr ;
 	sXPC.pVoid		= pVoid ;
 	sXPC.f.maxlen	= (szBuf > xpfMAXLEN_MAXVAL) ? xpfMAXLEN_MAXVAL : szBuf ;
 	sXPC.f.curlen	= 0 ;
-	return xpcprintfx(&sXPC, fmt, vArgs) ;
+	return xpcprintfx(&sXPC, fmt, vaList) ;
 }
 
 // ##################################### Destination = STRING ######################################
@@ -1203,13 +1203,13 @@ int	xPrintToString(xpc_t * psXPC, int cChr) {
 	return cChr ;
 }
 
-int vsnprintfx(char * pBuf, size_t szBuf, const char * format, va_list vArgs) {
+int vsnprintfx(char * pBuf, size_t szBuf, const char * format, va_list vaList) {
 	if (szBuf == 1) {									// any "real" space ?
 		if (pBuf)										// no, buffer supplied?
 			*pBuf = 0 ;									// yes, terminate
 		return 0 ; 										// & return
 	}
-	int iRV = xprintfx(xPrintToString, pBuf, szBuf, format, vArgs) ;
+	int iRV = xprintfx(xPrintToString, pBuf, szBuf, format, vaList) ;
 	if (pBuf) {											// buffer specified ?
 		if (iRV == szBuf) 								// yes, but full?
 			--iRV ;										// make space for terminator
@@ -1219,22 +1219,22 @@ int vsnprintfx(char * pBuf, size_t szBuf, const char * format, va_list vArgs) {
 }
 
 int snprintfx(char * pBuf, size_t szBuf, const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int count = vsnprintfx(pBuf, szBuf, format, vArgs) ;
-	va_end(vArgs) ;
+	va_list vaList ;
+	va_start(vaList, format) ;
+	int count = vsnprintfx(pBuf, szBuf, format, vaList) ;
+	va_end(vaList) ;
 	return count ;
 }
 
-int vsprintfx(char * pBuf, const char * format, va_list vArgs) {
-	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vArgs) ;
+int vsprintfx(char * pBuf, const char * format, va_list vaList) {
+	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList) ;
 }
 
 int sprintfx(char * pBuf, const char * format, ...) {
-	va_list	vArgs ;
-	va_start(vArgs, format) ;
-	int count = vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	va_end(vArgs) ;
+	va_list	vaList ;
+	va_start(vaList, format) ;
+	int count = vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList) ;
+	va_end(vaList) ;
 	return count ;
 }
 
@@ -1266,29 +1266,29 @@ int xPrintStdOut(xpc_t * psXPC, int cChr) {
 #endif
 }
 
-int vnprintfx(size_t szLen, const char * format, va_list vArgs) {
+int vnprintfx(size_t szLen, const char * format, va_list vaList) {
 	printfx_lock();
-	int iRV = xprintfx(xPrintStdOut, NULL, szLen, format, vArgs) ;
-//	int iRV = xprintfx(xPrintStdOut, stdout, szLen, format, vArgs) ;
+	int iRV = xprintfx(xPrintStdOut, NULL, szLen, format, vaList) ;
+//	int iRV = xprintfx(xPrintStdOut, stdout, szLen, format, vaList) ;
 	printfx_unlock() ;
 	return iRV ;
 }
 
-int vprintfx(const char * format, va_list vArgs) { return vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs); }
+int vprintfx(const char * format, va_list vaList) { return vnprintfx(xpfMAXLEN_MAXVAL, format, vaList); }
 
 int nprintfx(size_t szLen, const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int iRV = vnprintfx(szLen, format, vArgs) ;
-	va_end(vArgs) ;
+	va_list vaList ;
+	va_start(vaList, format) ;
+	int iRV = vnprintfx(szLen, format, vaList) ;
+	va_end(vaList) ;
 	return iRV ;
 }
 
 int printfx(const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int iRV = vnprintfx(xpfMAXLEN_MAXVAL, format, vArgs) ;
-	va_end(vArgs) ;
+	va_list vaList ;
+	va_start(vaList, format) ;
+	int iRV = vnprintfx(xpfMAXLEN_MAXVAL, format, vaList) ;
+	va_end(vaList) ;
 	return iRV ;
 }
 
@@ -1319,19 +1319,19 @@ int printfx_nolock(const char * format, ...) {
  */
 
 int	wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
-	va_list vArgs ;
-	va_start(vArgs, pcFormat) ;
+	va_list vaList ;
+	va_start(vaList, pcFormat) ;
 	int iRV ;
 	if (*ppcBuf && (*pSize > 1)) {
-		iRV = vsnprintfx(*ppcBuf, *pSize, pcFormat, vArgs) ;
+		iRV = vsnprintfx(*ppcBuf, *pSize, pcFormat, vaList) ;
 		if (iRV > 0) {
 			*ppcBuf	+= iRV ;
 			*pSize	-= iRV ;
 		}
 	} else {
-		iRV = vnprintfx_nolock(xpfMAXLEN_MAXVAL, pcFormat, vArgs) ;
+		iRV = vnprintfx_nolock(xpfMAXLEN_MAXVAL, pcFormat, vaList) ;
 	}
-	va_end(vArgs) ;
+	va_end(vaList) ;
 	return iRV ;
 }
 
@@ -1339,13 +1339,15 @@ int	wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
 
 int	xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
 
-int vfprintfx(FILE * stream, const char * format, va_list vArgs) { return xprintfx(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vArgs); }
+int vfprintfx(FILE * stream, const char * format, va_list vaList) {
+	return xprintfx(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vaList);
+}
 
 int fprintfx(FILE * stream, const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int count = vfprintfx(stream, format, vArgs) ;
-	va_end(vArgs) ;
+	va_list vaList ;
+	va_start(vaList, format) ;
+	int count = vfprintfx(stream, format, vaList) ;
+	va_end(vaList) ;
 	return count ;
 }
 
@@ -1357,13 +1359,15 @@ int	xPrintToHandle(xpc_t * psXPC, int cChr) {
 	return size == 1 ? cChr : size ;
 }
 
-int	vdprintfx(int fd, const char * format, va_list vArgs) { return xprintfx(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vArgs) ; }
+int	vdprintfx(int fd, const char * format, va_list vaList) {
+	return xprintfx(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vaList) ;
+}
 
 int	dprintfx(int fd, const char * format, ...) {
-	va_list	vArgs ;
-	va_start(vArgs, format) ;
-	int count = vdprintfx(fd, format, vArgs) ;
-	va_end(vArgs) ;
+	va_list	vaList ;
+	va_start(vaList, format) ;
+	int count = vdprintfx(fd, format, vaList) ;
+	va_end(vaList) ;
 	return count ;
 }
 
@@ -1374,18 +1378,18 @@ int	dprintfx(int fd, const char * format, ...) {
 
 int	xPrintToConsole(xpc_t * psXPC, int cChr) { return putcharRT(cChr) ; }
 
-int vcprintfx(const char * format, va_list vArgs) {
+int vcprintfx(const char * format, va_list vaList) {
 	printfx_lock();
-	int iRV = xprintfx(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vArgs);
+	int iRV = xprintfx(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vaList);
 	printfx_unlock();
 	return iRV;
 }
 
 int cprintfx(const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int iRV = vcprintfx(format, vArgs) ;
-	va_end(vArgs) ;
+	va_list vaList ;
+	va_start(vaList, format) ;
+	int iRV = vcprintfx(format, vaList) ;
+	va_end(vaList) ;
 	return iRV ;
 }
 
@@ -1393,15 +1397,15 @@ int cprintfx(const char * format, ...) {
 
 int	xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
 
-int vdevprintfx(int (* Hdlr)(int ), const char * format, va_list vArgs) {
-	return xprintfx(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, format, vArgs) ;
+int vdevprintfx(int (* Hdlr)(int ), const char * format, va_list vaList) {
+	return xprintfx(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, format, vaList) ;
 }
 
 int devprintfx(int (* Hdlr)(int ), const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int iRV = xprintfx(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	va_end(vArgs) ;
+	va_list vaList ;
+	va_start(vaList, format) ;
+	int iRV = xprintfx(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, format, vaList) ;
+	va_end(vaList) ;
 	return iRV ;
 }
 
@@ -1415,19 +1419,19 @@ int	xPrintToSocket(xpc_t * psXPC, int cChr) {
 	return cChr ;
 }
 
-int vsocprintfx(netx_t * psSock, const char * format, va_list vArgs) {
 	int	Fsav	= psSock->flags ;
 	psSock->flags	|= MSG_MORE ;
-	int iRV = xprintfx(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vArgs) ;
 	psSock->flags	= Fsav ;
+int vsocprintfx(netx_t * psSock, const char * format, va_list vaList) {
+	int iRV = xprintfx(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vaList) ;
 	return (psSock->error == 0) ? iRV : erFAILURE ;
 }
 
 int socprintfx(netx_t * psSock, const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int count = vsocprintfx(psSock, format, vArgs) ;
-	va_end(vArgs) ;
+	va_list vaList ;
+	va_start(vaList, format) ;
+	int count = vsocprintfx(psSock, format, vaList) ;
+	va_end(vaList) ;
 	return count ;
 }
 
@@ -1435,15 +1439,15 @@ int socprintfx(netx_t * psSock, const char * format, ...) {
 
 int	xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr) ; }
 
-int	vuprintfx(ubuf_t * psUBuf, const char * format, va_list vArgs) {
-	return xprintfx(xPrintToUBuf, psUBuf, xUBufSpace(psUBuf), format, vArgs) ;
+int	vuprintfx(ubuf_t * psUBuf, const char * format, va_list vaList) {
+	return xprintfx(xPrintToUBuf, psUBuf, xUBufSpace(psUBuf), format, vaList) ;
 }
 
 int	uprintfx(ubuf_t * psUBuf, const char * format, ...) {
-	va_list	vArgs ;
-	va_start(vArgs, format) ;
-	int count = vuprintfx(psUBuf, format, vArgs) ;
-	va_end(vArgs) ;
+	va_list	vaList ;
+	va_start(vaList, format) ;
+	int count = vuprintfx(psUBuf, format, vaList) ;
+	va_end(vaList) ;
 	return count ;
 }
 
@@ -1459,15 +1463,15 @@ static int xPrintToCRC32(xpc_t * psXPC, int cChr) {
 	return cChr;
 }
 
-int	vcrcprintfx(unsigned int * pU32, const char * format, va_list vArgs) {
-	return xprintfx(xPrintToCRC32, pU32, xpfMAXLEN_MAXVAL, format, vArgs) ;
+int	vcrcprintfx(unsigned int * pU32, const char * format, va_list vaList) {
+	return xprintfx(xPrintToCRC32, pU32, xpfMAXLEN_MAXVAL, format, vaList) ;
 }
 
 int	crcprintfx(unsigned int * pU32, const char * format, ...) {
-	va_list	vArgs ;
-	va_start(vArgs, format) ;
-	int count = vcrcprintfx(pU32, format, vArgs) ;
-	va_end(vArgs) ;
+	va_list	vaList ;
+	va_start(vaList, format) ;
+	int count = vcrcprintfx(pU32, format, vaList) ;
+	va_end(vaList) ;
 	return count ;
 }
 #endif		// ESP_PLATFORM
@@ -1488,36 +1492,36 @@ int	crcprintfx(unsigned int * pU32, const char * format, ...) {
 	int	printf(const char * format, ...) __attribute__((alias("printfx"), unused)) ;
 	int	printf_r(const char * format, ...) __attribute__((alias("printfx"), unused)) ;
 
-	int	vprintf(const char * format, va_list vArgs) __attribute__((alias("vprintfx"), unused)) ;
-	int	vprintf_r(const char * format, va_list vArgs) __attribute__((alias("vprintfx"), unused)) ;
+	int	vprintf(const char * format, va_list vaList) __attribute__((alias("vprintfx"), unused)) ;
+	int	vprintf_r(const char * format, va_list vaList) __attribute__((alias("vprintfx"), unused)) ;
 
 	int	sprintf(char * pBuf, const char * format, ...) __attribute__((alias("sprintfx"), unused)) ;
 	int	sprintf_r(char * pBuf, const char * format, ...) __attribute__((alias("sprintfx"), unused)) ;
 
-	int	vsprintf(char * pBuf, const char * format, va_list vArgs) __attribute__((alias("vsprintfx"), unused)) ;
-	int	vsprintf_r(char * pBuf, const char * format, va_list vArgs) __attribute__((alias("vsprintfx"), unused)) ;
+	int	vsprintf(char * pBuf, const char * format, va_list vaList) __attribute__((alias("vsprintfx"), unused)) ;
+	int	vsprintf_r(char * pBuf, const char * format, va_list vaList) __attribute__((alias("vsprintfx"), unused)) ;
 
 	int snprintf(char * pBuf, size_t BufSize, const char * format, ...) __attribute__((alias("snprintfx"), unused)) ;
 	int snprintf_r(char * pBuf, size_t BufSize, const char * format, ...) __attribute__((alias("snprintfx"), unused)) ;
 
-	int vsnprintf(char * pBuf, size_t BufSize, const char * format, va_list vArgs) __attribute__((alias("vsnprintfx"), unused)) ;
-	int vsnprintf_r(char * pBuf, size_t BufSize, const char * format, va_list vArgs) __attribute__((alias("vsnprintfx"), unused)) ;
+	int vsnprintf(char * pBuf, size_t BufSize, const char * format, va_list vaList) __attribute__((alias("vsnprintfx"), unused)) ;
+	int vsnprintf_r(char * pBuf, size_t BufSize, const char * format, va_list vaList) __attribute__((alias("vsnprintfx"), unused)) ;
 
 	int fprintf(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
 	int fprintf_r(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
 
-	int vfprintf(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("vfprintfx"), unused)) ;
-	int vfprintf_r(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("vfprintfx"), unused)) ;
+	int vfprintf(FILE * stream, const char * format, va_list vaList) __attribute__((alias("vfprintfx"), unused)) ;
+	int vfprintf_r(FILE * stream, const char * format, va_list vaList) __attribute__((alias("vfprintfx"), unused)) ;
 
 	int dprintf(int fd, const char * format, ...) __attribute__((alias("dprintfx"), unused)) ;
 	int dprintf_r(int fd, const char * format, ...) __attribute__((alias("dprintfx"), unused)) ;
 
-	int vdprintf(int fd, const char * format, va_list vArgs) __attribute__((alias("vdprintfx"), unused)) ;
-	int vdprintf_r(int fd, const char * format, va_list vArgs) __attribute__((alias("vdprintfx"), unused)) ;
+	int vdprintf(int fd, const char * format, va_list vaList) __attribute__((alias("vdprintfx"), unused)) ;
+	int vdprintf_r(int fd, const char * format, va_list vaList) __attribute__((alias("vdprintfx"), unused)) ;
 
 	int fiprintf(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
 	int fiprintf_r(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
 
-	int vfiprintf(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("vfprintfx"), unused)) ;
-	int vfiprintf_r(FILE * stream, const char * format, va_list vArgs) __attribute__((alias("vfprintfx"), unused)) ;
+	int vfiprintf(FILE * stream, const char * format, va_list vaList) __attribute__((alias("vfprintfx"), unused)) ;
+	int vfiprintf_r(FILE * stream, const char * format, va_list vaList) __attribute__((alias("vfprintfx"), unused)) ;
 #endif
