@@ -479,7 +479,7 @@ void vPrintPointer(xpc_t * psXPC, void * pVoid) {
 	vPrintHexU32(psXPC, (uint32_t) pVoid) ;
 }
 
-seconds_t xPrintCalcSeconds(xpc_t * psXPC, TSZ_t * psTSZ, struct tm * psTM) {
+seconds_t xPrintCalcSeconds(xpc_t * psXPC, tsz_t * psTSZ, struct tm * psTM) {
 	seconds_t	Seconds ;
 	// Get seconds value to use... (adjust for TZ if required/allowed)
 	if (psTSZ->pTZ &&									// TZ info available
@@ -587,7 +587,7 @@ void vPrintTime(xpc_t * psXPC, struct tm * psTM, uint32_t uSecs) {
 	vPrintString(psXPC, Buffer) ;
 }
 
-void vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
+void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 	int	Len = 0;
 	char Buffer[configTIME_MAX_LEN_TZINFO];
 	if (psTSZ->pTZ == 0) {								// If no TZ info supplied
@@ -638,7 +638,7 @@ void vPrintZone(xpc_t * psXPC, TSZ_t * psTSZ) {
 	vPrintString(psXPC, Buffer) ;
 }
 
-void vPrintLocalDTZ(xpc_t * psXPC, TSZ_t * psTSZ, uint8_t cFmt) {
+void vPrintLocalDTZ(xpc_t * psXPC, tsz_t * psTSZ, uint8_t cFmt) {
 	struct tm sTM;
 	psXPC->f.pad0 = 1;
 	uint32_t flags = psXPC->f.flags;
@@ -946,7 +946,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			x64_t	x64Val ;							// default x64 variable
 			px_t	px ;
 #if		(xpfSUPPORT_DATETIME == 1)
-			TSZ_t * psTSZ ;
+			tsz_t * psTSZ ;
 			struct tm sTM;
 #endif
 			switch (cFmt) {
@@ -995,7 +995,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			case CHR_T:				// Local TZ time
 			case CHR_Z:				// Local TZ DATE+TIME+ZONE
 				IF_myASSERT(debugTRACK, !psXPC->f.rel_val && !psXPC->f.group);
-				psTSZ = va_arg(vArgs, TSZ_t *) ;
+				psTSZ = va_arg(vArgs, tsz_t *) ;
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(psTSZ)) ;
 				psXPC->f.pad0 = 1;
 				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs) + psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
