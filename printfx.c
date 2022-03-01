@@ -84,9 +84,13 @@ static int vPrintChar(xpc_t * psXPC, char cChr) {
 	if (cChr == 0)
 		return iRV;
 #endif
-	if (psXPC->f.maxlen == 0 || psXPC->f.curlen < psXPC->f.maxlen) {
-		if (psXPC->handler(psXPC, cChr) == cChr) psXPC->f.curlen++ ;	// adjust count
+	if ((psXPC->f.maxlen == 0) || (psXPC->f.curlen < psXPC->f.maxlen)) {
+		iRV = psXPC->handler(psXPC, cChr);
+		if (iRV == cChr) {
+			psXPC->f.curlen++ ;							// adjust count
+		}
 	}
+	return iRV;
 }
 
 /**
