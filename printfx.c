@@ -605,6 +605,19 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 		Len = xstrncpy(Buffer, (char *) " GMT", 4) ;	// show as GMT (ie UTC)
 
 	} else {											// TZ info available & '+x:xx(???)' format requested
+		#if	(timexTZTYPE_SELECTED == timexTZTYPE_RFC5424)
+		Buffer[Len++] = '(';
+		psXPC->f.signval = 1;							// TZ hours offset is a signed value
+		psXPC->f.plus = 1;								// force display of sign
+//		RP("tz=%d  ", psTSZ->pTZ->timezone);
+		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer+Len, psXPC->f.minwid = 3);
+		Buffer[Len++] = psXPC->f.form ? 'h' : ':';
+		psXPC->f.signval = 0;							// TZ offset minutes unsigned
+		psXPC->f.plus  = 0;
+		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer+Len, psXPC->f.minwid = 2);
+		Buffer[Len++]	= ')';
+
+		#elif (timexTZTYPE_SELECTED == timexTZTYPE_POINTER)
 		psXPC->f.signval	= 1 ;						// TZ hours offset is a signed value
 		psXPC->f.plus		= 1 ;						// force display of sign
 		Len = xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXPC->f.minwid = 3) ;
@@ -612,9 +625,6 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 		psXPC->f.signval	= 0 ;						// TZ offset minutes unsigned
 		psXPC->f.plus		= 0 ;
 		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXPC->f.minwid = 2) ;
-#if	(timexTZTYPE_SELECTED == timexTZTYPE_RFC3164)
-		// nothing added other than the time offset
-#elif (timexTZTYPE_SELECTED == timexTZTYPE_POINTER)
 		if (psTSZ->pTZ->pcTZName) {						// handle TZ name (as string pointer) if there
 			Buffer[Len++]	= '(' ;
 			psXPC->f.minwid = 0 ;						// then complete with the TZ name
@@ -626,7 +636,15 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 			Len += psXPC->f.minwid ;
 			Buffer[Len++]	= ')' ;
 		}
-#elif (timexTZTYPE_SELECTED == timexTZTYPE_FOURCHARS)
+
+		#elif (timexTZTYPE_SELECTED == timexTZTYPE_FOURCHARS)
+		psXPC->f.signval	= 1 ;						// TZ hours offset is a signed value
+		psXPC->f.plus		= 1 ;						// force display of sign
+		Len = xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXPC->f.minwid = 3) ;
+		Buffer[Len++]	= psXPC->f.form ? 'h' : ':' ;
+		psXPC->f.signval	= 0 ;						// TZ offset minutes unsigned
+		psXPC->f.plus		= 0 ;
+		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXPC->f.minwid = 2) ;
 		// Now handle the TZ name if there, check to ensure max 4 chars all UCase
 		if (xstrverify(&psTSZ->pTZ->tzname[0], 'A', 'Z', configTIME_MAX_LEN_TZNAME) == erSUCCESS) {
 			Buffer[Len++]	= '(' ;
