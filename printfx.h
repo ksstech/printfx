@@ -192,6 +192,7 @@ typedef	struct __attribute__((packed)) xpc_t {
 		struct ubuf_t *	psUBuf ;						// ubuf
 		int				fd ;							// file descriptor/handle
 		int 			(*DevPutc)(int ) ;				// custom device driver
+		unsigned int *	pU32;							// Address of running CRC32 value
 	} ;
 	xpf_t	f ;
 } xpc_t ;
@@ -199,64 +200,69 @@ DUMB_STATIC_ASSERT(sizeof(xpc_t) == (12 + sizeof(int *) + sizeof(void *))) ;
 
 // ################################### Public functions ############################################
 
-int		xpcprintfx(xpc_t * psXPC, const char * format, va_list vArgs) ;
+int xpcprintfx(xpc_t * psXPC, const char * format, va_list vArgs);
 
-int		xprintfx(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list) ;
+int xprintfx(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list);
 
 /* Public function prototypes for extended functionality version of stdio supplied functions
  * These names MUST be used if any of the extended functionality is used in a format string */
 
 // ##################################### Destination = STRING ######################################
 
-int 	vsnprintfx(char * , size_t , const char * , va_list ) ;
-int 	snprintfx(char * , size_t , const char * , ...) ;
-int 	vsprintfx(char * , const char * , va_list ) ;
-int		sprintfx(char * , const char * , ...) ;
+int vsnprintfx(char * , size_t , const char * , va_list );
+int snprintfx(char * , size_t , const char * , ...);
+int vsprintfx(char * , const char * , va_list );
+int sprintfx(char * , const char * , ...);
 
 // ##################################### Destination = STDOUT ######################################
 
-void	printfx_lock(void) ;
-void	printfx_unlock(void) ;
+void printfx_lock(void);
+void printfx_unlock(void);
 
-int 	vnprintfx(size_t, const char *, va_list) ;
-int 	vprintfx(const char * , va_list) ;
-int 	nprintfx(size_t, const char *, ...) ;
-int		printfx(const char *, ...) ;
+int vnprintfx(size_t, const char *, va_list);
+int vprintfx(const char * , va_list);
+int nprintfx(size_t, const char *, ...);
+int printfx(const char *, ...);
 
-int 	vnprintfx_nolock(size_t count, const char * format, va_list vArgs) ;
-int 	printfx_nolock(const char * format, ...) ;
+int vnprintfx_nolock(size_t count, const char * format, va_list vArgs);
+int printfx_nolock(const char * format, ...);
 
 // ############################## LOW LEVEL DIRECT formatted output ################################
 
-int 	vcprintfx(const char *, va_list) ;
-int 	cprintfx(const char *, ...) ;
+int vcprintfx(const char *, va_list);
+int cprintfx(const char *, ...);
 
-int		wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) ;
+int wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...);
 
 // ################################### Destination = FILE PTR ######################################
 
-int		vfprintfx(FILE * , const char * , va_list ) ;
-int		fprintfx(FILE * , const char * , ...) ;
+int vfprintfx(FILE * , const char * , va_list );
+int fprintfx(FILE * , const char * , ...);
 
 // ################################### Destination = HANDLE ########################################
 
-int		vdprintfx(int , const char *, va_list ) ;
-int		dprintfx(int , const char *, ...) ;
+int vdprintfx(int , const char *, va_list );
+int dprintfx(int , const char *, ...);
 
 // ################################### Destination = DEVICE ########################################
 
-int 	vdevprintfx(int (* handler)(int ), const char *, va_list) ;
-int 	devprintfx(int (* handler)(int), const char *, ...) ;
+int vdevprintfx(int (* handler)(int ), const char *, va_list);
+int devprintfx(int (* handler)(int), const char *, ...);
 
 // #################################### Destination : SOCKET #######################################
 
-int 	vsocprintfx(struct netx_t *, const char *, va_list) ;
-int 	socprintfx(struct netx_t *, const char *, ...) ;
+int vsocprintfx(struct netx_t *, const char *, va_list);
+int socprintfx(struct netx_t *, const char *, ...);
 
 // #################################### Destination : UBUF #########################################
 
-int     vuprintfx(struct ubuf_t *, const char * , va_list) ;
-int     uprintfx(struct ubuf_t *, const char * , ...) ;
+int vuprintfx(struct ubuf_t *, const char * , va_list);
+int uprintfx(struct ubuf_t *, const char * , ...);
+
+// #################################### Destination : CRC32 ########################################
+
+int vcrcprintfx(unsigned int *, const char * , va_list);
+int crcprintfx(unsigned int *, const char * , ...);
 
 // ##################################### functional tests ##########################################
 
