@@ -71,17 +71,18 @@ static	const double round_nums[xpfMAXIMUM_DECIMALS+1] = {
 // ############################# Foundation character and string output ############################
 
 /**
- * vPrintChar
- * \brief	output a single character using/via the preselected function
+ * @brief	output a single character using/via the preselected function
  * 			before output verify against specified width
  * 			adjust character count (if required) & remaining width
- * \param	psXPC - pointer to control structure to be referenced/updated
+ * @param	psXPC - pointer to control structure to be referenced/updated
  * 			c - char to be output
- * \return	1 or 0 based on whether char was '\000'
+ * @return	1 or 0 based on whether char was '\000'
  */
-void	vPrintChar(xpc_t * psXPC, char cChr) {
+static int vPrintChar(xpc_t * psXPC, char cChr) {
+	int iRV = cChr;
 #if 	(xpfSUPPORT_FILTER_NUL == 1)
-	if (cChr == 0) return ;
+	if (cChr == 0)
+		return iRV;
 #endif
 	if (psXPC->f.maxlen == 0 || psXPC->f.curlen < psXPC->f.maxlen) {
 		if (psXPC->handler(psXPC, cChr) == cChr) psXPC->f.curlen++ ;	// adjust count
@@ -89,27 +90,25 @@ void	vPrintChar(xpc_t * psXPC, char cChr) {
 }
 
 /**
- * xPrintChars()
- * \brief	perform a RAW string output to the selected "stream"
- * \brief	Does not perform ANY padding, justification or length checking
- * \param	psXPC - pointer to structure controlling the operation
+ * @brief	perform a RAW string output to the selected "stream"
+ * @brief	Does not perform ANY padding, justification or length checking
+ * @param	psXPC - pointer to structure controlling the operation
  * 			string - pointer to the string to be output
- * \return	number of ACTUAL characters output.
+ * @return	number of ACTUAL characters output.
  */
-int	xPrintChars (xpc_t * psXPC, char * pStr) {
+static int xPrintChars (xpc_t * psXPC, char * pStr) {
 	int len ;
 	for (len = 0; *pStr; vPrintChar(psXPC, *pStr++), ++len) ;
 	return len ;
 }
 
 /**
- * vPrintString
- * \brief	perform formatted output of a string to the preselected device/string/buffer/file
- * \param	psXPC - pointer to structure controlling the operation
+ * @brief	perform formatted output of a string to the preselected device/string/buffer/file
+ * @param	psXPC - pointer to structure controlling the operation
  * 			string - pointer to the string to be output
- * \return	number of ACTUAL characters output.
+ * @return	number of ACTUAL characters output.
  */
-void	vPrintString (xpc_t * psXPC, char * pStr) {
+void vPrintString (xpc_t * psXPC, char * pStr) {
 	// determine natural or limited length of string
 	int	Len ;
 	if (psXPC->f.arg_prec && psXPC->f.arg_width && psXPC->f.precis < psXPC->f.minwid) {
@@ -135,13 +134,12 @@ void	vPrintString (xpc_t * psXPC, char * pStr) {
 }
 
 /**
- * cPrintNibbleToChar()
- * \brief		returns a pointer to the hexadecimal character representing the value of the low order nibble
+ * @brief		returns a pointer to the hexadecimal character representing the value of the low order nibble
  * 				Based on the Flag, the pointer will be adjusted for UpperCase (if required)
- * \param[in]	Val = value in low order nibble, to be converted
- * \return		pointer to the correct character
+ * @param[in]	Val = value in low order nibble, to be converted
+ * @return		pointer to the correct character
  */
-char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
+char cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
 	char cChr = hexchars[Value] ;
 	if (psXPC->f.Ucase == 0 && Value > 9)
 		cChr += 0x20 ;									// convert to lower case
@@ -150,12 +148,12 @@ char	cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
 
 /**
  * xPrintXxx() convert uint64_t value to a formatted string (right to left, L <- R)
- * \param	psXPC - pointer to control structure
+ * @param	psXPC - pointer to control structure
  * 			ullVal - uint64_t value to convert & output
  * 			pBuffer - pointer to buffer for converted string storage
  * 			BufSize - available (remaining) space in buffer
- * \return	number of actual characters output (incl leading '-' and/or ' ' and/or '0' as possibly added)
- * \comment		Honour & interpret the following modifier flags
+ * @return	number of actual characters output (incl leading '-' and/or ' ' and/or '0' as possibly added)
+ * @comment		Honour & interpret the following modifier flags
  * 				'`'		Group digits in 3 digits groups to left of decimal '.'
  * 				'-'		Left align the individual numbers between the '.'
  * 				'+'		Force a '+' or '-' sign on the left
@@ -249,7 +247,7 @@ int	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
 	return Len ;
 }
 
-void	vPrintX64(xpc_t * psXPC, uint64_t Value) {
+void vPrintX64(xpc_t * psXPC, uint64_t Value) {
 	char 	Buffer[xpfMAX_LEN_X64] ;
 	Buffer[xpfMAX_LEN_X64 - 1] = 0 ;				// terminate the buffer, single value built R to L
 	int32_t Len = xPrintXxx(psXPC, Value, Buffer, xpfMAX_LEN_X64 - 1) ;
@@ -257,16 +255,15 @@ void	vPrintX64(xpc_t * psXPC, uint64_t Value) {
 }
 
 /**
- * vPrintF64()
- * \brief	convert double value based on flags supplied and output via control structure
- * \param[in]	psXPC - pointer to control structure
- * \param[in]	dbl - double value to be converted
- * \return		none
+ * @brief	convert double value based on flags supplied and output via control structure
+ * @param	psXPC - pointer to control structure
+ * @param	dbl - double value to be converted
+ * @return	none
  *
  * References:
  * 	http://git.musl-libc.org/cgit/musl/blob/src/stdio/vfprintf.c?h=v1.1.6
  */
-void	vPrintF64(xpc_t * psXPC, double F64) {
+void vPrintF64(xpc_t * psXPC, double F64) {
 	if (isnan(F64)) {
 		vPrintString(psXPC, psXPC->f.Ucase ? "NAN" : "nan") ;
 		return ;
@@ -368,63 +365,59 @@ void	vPrintF64(xpc_t * psXPC, double F64) {
 }
 
 /**
- * vPrintHexU8()
- * \brief		write char value as 2 hex chars to the buffer, always NULL terminated
- * \param[in]	psXPC - pointer to control structure
- * \param[in]	Value - unsigned byte to convert
- * return		none
+ * @brief	write char value as 2 hex chars to the buffer, always NULL terminated
+ * @param	psXPC - pointer to control structure
+ * @param	Value - unsigned byte to convert
+ * return	none
  */
-void	vPrintHexU8(xpc_t * psXPC, uint8_t Value) {
+void vPrintHexU8(xpc_t * psXPC, uint8_t Value) {
 	vPrintChar(psXPC, cPrintNibbleToChar(psXPC, Value >> 4)) ;
 	vPrintChar(psXPC, cPrintNibbleToChar(psXPC, Value & 0x0F)) ;
 }
 
 /**
- * vPrintHexU16()
- * \brief		write uint16_t value as 4 hex chars to the buffer, always NULL terminated
- * \param[in]	psXPC - pointer to control structure
- * \param[in]	Value - unsigned byte to convert
- * return		none
+ * @brief	write uint16_t value as 4 hex chars to the buffer, always NULL terminated
+ * @param	psXPC - pointer to control structure
+ * @param	Value - unsigned byte to convert
+ * return	none
  */
-void	vPrintHexU16(xpc_t * psXPC, uint16_t Value) {
+void vPrintHexU16(xpc_t * psXPC, uint16_t Value) {
 	vPrintHexU8(psXPC, (Value >> 8) & 0x000000FF) ;
 	vPrintHexU8(psXPC, Value & 0x000000FF) ;
 }
 
 /**
- * vPrintHexU32()
- * \brief		write uint32_t value as 8 hex chars to the buffer, always NULL terminated
- * \param[in]	psXPC - pointer to control structure
- * \param[in]	Value - unsigned byte to convert
- * return		none
+ * @brief	write uint32_t value as 8 hex chars to the buffer, always NULL terminated
+ * @param	psXPC - pointer to control structure
+ * @param	Value - unsigned byte to convert
+ * return	none
  */
-void	vPrintHexU32(xpc_t * psXPC, uint32_t Value) {
+void vPrintHexU32(xpc_t * psXPC, uint32_t Value) {
 	vPrintHexU16(psXPC, (Value >> 16) & 0x0000FFFF) ;
 	vPrintHexU16(psXPC, Value & 0x0000FFFF) ;
 }
 
 /**
- * vPrintHexU64()
- * \brief		write uint64_t value as 16 hex chars to the buffer, always NULL terminated
- * \param[in]	psXPC - pointer to control structure
- * \param[in]	Value - unsigned byte to convert
- * return		none
+ * @brief	write uint64_t value as 16 hex chars to the buffer, always NULL terminated
+ * @param	psXPC - pointer to control structure
+ * @param	Value - unsigned byte to convert
+ * return	none
  */
-void	vPrintHexU64(xpc_t * psXPC, uint64_t Value) {
+void vPrintHexU64(xpc_t * psXPC, uint64_t Value) {
 	vPrintHexU32(psXPC, (Value >> 32) & 0xFFFFFFFFULL) ;
 	vPrintHexU32(psXPC, Value & 0xFFFFFFFFULL) ;
 }
 
 /**
- * vPrintHexValues() - write series of char values as hex chars to the buffer, always NULL terminated
- * @param psXPC
- * @param Num		number of bytes to print
- * @param pStr		pointer to bytes to print
+ * @brief	write series of char values as hex chars to the buffer, always NULL terminated
+ * @param 	psXPC
+ * @param 	Num		number of bytes to print
+ * @param 	pStr	pointer to bytes to print
  * @comment			Use the following modifier flags
  *					'`'	select grouping separators ':' (byte) '-' (short) ' ' (word) '|' (dword)
  *					'#' via alt_form select reverse order (little vs big endian) interpretation
  */
-void	vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
+void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 	int32_t	Size = 1 << psXPC->f.size ;
 	if (psXPC->f.alt_form)								// '#' specified to invert order ?
 		pStr += Num - Size ;							// working backwards so point to last
@@ -474,12 +467,12 @@ void	vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 // ############################### Proprietary extensions to printf() ##############################
 
 /**
- * vPrintPointer() - display a 32 bit hexadecimal number as address
- * \brief		Currently 64 bit addresses not supported ...
- * \param[in]	psXPC - pointer to print control structure
- * \param[in]	uint32_t - address to be printed
- * \param[out]	psXPC - updated based on characters displayed
- * \return		none
+ * @brief	display a 32 bit hexadecimal number as address
+ * @brief	Currently 64 bit addresses not supported ...
+ * @param	psXPC - pointer to print control structure
+ * @param	uint32_t - address to be printed
+ * @param	psXPC - updated based on characters displayed
+ * @return	none
  */
 void vPrintPointer(xpc_t * psXPC, void * pVoid) {
 	xPrintChars(psXPC, (char *) "0x") ;
@@ -688,14 +681,14 @@ void vPrintURL(xpc_t * psXPC, char * pStr) {
 
 /**
  * vPrintHexDump()
- * \brief		Dumps a block of memory in debug style format. depending on options output can be
+ * @brief		Dumps a block of memory in debug style format. depending on options output can be
  * 				formatted as 8/16/32 or 64 bit variables, optionally with no, absolute or relative address
- * \param[in]	psXPC - pointer to print control structure
- * \param[in]	pStr - pointer to memory starting address
- * \param[in]	Len - Length/size of memory buffer to display
- * \param[out]	none
- * \return		none
- * \comment		Use the following modifier flags
+ * @param[in]	psXPC - pointer to print control structure
+ * @param[in]	pStr - pointer to memory starting address
+ * @param[in]	Len - Length/size of memory buffer to display
+ * @param[out]	none
+ * @return		none
+ * @comment		Use the following modifier flags
  *				'`'		Grouping of values using ' ' '-' or '|' as separators
  * 				'!'		Use relative address format
  * 				'#'		Use absolute address format
@@ -731,19 +724,20 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 			}
 			vPrintChar(psXPC, ' ') ;
 		}
-		if ((Now < xLen) && (xLen > xpfHEXDUMP_WIDTH)) xPrintChars(psXPC, (char *) "\n");
+		if ((Now < xLen) && (xLen > xpfHEXDUMP_WIDTH))
+			xPrintChars(psXPC, (char *) "\n");
 	}
 }
 
 /**
  * vPrintBinary()
- * \brief		convert unsigned 32/64 bit value to 1/0 ASCI string
+ * @brief		convert unsigned 32/64 bit value to 1/0 ASCI string
  * 				field width specifier is applied as mask starting from LSB to MSB
- * \param[in]	psXPC - pointer to print control structure
- * \param[in]	ullVal - 64bit value to convert to binary string & display
- * \param[out]	none
- * \return		none
- * \comment		Honour & interpret the following modifier flags
+ * @param[in]	psXPC - pointer to print control structure
+ * @param[in]	ullVal - 64bit value to convert to binary string & display
+ * @param[out]	none
+ * @return		none
+ * @comment		Honour & interpret the following modifier flags
  * 				'`'		Group digits using '|' (bytes) and '-' (nibbles)
  */
 void vPrintBinary(xpc_t * psXPC, uint64_t ullVal) {
@@ -768,12 +762,12 @@ void vPrintBinary(xpc_t * psXPC, uint64_t ullVal) {
 
 /**
  * vPrintIpAddress()
- * \brief		Print DOT formatted IP address to destination
- * \param[in]	psXPC - pointer to output & format control structure
+ * @brief		Print DOT formatted IP address to destination
+ * @param[in]	psXPC - pointer to output & format control structure
  * 				Val - IP address value in HOST format !!!
- * \param[out]	none
- * \return		none
- * \comment		Used the following modifier flags
+ * @param[out]	none
+ * @return		none
+ * @comment		Used the following modifier flags
  * 				'!'		Invert the LSB normal MSB byte order (Network <> Host related)
  * 				'-'		Left align the individual numbers between the '.'
  * 				'0'		Zero pad the individual numbers between the '.'
@@ -826,17 +820,18 @@ void vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
 
 /* ################################# The HEART of the PRINTFX matter ###############################
  * PrintFX - common routine for formatted print functionality
- * \brief	parse the format string and interpret the conversions, flags and modifiers
+ * @brief	parse the format string and interpret the conversions, flags and modifiers
  * 			extract the parameters variables in correct type format
  * 			call the correct routine(s) to perform conversion, formatting & output
- * \param	psXPC - pointer to structure containing formatting and output destination info
+ * @param	psXPC - pointer to structure containing formatting and output destination info
  * 			format - pointer to the formatting string
  * 			vArgs - variable number of arguments
- * \return	void (other than updated info in the original structure passed by reference
+ * @return	void (other than updated info in the original structure passed by reference
  */
 
 int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
-	if (fmt == NULL) return 0;
+	if (fmt == NULL)
+		return 0;
 	for (; *fmt != 0; ++fmt) {
 	// start by expecting format indicator
 		if (*fmt == '%') {
@@ -844,7 +839,8 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 			psXPC->f.limits	= 0 ;						// reset field specific limits
 			psXPC->f.nbase	= BASE10 ;					// default number base
 			++fmt ;
-			if (*fmt == 0) break;
+			if (*fmt == 0)
+				break;
 			/* In order for the optional modifiers to work correctly, especially in cases such as HEXDUMP
 			 * the modifiers MUST be in correct sequence of interpretation being [ ! # ' * + - % 0 ] */
 			int	cFmt ;
@@ -1022,14 +1018,16 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vArgs) {
 				}
 				X32.u32 = xTimeStampAsSeconds(x64Val.u64) ;
 				xTimeGMTime(X32.u32, &sTM, psXPC->f.rel_val) ;
-				if (psXPC->f.rel_val == 0) psXPC->f.pad0 = 1;
+				if (psXPC->f.rel_val == 0)
+					psXPC->f.pad0 = 1;
 				if (psXPC->f.rel_val == 0 || sTM.tm_mday) {
 					uint32_t limits = psXPC->f.limits ;
 					vPrintDate(psXPC, &sTM) ;
 					psXPC->f.limits = limits ;
 				}
 				vPrintTime(psXPC, &sTM, (uint32_t) (x64Val.u64 % MICROS_IN_SECOND)) ;
-				if (psXPC->f.rel_val == 0) vPrintChar(psXPC, 'Z');
+				if (psXPC->f.rel_val == 0)
+					vPrintChar(psXPC, 'Z');
 				break ;
 #endif
 
@@ -1172,18 +1170,21 @@ int	xprintfx(int (Hdlr)(xpc_t *, int), void * pVoid, size_t szBuf, const char * 
 // ##################################### Destination = STRING ######################################
 
 int	xPrintToString(xpc_t * psXPC, int cChr) {
-	if (psXPC->pStr) *psXPC->pStr++ = cChr;
+	if (psXPC->pStr)
+		*psXPC->pStr++ = cChr;
 	return cChr ;
 }
 
 int vsnprintfx(char * pBuf, size_t szBuf, const char * format, va_list vArgs) {
-	if (szBuf == 1) {									// no space ?
-		if (pBuf) *pBuf = 0 ;							// yes, terminate
+	if (szBuf == 1) {									// any "real" space ?
+		if (pBuf)										// no, buffer supplied?
+			*pBuf = 0 ;									// yes, terminate
 		return 0 ; 										// & return
 	}
 	int iRV = xprintfx(xPrintToString, pBuf, szBuf, format, vArgs) ;
-	if (pBuf) {											// Buffer specified ?
-		if (iRV == szBuf) --iRV ;						// make space for terminator
+	if (pBuf) {											// buffer specified ?
+		if (iRV == szBuf) 								// yes, but full?
+			--iRV ;										// make space for terminator
 		pBuf[iRV] = 0 ;									// terminate
 	}
 	return iRV ;
