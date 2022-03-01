@@ -102,7 +102,11 @@ static int vPrintChar(xpc_t * psXPC, char cChr) {
  */
 static int xPrintChars (xpc_t * psXPC, char * pStr) {
 	int len ;
-	for (len = 0; *pStr; vPrintChar(psXPC, *pStr++), ++len) ;
+	for (len = 0; *pStr; ++len, ++pStr) {
+		int iRV = vPrintChar(psXPC, *pStr);
+		if (iRV != *pStr)
+			return iRV;
+	}
 	return len ;
 }
 
