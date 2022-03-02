@@ -25,24 +25,24 @@ extern unsigned long long RunTime ;
 #define	_T_(f)						"%!.R: " f "", RunTime
 #define	_TL_(f)						"%!.R: %s:%d " f "", RunTime, __FUNCTION__, __LINE__
 
-#define	TL(f, ...)					printfx(_L_(f), ##__VA_ARGS__)
-#define	TT(f, ...)					printfx(_T_(f), ##__VA_ARGS__)
-#define	TTL(f, ...)					printfx(_TL_(f), ##__VA_ARGS__)
+#define	PRINT(f, ...)				printfx(f, ##__VA_ARGS__)
+#define	PL(f, ...)					printfx(_L_(f), ##__VA_ARGS__)
+#define	PT(f, ...)					printfx(_T_(f), ##__VA_ARGS__)
+#define	PTL(f, ...)					printfx(_TL_(f), ##__VA_ARGS__)
+
+#define	IF_PL(T, f, ...)			if (T) PL(f, ##__VA_ARGS__)
+#define	IF_PT(T, f, ...)			if (T) PT(f, ##__VA_ARGS__)
+#define	IF_PTL(T, f, ...)			if (T) PTL(f, ##__VA_ARGS__)
+
 // Using ROM based esp_rom_printf
 #define	RP(f, ...)					esp_rom_printf(f, ##__VA_ARGS__)
 #define	RL(f, ...)					esp_rom_printf(_L_(f), ##__VA_ARGS__)
 
-#define	IF_TL(T, f, ...)			if (T) TL(f, ##__VA_ARGS__)
-#define	IF_TT(T, f, ...)			if (T) TT(f, ##__VA_ARGS__)
-#define	IF_TTL(T, f, ...)			if (T) TTL(f, ##__VA_ARGS__)
-// Using ROM based esp_rom_printf
 #define	IF_RP(T, f, ...)			if (T) RP(f, ##__VA_ARGS__)
 #define	IF_RL(T, f, ...)			if (T) RL(f, ##__VA_ARGS__)
 
-#define	PRINT(f, ...)				printfx(f, ##__VA_ARGS__)
-#define	CPRINT(f, ...)				cprintfx(f, ##__VA_ARGS__)
 
-#define	IF_PRINT(T, f, ...)			if (T) PRINT(f, ##__VA_ARGS__)
+#define	IF_P(T, f, ...)				if (T) PRINT(f, ##__VA_ARGS__)
 
 // ###################### control functionality included in xprintf.c ##############################
 

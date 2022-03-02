@@ -83,7 +83,7 @@ static int vPrintChar(xpc_t * psXPC, char cChr) {
 #if 	(xpfSUPPORT_FILTER_NUL == 1)
 	if (cChr == 0)
 		return iRV;
-#endif
+	#endif
 	if ((psXPC->f.maxlen == 0) || (psXPC->f.curlen < psXPC->f.maxlen)) {
 		iRV = psXPC->handler(psXPC, cChr);
 		if (iRV == cChr) {
@@ -172,7 +172,7 @@ int	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
 	int	Len = 0, Count = 0, iTemp = 0 ;
 	char * pTemp = pBuffer + BufSize - 1 ;				// Point to last space in buffer
 	if (ullVal) {
-#if		(xpfSUPPORT_SCALING == 1)
+		#if	(xpfSUPPORT_SCALING == 1)
 		uint8_t	ScaleChr = 0 ;
 		if (psXPC->f.alt_form) {
 			if (ullVal > 10000000000000000000ULL) {
@@ -202,7 +202,7 @@ int	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
 				++Len ;
 			}
 		}
-#endif
+		#endif
 		// convert to string starting at end of buffer from Least (R) to Most (L) significant digits
 		while (ullVal) {
 			iTemp	= ullVal % psXPC->f.nbase ;			// calculate the next remainder ie digit
@@ -258,7 +258,7 @@ int	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
 void vPrintX64(xpc_t * psXPC, uint64_t Value) {
 	char 	Buffer[xpfMAX_LEN_X64] ;
 	Buffer[xpfMAX_LEN_X64 - 1] = 0 ;				// terminate the buffer, single value built R to L
-	int32_t Len = xPrintXxx(psXPC, Value, Buffer, xpfMAX_LEN_X64 - 1) ;
+	int Len = xPrintXxx(psXPC, Value, Buffer, xpfMAX_LEN_X64 - 1) ;
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_X64 - 1 - Len)) ;
 }
 
@@ -606,16 +606,13 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 
 	} else {											// TZ info available & '+x:xx(???)' format requested
 		#if	(timexTZTYPE_SELECTED == timexTZTYPE_RFC5424)
-		Buffer[Len++] = '(';
 		psXPC->f.signval = 1;							// TZ hours offset is a signed value
 		psXPC->f.plus = 1;								// force display of sign
-//		RP("tz=%d  ", psTSZ->pTZ->timezone);
 		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer+Len, psXPC->f.minwid = 3);
 		Buffer[Len++] = psXPC->f.form ? 'h' : ':';
 		psXPC->f.signval = 0;							// TZ offset minutes unsigned
 		psXPC->f.plus  = 0;
 		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer+Len, psXPC->f.minwid = 2);
-		Buffer[Len++]	= ')';
 
 		#elif (timexTZTYPE_SELECTED == timexTZTYPE_POINTER)
 		psXPC->f.signval	= 1 ;						// TZ hours offset is a signed value
@@ -648,7 +645,7 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 		// Now handle the TZ name if there, check to ensure max 4 chars all UCase
 		if (xstrverify(&psTSZ->pTZ->tzname[0], 'A', 'Z', configTIME_MAX_LEN_TZNAME) == erSUCCESS) {
 			Buffer[Len++]	= '(' ;
-		// then complete with the TZ name
+			// then complete with the TZ name
 			psXPC->f.minwid = 0 ;
 			while ((psXPC->f.minwid < configTIME_MAX_LEN_TZNAME) &&
 					(psTSZ->pTZ->tzname[psXPC->f.minwid] != 0) &&
@@ -725,12 +722,12 @@ void vPrintURL(xpc_t * psXPC, char * pStr) {
  */
 void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 	for (int Now = 0; Now < xLen; Now += xpfHEXDUMP_WIDTH) {
-#if		(xpfSUPPORT_POINTER == 1)
+		#if	(xpfSUPPORT_POINTER == 1)
 		if (psXPC->f.ljust == 0) {						// display absolute or relative address
 			vPrintPointer(psXPC, psXPC->f.rel_val ? (void *) Now : (void *)(pStr + Now)) ;
 			xPrintChars(psXPC, (char *) ": ") ;
 		}
-#endif
+		#endif
 		// then the actual series of values in 8-32 bit groups
 		int Width = (xLen - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : xLen - Now ;
 		vPrintHexValues(psXPC, Width, pStr + Now) ;
@@ -973,12 +970,12 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 
 			x64_t	x64Val ;							// default x64 variable
 			px_t	px ;
-#if		(xpfSUPPORT_DATETIME == 1)
+			#if	(xpfSUPPORT_DATETIME == 1)
 			tsz_t * psTSZ ;
 			struct tm sTM;
-#endif
+			#endif
 			switch (cFmt) {
-#if		(xpfSUPPORT_SGR == 1)
+			#if	(xpfSUPPORT_SGR == 1)
 			/* XXX: Since we are using the same command handler to process (UART, HTTP & TNET)
 			 * requests, and we are embedding colour ESC sequences into the formatted output,
 			 * and the colour ESC sequences (handled by UART & TNET) are not understood by
@@ -988,22 +985,22 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 			case CHR_C:
 				vPrintSetGraphicRendition(psXPC, va_arg(vaList, uint32_t)) ;
 				break ;
-#endif
+			#endif
 
-#if		(xpfSUPPORT_IP_ADDR == 1)						// IP address
+			#if	(xpfSUPPORT_IP_ADDR == 1)						// IP address
 			case CHR_I:
 				vPrintIpAddress(psXPC, va_arg(vaList, uint32_t)) ;
 				break ;
-#endif
+			#endif
 
-#if		(xpfSUPPORT_BINARY == 1)
+			#if	(xpfSUPPORT_BINARY == 1)
 			case CHR_J:
 				x64Val.u64 = psXPC->f.llong ? va_arg(vaList, uint64_t) : (uint64_t) va_arg(vaList, uint32_t) ;
 				vPrintBinary(psXPC, x64Val.u64) ;
 				break ;
-#endif
+			#endif
 
-#if		(xpfSUPPORT_DATETIME == 1)
+			#if	(xpfSUPPORT_DATETIME == 1)
 			/* Prints date and/or time in POSIX format
 			 * Use the following modifier flags
 			 *	'`'		select between 2 different separator sets being
@@ -1057,17 +1054,17 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 				if (psXPC->f.rel_val == 0)
 					vPrintChar(psXPC, 'Z');
 				break ;
-#endif
+			#endif
 
-#if		(xpfSUPPORT_URL == 1)							// para = pointer to string to be encoded
+			#if	(xpfSUPPORT_URL == 1)							// para = pointer to string to be encoded
 			case CHR_U:
 				px.pc8	= va_arg(vaList, char *) ;
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(px.pc8)) ;
 				vPrintURL(psXPC, px.pc8) ;
 				break ;
-#endif
+			#endif
 
-#if		(xpfSUPPORT_HEXDUMP == 1)
+			#if	(xpfSUPPORT_HEXDUMP == 1)
 			case CHR_B:									// HEXDUMP 8bit sized
 			case CHR_H:									// HEXDUMP 16bit sized
 			case CHR_W:									// HEXDUMP 32bit sized
@@ -1082,9 +1079,9 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(px.pc8)) ;
 				vPrintHexDump(psXPC, X32.i32, px.pc8) ;
 				break ;
-#endif
+			#endif
 
-#if		(xpfSUPPORT_MAC_ADDR == 1)
+			#if	(xpfSUPPORT_MAC_ADDR == 1)
 			/* Formats 6 byte string (0x00 is valid) as a series of hex characters.
 			 * default format uses no separators eg. '0123456789AB'
 			 * Support the following modifier flags:
@@ -1099,7 +1096,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(px.pc8)) ;
 				vPrintHexValues(psXPC, lenMAC_ADDRESS, px.pc8) ;
 				break ;
-#endif
+			#endif
 
 			case CHR_c:
 				vPrintChar(psXPC, va_arg(vaList, int)) ;
@@ -1126,7 +1123,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 				vPrintX64(psXPC, x64Val.u64) ;
 				break ;
 
-#if		(xpfSUPPORT_IEEE754 == 1)
+			#if	(xpfSUPPORT_IEEE754 == 1)
 			case CHR_e:									// form = 2
 				psXPC->f.form++ ;
 				/* FALLTHRU */ /* no break */
@@ -1147,14 +1144,14 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 				}
 				vPrintF64(psXPC, va_arg(vaList, double));
 				break ;
-#endif
+			#endif
 
-#if		(xpfSUPPORT_POINTER == 1)						// pointer value UC/lc
+			#if	(xpfSUPPORT_POINTER == 1)						// pointer value UC/lc
 			case CHR_p:
 				// Does cause crash if pointer not currently mapped
 				vPrintPointer(psXPC, va_arg(vaList, void *)) ;
 				break ;
-#endif
+			#endif
 
 			case CHR_s:
 				px.pv = va_arg(vaList, char *) ;
@@ -1245,18 +1242,12 @@ static SemaphoreHandle_t printfxMux = NULL ;
 /**
  * Locks the STDOUT semaphore and sets the status/tracking flag
  */
-void printfx_lock(void) {
-	xRtosSemaphoreTake(&printfxMux, portMAX_DELAY);
-	setSYSFLAGS(sfPRINTFX);
-}
+void printfx_lock(void) { xRtosSemaphoreTake(&printfxMux, portMAX_DELAY); }
 
 /**
  * Unlock the STDOUT semaphore and clears the status/tracking flag
  */
-void printfx_unlock(void) {
-	clrSYSFLAGS(sfPRINTFX);
-	xRtosSemaphoreGive(&printfxMux);
-}
+void printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux); }
 
 int xPrintStdOut(xpc_t * psXPC, int cChr) {
 #if	defined(ESP_PLATFORM)
@@ -1269,12 +1260,13 @@ int xPrintStdOut(xpc_t * psXPC, int cChr) {
 int vnprintfx(size_t szLen, const char * format, va_list vaList) {
 	printfx_lock();
 	int iRV = xprintfx(xPrintStdOut, NULL, szLen, format, vaList) ;
-//	int iRV = xprintfx(xPrintStdOut, stdout, szLen, format, vaList) ;
 	printfx_unlock() ;
 	return iRV ;
 }
 
-int vprintfx(const char * format, va_list vaList) { return vnprintfx(xpfMAXLEN_MAXVAL, format, vaList); }
+int vprintfx(const char * format, va_list vaList) {
+	return vnprintfx(xpfMAXLEN_MAXVAL, format, vaList);
+}
 
 int nprintfx(size_t szLen, const char * format, ...) {
 	va_list vaList ;
@@ -1296,15 +1288,19 @@ int printfx(const char * format, ...) {
  * [v[n]]printfx_nolock() - print to stdout without any semaphore locking.
  * 					securing the channel must be done manually
  */
-int vnprintfx_nolock(size_t szLen, const char * format, va_list vArgs) {
-	return xprintfx(xPrintStdOut, stdout, szLen, format, vArgs);
+int vnprintfx_nolock(size_t szLen, const char * format, va_list vaList) {
+	return xprintfx(xPrintStdOut, NULL, szLen, format, vaList);
+}
+
+int vprintfx_nolock(const char * format, va_list vaList) {
+	return xprintfx(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
 }
 
 int printfx_nolock(const char * format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	int iRV = xprintfx(xPrintStdOut, stdout, xpfMAXLEN_MAXVAL, format, vArgs) ;
-	va_end(vArgs) ;
+	va_list vaList;
+	va_start(vaList, format);
+	int iRV = xprintfx(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList) ;
+	va_end(vaList) ;
 	return iRV ;
 }
 
