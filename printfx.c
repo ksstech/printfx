@@ -80,7 +80,7 @@ static	const double round_nums[xpfMAXIMUM_DECIMALS+1] = {
  */
 static int vPrintChar(xpc_t * psXPC, char cChr) {
 	int iRV = cChr;
-#if 	(xpfSUPPORT_FILTER_NUL == 1)
+	#if (xpfSUPPORT_FILTER_NUL == 1)
 	if (cChr == 0)
 		return iRV;
 	#endif
