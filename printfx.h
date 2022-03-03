@@ -25,11 +25,12 @@ extern unsigned long long RunTime ;
 #define	_T_(f)						"%!.R: " f "", RunTime
 #define	_TL_(f)						"%!.R: %s:%d " f "", RunTime, __FUNCTION__, __LINE__
 
-#define	PRINT(f, ...)				printfx(f, ##__VA_ARGS__)
+#define	P(f, ...)					printfx(f, ##__VA_ARGS__)
 #define	PL(f, ...)					printfx(_L_(f), ##__VA_ARGS__)
 #define	PT(f, ...)					printfx(_T_(f), ##__VA_ARGS__)
 #define	PTL(f, ...)					printfx(_TL_(f), ##__VA_ARGS__)
 
+#define	IF_P(T, f, ...)				if (T) P(f, ##__VA_ARGS__)
 #define	IF_PL(T, f, ...)			if (T) PL(f, ##__VA_ARGS__)
 #define	IF_PT(T, f, ...)			if (T) PT(f, ##__VA_ARGS__)
 #define	IF_PTL(T, f, ...)			if (T) PTL(f, ##__VA_ARGS__)
@@ -40,9 +41,6 @@ extern unsigned long long RunTime ;
 
 #define	IF_RP(T, f, ...)			if (T) RP(f, ##__VA_ARGS__)
 #define	IF_RL(T, f, ...)			if (T) RL(f, ##__VA_ARGS__)
-
-
-#define	IF_P(T, f, ...)				if (T) PRINT(f, ##__VA_ARGS__)
 
 // ###################### control functionality included in xprintf.c ##############################
 
