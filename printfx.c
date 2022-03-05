@@ -1222,7 +1222,12 @@ int snprintfx(char * pBuf, size_t szBuf, const char * format, ...) {
 	va_end(vaList) ;
 	return iRV ;
 }
+#if (buildNEW_CODE == 1)
 
+#define vsprintfx(pBuf,format,vaList)	vsnprintfx(pBuf,xpfMAXLEN_MAXVAL,format,vaList)
+#define sprintfx(pBuf,format,...)		snprintfx(pBuf,xpfMAXLEN_MAXVAL,format,##__VA_ARGS__)
+
+#else
 int vsprintfx(char * pBuf, const char * format, va_list vaList) {
 	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList) ;
 }
@@ -1264,8 +1269,6 @@ int vnprintfx(size_t szLen, const char * format, va_list vaList) {
 	return iRV ;
 }
 
-int vprintfx(const char * format, va_list vaList) {
-	return vnprintfx(xpfMAXLEN_MAXVAL, format, vaList);
 }
 
 int nprintfx(size_t szLen, const char * format, ...) {
@@ -1274,6 +1277,11 @@ int nprintfx(size_t szLen, const char * format, ...) {
 	int iRV = vnprintfx(szLen, format, vaList) ;
 	va_end(vaList) ;
 	return iRV ;
+int vprintfx(const char * format, va_list vaList) {
+	printfx_lock();
+	int iRV = xprintfx(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
+	printfx_unlock();
+	return iRV;
 }
 
 int printfx(const char * format, ...) {
