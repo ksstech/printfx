@@ -1218,9 +1218,9 @@ int vsnprintfx(char * pBuf, size_t szBuf, const char * format, va_list vaList) {
 int snprintfx(char * pBuf, size_t szBuf, const char * format, ...) {
 	va_list vaList ;
 	va_start(vaList, format) ;
-	int count = vsnprintfx(pBuf, szBuf, format, vaList) ;
+	int iRV = vsnprintfx(pBuf, szBuf, format, vaList) ;
 	va_end(vaList) ;
-	return count ;
+	return iRV ;
 }
 
 int vsprintfx(char * pBuf, const char * format, va_list vaList) {
@@ -1230,11 +1230,11 @@ int vsprintfx(char * pBuf, const char * format, va_list vaList) {
 int sprintfx(char * pBuf, const char * format, ...) {
 	va_list	vaList ;
 	va_start(vaList, format) ;
-	int count = vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList) ;
+	int iRV = vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList) ;
 	va_end(vaList) ;
-	return count ;
+	return iRV ;
 }
-
+#endif
 // ################################### Destination = STDOUT ########################################
 
 static SemaphoreHandle_t printfxMux = NULL ;
@@ -1251,7 +1251,7 @@ void printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux); }
 
 int xPrintStdOut(xpc_t * psXPC, int cChr) {
 #if	defined(ESP_PLATFORM)
-	return putcharX(cChr, configSTDIO_UART_CHAN) ;
+	return putcharX(cChr, configSTDIO_UART_CHAN);
 #else
 	return putchar(cChr) ;
 #endif
@@ -1259,8 +1259,8 @@ int xPrintStdOut(xpc_t * psXPC, int cChr) {
 
 int vnprintfx(size_t szLen, const char * format, va_list vaList) {
 	printfx_lock();
-	int iRV = xprintfx(xPrintStdOut, NULL, szLen, format, vaList) ;
-	printfx_unlock() ;
+	int iRV = xprintfx(xPrintStdOut, NULL, szLen, format, vaList);
+	printfx_unlock();
 	return iRV ;
 }
 
@@ -1277,12 +1277,14 @@ int nprintfx(size_t szLen, const char * format, ...) {
 }
 
 int printfx(const char * format, ...) {
-	va_list vaList ;
-	va_start(vaList, format) ;
 	int iRV = vnprintfx(xpfMAXLEN_MAXVAL, format, vaList) ;
-	va_end(vaList) ;
-	return iRV ;
+	va_list vaList;
+	va_start(vaList, format);
+	va_end(vaList);
+	return iRV;
 }
+
+#endif
 
 /*
  * [v[n]]printfx_nolock() - print to stdout without any semaphore locking.
@@ -1411,7 +1413,9 @@ int devprintfx(int (* Hdlr)(int ), const char * format, ...) {
 
 int	xPrintToSocket(xpc_t * psXPC, int cChr) {
 	char cBuf = cChr ;
-	if (xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf))) return EOF ;
+	int iRV = xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf));
+	if (iRV != sizeof(cBuf))
+		return iRV;
 	return cChr ;
 }
 
@@ -1446,6 +1450,7 @@ int	uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 	va_end(vaList) ;
 	return count ;
 }
+#endif		// ESP_PLATFORM
 
 // #################################### Destination : CRC32 ########################################
 
@@ -1460,17 +1465,16 @@ static int xPrintToCRC32(xpc_t * psXPC, int cChr) {
 }
 
 int	vcrcprintfx(unsigned int * pU32, const char * format, va_list vaList) {
-	return xprintfx(xPrintToCRC32, pU32, xpfMAXLEN_MAXVAL, format, vaList) ;
+	return xprintfx(xPrintToCRC32, pU32, xpfMAXLEN_MAXVAL, format, vaList);
 }
 
 int	crcprintfx(unsigned int * pU32, const char * format, ...) {
-	va_list	vaList ;
-	va_start(vaList, format) ;
 	int count = vcrcprintfx(pU32, format, vaList) ;
-	va_end(vaList) ;
-	return count ;
+	va_list	vaList;
+	va_start(vaList, format);
+	va_end(vaList);
+	return count;
 }
-#endif		// ESP_PLATFORM
 
 // ############################# Aliases for NEW/STDLIB supplied functions #########################
 
@@ -1484,7 +1488,8 @@ int	crcprintfx(unsigned int * pU32, const char * format, ...) {
  *
  * 	Alternative is to ensure that the printfx.obj is specified at the start to be linked with !!
  */
-#if		(xpfSUPPORT_ALIASES == 1)
+
+#if (xpfSUPPORT_ALIASES == 1)
 	int	printf(const char * format, ...) __attribute__((alias("printfx"), unused)) ;
 	int	printf_r(const char * format, ...) __attribute__((alias("printfx"), unused)) ;
 
