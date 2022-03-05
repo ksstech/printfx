@@ -1277,9 +1277,11 @@ int nprintfx(size_t szLen, const char * format, ...) {
 }
 
 int printfx(const char * format, ...) {
-	int iRV = vnprintfx(xpfMAXLEN_MAXVAL, format, vaList) ;
 	va_list vaList;
 	va_start(vaList, format);
+	printfx_lock();
+	int iRV = xprintfx(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
+	printfx_unlock();
 	va_end(vaList);
 	return iRV;
 }
@@ -1327,7 +1329,7 @@ int	wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
 			*pSize	-= iRV ;
 		}
 	} else {
-		iRV = vnprintfx_nolock(xpfMAXLEN_MAXVAL, pcFormat, vaList) ;
+		iRV = xprintfx(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, pcFormat, vaList) ;
 	}
 	va_end(vaList) ;
 	return iRV ;
@@ -1344,7 +1346,7 @@ int vfprintfx(FILE * stream, const char * format, va_list vaList) {
 int fprintfx(FILE * stream, const char * format, ...) {
 	va_list vaList ;
 	va_start(vaList, format) ;
-	int count = vfprintfx(stream, format, vaList) ;
+	int count = xprintfx(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vaList) ;
 	va_end(vaList) ;
 	return count ;
 }
@@ -1364,7 +1366,7 @@ int	vdprintfx(int fd, const char * format, va_list vaList) {
 int	dprintfx(int fd, const char * format, ...) {
 	va_list	vaList ;
 	va_start(vaList, format) ;
-	int count = vdprintfx(fd, format, vaList) ;
+	int count = xprintfx(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vaList) ;
 	va_end(vaList) ;
 	return count ;
 }
@@ -1386,7 +1388,9 @@ int vcprintfx(const char * format, va_list vaList) {
 int cprintfx(const char * format, ...) {
 	va_list vaList ;
 	va_start(vaList, format) ;
-	int iRV = vcprintfx(format, vaList) ;
+	printfx_lock();
+	int iRV = xprintfx(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vaList) ;
+	printfx_unlock();
 	va_end(vaList) ;
 	return iRV ;
 }
@@ -1419,20 +1423,23 @@ int	xPrintToSocket(xpc_t * psXPC, int cChr) {
 	return cChr ;
 }
 
-	int	Fsav	= psSock->flags ;
-	psSock->flags	|= MSG_MORE ;
-	psSock->flags	= Fsav ;
 int vsocprintfx(netx_t * psSock, const char * format, va_list vaList) {
+	int	Fsav = psSock->flags;
+	psSock->flags |= MSG_MORE ;
 	int iRV = xprintfx(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vaList) ;
+	psSock->flags = Fsav ;
 	return (psSock->error == 0) ? iRV : erFAILURE ;
 }
 
 int socprintfx(netx_t * psSock, const char * format, ...) {
+	int	Fsav = psSock->flags;
+	psSock->flags |= MSG_MORE ;
 	va_list vaList ;
 	va_start(vaList, format) ;
-	int count = vsocprintfx(psSock, format, vaList) ;
+	int iRV = xprintfx(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vaList) ;
 	va_end(vaList) ;
-	return count ;
+	psSock->flags = Fsav ;
+	return (psSock->error == 0) ? iRV : erFAILURE ;
 }
 
 // #################################### Destination : UBUF #########################################
@@ -1469,9 +1476,9 @@ int	vcrcprintfx(unsigned int * pU32, const char * format, va_list vaList) {
 }
 
 int	crcprintfx(unsigned int * pU32, const char * format, ...) {
-	int count = vcrcprintfx(pU32, format, vaList) ;
 	va_list	vaList;
 	va_start(vaList, format);
+	int count = xprintfx(xPrintToCRC32, pU32, xpfMAXLEN_MAXVAL, format, vaList);
 	va_end(vaList);
 	return count;
 }
