@@ -1269,14 +1269,23 @@ int vnprintfx(size_t szLen, const char * format, va_list vaList) {
 	return iRV ;
 }
 
+int nprintfx(size_t szLen, const char * format, ...) {
+	va_list vaList;
+	va_start(vaList, format);
+	printfx_lock();
+	int iRV = xprintfx(xPrintStdOut, NULL, szLen, format, vaList);
+	printfx_unlock();
+	va_end(vaList);
+	return iRV;
 }
 
-int nprintfx(size_t szLen, const char * format, ...) {
-	va_list vaList ;
-	va_start(vaList, format) ;
-	int iRV = vnprintfx(szLen, format, vaList) ;
-	va_end(vaList) ;
-	return iRV ;
+#if (buildNEW_CODE == 1)
+
+#define vprintfx(pBuf,format,vaList)	vnprintfx(pBuf,xpfMAXLEN_MAXVAL,format,vaList)
+#define printfx(pBuf,format,...)		nprintfx(pBuf,xpfMAXLEN_MAXVAL,format,##__VA_ARGS__)
+
+#else
+
 int vprintfx(const char * format, va_list vaList) {
 	printfx_lock();
 	int iRV = xprintfx(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
