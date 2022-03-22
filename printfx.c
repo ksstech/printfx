@@ -842,8 +842,7 @@ void vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
  */
 
 int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
-	if (fmt == NULL)
-		return 0;
+	fmt = (fmt == NULL) ? "null" : (*fmt == 0) ? "empty" : fmt;
 	for (; *fmt != 0; ++fmt) {
 	// start by expecting format indicator
 		if (*fmt == '%') {
