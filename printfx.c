@@ -1248,7 +1248,7 @@ int sprintfx(char * pBuf, const char * format, ...) {
 #endif
 // ################################### Destination = STDOUT ########################################
 
-static SemaphoreHandle_t printfxMux = NULL ;
+SemaphoreHandle_t printfxMux = NULL ;
 
 /**
  * Locks the STDOUT semaphore and sets the status/tracking flag
