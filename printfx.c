@@ -606,14 +606,17 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 
 	} else {											// TZ info available & '+x:xx(???)' format requested
 		#if	(timexTZTYPE_SELECTED == timexTZTYPE_RFC5424)
-		psXPC->f.signval = 1;							// TZ hours offset is a signed value
-		psXPC->f.plus = 1;								// force display of sign
-		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer+Len, psXPC->f.minwid = 3);
-		Buffer[Len++] = psXPC->f.form ? 'h' : ':';
-		psXPC->f.signval = 0;							// TZ offset minutes unsigned
-		psXPC->f.plus  = 0;
-		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer+Len, psXPC->f.minwid = 2);
-
+		if (psXPC->f.plus) {
+			psXPC->f.signval = 1;						// TZ hours offset is a signed value
+			psXPC->f.plus = 1;							// force display of sign
+			Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer+Len, psXPC->f.minwid = 3);
+			Buffer[Len++] = psXPC->f.form ? 'h' : ':';
+			psXPC->f.signval = 0;						// TZ offset minutes unsigned
+			psXPC->f.plus  = 0;
+			Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer+Len, psXPC->f.minwid = 2);
+		} else {
+			Buffer[Len++]	= 'Z' ;						// add 'Z' for Zulu/zero time zone
+		}
 		#elif (timexTZTYPE_SELECTED == timexTZTYPE_POINTER)
 		psXPC->f.signval	= 1 ;						// TZ hours offset is a signed value
 		psXPC->f.plus		= 1 ;						// force display of sign
@@ -1023,7 +1026,10 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 				psTSZ = va_arg(vaList, tsz_t *) ;
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(psTSZ)) ;
 				psXPC->f.pad0 = 1;
-				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs) + psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
+				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs);
+				// If full local time required, add TZ and DST offsets
+				if (psXPC->f.plus && psTSZ->pTZ)
+					X32.u32 += psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
 				xTimeGMTime(X32.u32, &sTM, psXPC->f.rel_val);
 				if (cFmt == CHR_D || cFmt == CHR_Z)
 					vPrintDate(psXPC, &sTM);
