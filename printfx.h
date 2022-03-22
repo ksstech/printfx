@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "FreeRTOS_Support.h"
 #include "definitions.h"
 
 #ifdef __cplusplus
@@ -214,6 +215,7 @@ int sprintfx(char * , const char * , ...);
 
 // ##################################### Destination = STDOUT ######################################
 
+extern SemaphoreHandle_t printfxMux;
 void printfx_lock(void);
 void printfx_unlock(void);
 
