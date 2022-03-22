@@ -871,7 +871,7 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 					psXPC->f.group = 1 ;
 					break ;
 				case 3:									// '*' indicate argument will supply field width
-					X32.i32	= va_arg(vaList, int) ;
+					X32.i32	= va_arg(vaList, int);
 					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.i32 <= xpfMINWID_MAXVAL) ;
 					++fmt ;
 					psXPC->f.minwid = X32.i32 ;
@@ -1006,8 +1006,8 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 			case CHR_T:				// Local TZ time
 			case CHR_Z:				// Local TZ DATE+TIME+ZONE
 				IF_myASSERT(debugTRACK, !psXPC->f.rel_val && !psXPC->f.group);
-				psTSZ = va_arg(vaList, tsz_t *) ;
-				IF_myASSERT(debugTRACK, halCONFIG_inMEM(psTSZ)) ;
+				psTSZ = va_arg(vaList, tsz_t *);
+				IF_myASSERT(debugTRACK, halCONFIG_inMEM(psTSZ));
 				psXPC->f.pad0 = 1;
 				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs);
 				// If full local time required, add TZ and DST offsets
@@ -1018,9 +1018,8 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 					vPrintDate(psXPC, &sTM);
 				if (cFmt == CHR_T || cFmt == CHR_Z)
 					vPrintTime(psXPC, &sTM, (uint32_t)(psTSZ->usecs % MICROS_IN_SECOND));
-				if (cFmt == CHR_Z) {
+				if (cFmt == CHR_Z)
 					vPrintZone(psXPC, psTSZ);
-				}
 				break ;
 
 			case CHR_R:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
@@ -1213,9 +1212,9 @@ int snprintfx(char * pBuf, size_t szBuf, const char * format, ...) {
 }
 #if (buildNEW_CODE == 1)
 
-#define vsprintfx(pBuf,format,vaList)	vsnprintfx(pBuf,xpfMAXLEN_MAXVAL,format,vaList)
-#define sprintfx(pBuf,format,...)		snprintfx(pBuf,xpfMAXLEN_MAXVAL,format,##__VA_ARGS__)
 
+	#define vsprintfx(pBuf,format,vaList)	vsnprintfx(pBuf,xpfMAXLEN_MAXVAL,format,vaList)
+	#define sprintfx(pBuf,format,...)		snprintfx(pBuf,xpfMAXLEN_MAXVAL,format,##__VA_ARGS__)
 #else
 int vsprintfx(char * pBuf, const char * format, va_list vaList) {
 	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList) ;
