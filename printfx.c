@@ -1376,7 +1376,6 @@ int	dprintfx(int fd, const char * format, ...) {
 	return count ;
 }
 
-#if	defined(ESP_PLATFORM)
 /* ################################## Destination = UART/TELNET ####################################
  * Output directly to the [possibly redirected] stdout/UART channel
  */
@@ -1462,7 +1461,6 @@ int	uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 	va_end(vaList) ;
 	return count ;
 }
-#endif		// ESP_PLATFORM
 
 // #################################### Destination : CRC32 ########################################
 
