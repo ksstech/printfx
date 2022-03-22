@@ -1210,12 +1210,7 @@ int snprintfx(char * pBuf, size_t szBuf, const char * format, ...) {
 	va_end(vaList) ;
 	return iRV ;
 }
-#if (buildNEW_CODE == 1)
 
-
-	#define vsprintfx(pBuf,format,vaList)	vsnprintfx(pBuf,xpfMAXLEN_MAXVAL,format,vaList)
-	#define sprintfx(pBuf,format,...)		snprintfx(pBuf,xpfMAXLEN_MAXVAL,format,##__VA_ARGS__)
-#else
 int vsprintfx(char * pBuf, const char * format, va_list vaList) {
 	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList) ;
 }
@@ -1227,7 +1222,7 @@ int sprintfx(char * pBuf, const char * format, ...) {
 	va_end(vaList) ;
 	return iRV ;
 }
-#endif
+
 // ################################### Destination = STDOUT ########################################
 
 SemaphoreHandle_t printfxMux = NULL ;
@@ -1267,13 +1262,6 @@ int nprintfx(size_t szLen, const char * format, ...) {
 	return iRV;
 }
 
-#if (buildNEW_CODE == 1)
-
-#define vprintfx(pBuf,format,vaList)	vnprintfx(pBuf,xpfMAXLEN_MAXVAL,format,vaList)
-#define printfx(pBuf,format,...)		nprintfx(pBuf,xpfMAXLEN_MAXVAL,format,##__VA_ARGS__)
-
-#else
-
 int vprintfx(const char * format, va_list vaList) {
 	printfx_lock();
 	int iRV = xprintfx(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
@@ -1290,8 +1278,6 @@ int printfx(const char * format, ...) {
 	va_end(vaList);
 	return iRV;
 }
-
-#endif
 
 /*
  * [v[n]]printfx_nolock() - print to stdout without any semaphore locking.
