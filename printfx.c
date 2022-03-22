@@ -666,22 +666,6 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 	vPrintString(psXPC, Buffer) ;
 }
 
-void vPrintLocalDTZ(xpc_t * psXPC, tsz_t * psTSZ, uint8_t cFmt) {
-	struct tm sTM;
-	psXPC->f.pad0 = 1;
-	uint32_t flags = psXPC->f.flags;
-	seconds_t tSec = xTimeStampAsSeconds(psTSZ->usecs) + psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
-	xTimeGMTime(tSec, &sTM, psXPC->f.rel_val);
-	if (cFmt == CHR_D || cFmt == CHR_Z)
-		vPrintDate(psXPC, &sTM);
-	if (cFmt == CHR_T || cFmt == CHR_Z)
-		vPrintTime(psXPC, &sTM, (uint32_t)(psTSZ->usecs % MICROS_IN_SECOND));
-	if (cFmt == CHR_Z) {
-		psXPC->f.flags = flags;
-		vPrintZone(psXPC, psTSZ);
-	}
-}
-
 /**
  * vPrintURL() -
  * @param psXPC
