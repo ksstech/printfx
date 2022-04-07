@@ -3,31 +3,31 @@
  * <snf>printfx -  set of routines to replace equivalent printf functionality
  */
 
-#include	<string.h>
-#include	<stdarg.h>
-#include	<math.h>									// isnan()
-#include	<float.h>									// DBL_MIN/MAX
+#include <string.h>
+#include <stdarg.h>
+#include <math.h>									// isnan()
+#include <float.h>									// DBL_MIN/MAX
 
-#include	"printfx.h"
+#include "printfx.h"
 
-#include	"hal_config.h"
-#include	"hal_usart.h"
+#include "hal_config.h"
+#include "hal_usart.h"
 
-#include	"FreeRTOS_Support.h"
+#include "FreeRTOS_Support.h"
 
-#include	"socketsX.h"
-#include	"x_ubuf.h"
-#include	"x_string_general.h"						// xinstring function
-#include	"x_errors_events.h"
-#include	"x_terminal.h"
-#include	"x_utilities.h"
-#include	"struct_union.h"
+#include "socketsX.h"
+#include "x_ubuf.h"
+#include "x_string_general.h"						// xinstring function
+#include "x_errors_events.h"
+#include "x_terminal.h"
+#include "x_utilities.h"
+#include "struct_union.h"
 
 #ifdef ESP_PLATFORM
-	#include	"esp_log.h"
-	#include	"esp32/rom/crc.h"					// ESP32 ROM routine
+	#include "esp_log.h"
+	#include "esp32/rom/crc.h"					// ESP32 ROM routine
 #else
-	#include	"crc-barr.h"						// Barr group CRC
+	#include "crc-barr.h"						// Barr group CRC
 #endif
 
 #define	debugFLAG					0xE001
