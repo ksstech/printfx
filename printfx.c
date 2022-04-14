@@ -252,15 +252,15 @@ int	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
 			ullVal	/= psXPC->f.nbase ;
 			if (ullVal && psXPC->f.group) {				// handle digit grouping, if required
 				if ((++Count % 3) == 0) {
-					*pTemp-- = ',' ;
-					++Len ;
-					Count = 0 ;
+					*pTemp-- = ',';
+					++Len;
+					Count = 0;
 				}
 			}
 		}
 	} else {
-		*pTemp-- = '0' ;
-		Len = 1 ;
+		*pTemp-- = '0';
+		Len = 1;
 	}
 
 	// First check if ANY form of padding required
@@ -269,38 +269,41 @@ int	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
 	 * For ' ' padding format is [       -xxxxx]
 	 * whilst '0' padding it is  [-0000000xxxxx]
 	 */
-		Count = (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0 ;
+		Count = (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0;
 		// If we are padding with ' ' and leading '+' or '-' is required, do that first
 		if (psXPC->f.pad0 == 0 && (psXPC->f.negvalue || psXPC->f.plus)) {	// If a sign is required
 			*pTemp-- = psXPC->f.negvalue ? '-' : '+' ;			// start by prepend of '+' or '-'
-			--Count ;
-			++Len ;
+			--Count;
+			++Len;
 		}
 		if (Count > 0) {								// If any space left to pad
-			iTemp = psXPC->f.pad0 ? '0' : ' ' ;			// define applicable padding char
-			Len += Count ;								// Now do the actual padding
-			while (Count--) *pTemp-- = iTemp ;
+			iTemp = psXPC->f.pad0 ? '0' : ' ';			// define applicable padding char
+			Len += Count;								// Now do the actual padding
+			while (Count--)
+				*pTemp-- = iTemp;
 		}
 		// If we are padding with '0' AND a sign is required (-value or +requested), do that first
 		if (psXPC->f.pad0 && (psXPC->f.negvalue || psXPC->f.plus)) {	// If +/- sign is required
-			if (pTemp[1] == ' ' || pTemp[1] == '0') ++pTemp;	// set overwrite last with '+' or '-'
-			else ++Len;											// set to add extra '+' or '-'
+			if (pTemp[1] == ' ' || pTemp[1] == '0')
+				++pTemp;								// set overwrite last with '+' or '-'
+			else
+				++Len;									// set to add extra '+' or '-'
 			*pTemp = psXPC->f.negvalue ? '-' : '+';
 		}
 	} else {
 		if (psXPC->f.negvalue || psXPC->f.plus) {		// If a sign is required
-			*pTemp = psXPC->f.negvalue ? '-' : '+' ;	// just prepend '+' or '-'
-			++Len ;
+			*pTemp = psXPC->f.negvalue ? '-' : '+';		// just prepend '+' or '-'
+			++Len;
 		}
 	}
 	return Len ;
 }
 
 void vPrintX64(xpc_t * psXPC, uint64_t Value) {
-	char 	Buffer[xpfMAX_LEN_X64] ;
-	Buffer[xpfMAX_LEN_X64 - 1] = 0 ;				// terminate the buffer, single value built R to L
-	int Len = xPrintXxx(psXPC, Value, Buffer, xpfMAX_LEN_X64 - 1) ;
-	vPrintString(psXPC, Buffer + (xpfMAX_LEN_X64 - 1 - Len)) ;
+	char Buffer[xpfMAX_LEN_X64];
+	Buffer[xpfMAX_LEN_X64 - 1] = 0;				// terminate the buffer, single value built R to L
+	int Len = xPrintXxx(psXPC, Value, Buffer, xpfMAX_LEN_X64 - 1);
+	vPrintString(psXPC, Buffer + (xpfMAX_LEN_X64 - 1 - Len));
 }
 
 /**
@@ -467,12 +470,12 @@ void vPrintHexU64(xpc_t * psXPC, uint64_t Value) {
  *					# select reverse order (little/big endian)
  */
 void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
-	int32_t	Size = 1 << psXPC->f.size ;
+	int	Size = 1 << psXPC->f.size;
 	if (psXPC->f.alt_form)								// invert order ?
 		pStr += Num - Size ;							// working backwards so point to last
 
-	x64_t	x64Val ;
-	int32_t	Idx	= 0 ;
+	x64_t x64Val;
+	int	Idx	= 0;
 	while (Idx < Num) {
 		switch (psXPC->f.size) {
 		case 0:
@@ -573,9 +576,9 @@ int	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
 }
 
 void vPrintDate(xpc_t * psXPC, struct tm * psTM) {
-	int	Len = 0 ;
-	char Buffer[xpfMAX_LEN_DATE] ;
-	psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
+	int	Len = 0;
+	char Buffer[xpfMAX_LEN_DATE];
+	psXPC->f.form = psXPC->f.group ? form3X : form0G;
 	if (psXPC->f.alt_form) {
 		Len += xstrncpy(Buffer, xTimeGetDayName(psTM->tm_wday), 3) ;		// "Sun"
 		Len += xstrncpy(Buffer + Len, ", ", 2) ;							// "Sun, "
@@ -588,7 +591,8 @@ void vPrintDate(xpc_t * psXPC, struct tm * psTM) {
 			Len += xPrintDate_Year(psXPC, psTM, Buffer + Len) ;
 			Len += xPrintDate_Month(psXPC, psTM, Buffer + Len) ;
 		}
-		if (psTM->tm_mday || psXPC->f.pad0) Len += xPrintDate_Day(psXPC, psTM, Buffer + Len) ;
+		if (psTM->tm_mday || psXPC->f.pad0)
+			Len += xPrintDate_Day(psXPC, psTM, Buffer + Len) ;
 	}
 	Buffer[Len] = 0 ;									// converted L to R, so terminate
 	psXPC->f.limits	= 0 ;								// enable full string
@@ -759,9 +763,9 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 		// then the actual series of values in 8-32 bit groups
 		int Width = (xLen - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : xLen - Now ;
 		vPrintHexValues(psXPC, Width, pStr + Now) ;
-		if (psXPC->f.plus == 1) {						// handle values dumped as ASCII chars
+		if (psXPC->f.plus) {							// handle values dumped as ASCII chars
 		// handle space padding for ASCII dump to line up
-			uint32_t	Count ;
+			uint32_t Count;
 			int	Size = 1 << psXPC->f.size ;
 			Count = (xLen <= xpfHEXDUMP_WIDTH) ? 1 :
 					((xpfHEXDUMP_WIDTH - Width) / Size) * (Size*2 + (psXPC->f.form ? 1 : 0)) + 1;
@@ -795,11 +799,14 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
  */
 void vPrintBinary(xpc_t * psXPC, uint64_t ullVal) {
 	int	len ;
-	if (psXPC->f.minwid == 0)		len = (psXPC->f.llong == 1) ? 64 : 32 ;
-	else if (psXPC->f.llong == 1)	len = (psXPC->f.minwid > 64) ? 64 : psXPC->f.minwid ;
-	else len = (psXPC->f.minwid > 32) ? 32 : psXPC->f.minwid ;
-	uint64_t mask	= 1ULL << (len - 1) ;
-	psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
+	if (psXPC->f.minwid == 0)
+		len = (psXPC->f.llong == 1) ? 64 : 32 ;
+	else if (psXPC->f.llong)
+		len = (psXPC->f.minwid > 64) ? 64 : psXPC->f.minwid ;
+	else
+		len = (psXPC->f.minwid > 32) ? 32 : psXPC->f.minwid ;
+	uint64_t mask = 1ULL << (len - 1) ;
+	psXPC->f.form = psXPC->f.group ? form3X : form0G ;
 	while (mask) {
 		vPrintChar(psXPC, (ullVal & mask) ? '1' : '0') ;
 		mask >>= 1;
@@ -911,9 +918,9 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt, va_list vaList) {
 					break ;
 				case 1:									// '#' DTZ alternative form
 					++fmt ;								// HEXDUMP / IP swop endian
-					psXPC->f.alt_form = 1 ;				// STRING middle justify
 					break ;
 					psXPC->f.group = 1 ;
+					psXPC->f.alt_form = 1;				// STRING middle justify
 					break ;
 				case 2:									// "`" decimal ',' separated 3 digit grouping
 					++fmt;								// DTZ, MAC, DUMP select separator set
@@ -991,8 +998,8 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt, va_list vaList) {
 			}
 			// handle 2x successive 'l' characters, lower case ONLY, form long long value treatment
 			if (*fmt == 'l' && *(fmt+1) == 'l') {
-				fmt += 2 ;
-				psXPC->f.llong = 1 ;
+				fmt += 2;
+				psXPC->f.llong = 1;
 			}
 			// Check if format character where UC/lc same character control the case of the output
 			cFmt = *fmt ;
@@ -1134,23 +1141,23 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt, va_list vaList) {
 			case CHR_d:									// signed decimal "[-]ddddd"
 			case CHR_i:									// signed integer (same as decimal ?)
 				psXPC->f.signval = 1 ;
-				x64Val.i64	= psXPC->f.llong ? va_arg(vaList, int64_t) : va_arg(vaList, int32_t) ;
-				if (x64Val.i64 < 0LL)	{
+				x64Val.i64 = psXPC->f.llong ? va_arg(vaList, int64_t) : va_arg(vaList, int32_t);
+				if (x64Val.i64 < 0LL) {
 					psXPC->f.negvalue = 1;
 					x64Val.i64 *= -1; 					// convert the value to unsigned
 				}
-				vPrintX64(psXPC, x64Val.i64) ;
-				break ;
+				vPrintX64(psXPC, x64Val.i64);
+				break;
 
 			case CHR_o:									// unsigned octal "ddddd"
 			case CHR_x:									// hex as in "789abcd" UC/LC
 				psXPC->f.group = 0 ;					// disable grouping
 				/* FALLTHRU */ /* no break */
 			case CHR_u:									// unsigned decimal "ddddd"
-				x64Val.u64	= psXPC->f.llong ? va_arg(vaList, uint64_t) : va_arg(vaList, uint32_t) ;
 				psXPC->f.nbase = cFmt == 'x' ? BASE16 : cFmt == 'o' ? BASE08 : BASE10 ;
-				vPrintX64(psXPC, x64Val.u64) ;
-				break ;
+				x64Val.u64 = psXPC->f.llong ? va_arg(vaList, uint64_t) : (uint64_t) va_arg(vaList, uint32_t);
+				vPrintX64(psXPC, x64Val.u64);
+				break;
 
 			#if	(xpfSUPPORT_IEEE754 == 1)
 			case CHR_e:									// form = 2
@@ -1175,7 +1182,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt, va_list vaList) {
 				break ;
 			#endif
 
-			#if	(xpfSUPPORT_POINTER == 1)						// pointer value UC/lc
+			#if	(xpfSUPPORT_POINTER == 1)				// pointer value UC/lc
 			case CHR_p:
 				// Does cause crash if pointer not currently mapped
 				vPrintPointer(psXPC, va_arg(vaList, void *)) ;
@@ -1190,7 +1197,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt, va_list vaList) {
 				vPrintString(psXPC, px.pc8) ;
 				break;
 
-			case CHR_b:							// Unsupported types to be filtered.
+			case CHR_b:									// Unsupported types to be filtered.
 			case CHR_h:
 			case CHR_w:
 				myASSERT(0) ;
@@ -1203,7 +1210,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt, va_list vaList) {
 				vPrintChar(psXPC, *fmt) ;
 				break ;
 			}
-			psXPC->f.plus				= 0 ;		// reset this form after printing one value
+			psXPC->f.plus = 0;							// reset this form after printing one value
 		} else {
 out_lbl:
 			vPrintChar(psXPC, *fmt) ;
