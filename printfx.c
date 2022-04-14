@@ -949,14 +949,14 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt, va_list vaList) {
 					++fmt ;								// DTZ absolute->relative time
 					psXPC->f.rel_val = 1 ;				// MAC use ':' separator
 					break ;
-				case 1:									// '#' DTZ alternative form
+				case 1:									// '#' DTZ select GMT format
 					++fmt ;								// HEXDUMP / IP swop endian
-					break ;
-					psXPC->f.group = 1 ;
 					psXPC->f.alt_form = 1;				// STRING middle justify
 					break ;
-				case 2:									// "`" decimal ',' separated 3 digit grouping
+				case 2:									// "diu" select ',' separated 3 digit grouping
 					++fmt;								// DTZ, MAC, DUMP select separator set
+					psXPC->f.group = 1;
+					break;
 				case 3:									// '*' indicate argument will supply field width
 					X32.i32	= va_arg(vaList, int);
 					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.i32 <= xpfMINWID_MAXVAL) ;
