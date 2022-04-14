@@ -34,6 +34,16 @@ extern unsigned long long RunTime ;
 #define	IF_PT(T, f, ...)			if (T) PT(f, ##__VA_ARGS__)
 #define	IF_PTL(T, f, ...)			if (T) PTL(f, ##__VA_ARGS__)
 
+#define	CP(f, ...)					printfx_nolock(f, ##__VA_ARGS__)
+#define	CPL(f, ...)					printfx_nolock(_L_(f), ##__VA_ARGS__)
+#define	CPT(f, ...)					printfx_nolock(_T_(f), ##__VA_ARGS__)
+#define	CPTL(f, ...)				printfx_nolock(_TL_(f), ##__VA_ARGS__)
+
+#define	IF_CP(T, f, ...)			if (T) CP(f, ##__VA_ARGS__)
+#define	IF_CPL(T, f, ...)			if (T) CPL(f, ##__VA_ARGS__)
+#define	IF_CPT(T, f, ...)			if (T) CPT(f, ##__VA_ARGS__)
+#define	IF_CPTL(T, f, ...)			if (T) CPTL(f, ##__VA_ARGS__)
+
 // Using ROM based esp_rom_printf
 #define	RP(f, ...)					esp_rom_printf(f, ##__VA_ARGS__)
 #define	RL(f, ...)					esp_rom_printf(_L_(f), ##__VA_ARGS__)
