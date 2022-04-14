@@ -1,7 +1,5 @@
 /*
- * Copyright 2014-21 Andre M. Maree / KSS Technologies (Pty) Ltd.
- *
- *	printfx.h
+ * Copyright (c) 2014-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
 #pragma once

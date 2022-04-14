@@ -9,8 +9,9 @@
 
 # Extensions:
 	Numeric output scaling
-	#	Alternate format will scale value downwards and adding SI indicator based on thresholds being
-		10^3=K  10^6=M  10^9=G  10^12=T
+	#	Alt format scale value in SI steps with SI indicator based on thresholds
+	`	If used with # selects 12?34 as opposed to 12.34? scaling format
+		10^3=K  10^6=M  10^9=G  10^12=T  10^15=q  10^18=Q
 
 	Text center justify
 	#	Place string in center of field
@@ -44,11 +45,11 @@
 	MAC address output with optional separator characters
     m/M format specifier selectable upper/lower case output.
     # 	alt format modifier for sequence inversion.
-    '	modifier to enable ':' seperator characters between bytes
+    `	modifier to enable ':' seperator characters between bytes
 
 	BINARY format output
 	J	format specifier taking U32 or U64 value as input
-    '	modifier to enable seperator character using '|: -' for 32/16/8/4 bit boundaries
+    `	modifier to enable seperator character using '|: -' for 32/16/8/4 bit boundaries
 
 	ANSI Set Graphics Rendition (SGR) support
 	C	format specifier, takes U32 as 4x U8 values
@@ -57,7 +58,7 @@
 	U	format specifier
   	  
 # Valid formatting characters:
-	!#'*+-%0.0-9AB C D EFGH I J KL MNO PQR S T U VW XYZ
+	!#`*+-%0.0-9AB C D EFGH I J KL MNO PQR S T U VW XYZ
 	|||||||||\_/a|b|c|defg h|i|jk|lmn|opq|r|s|t|uv|wxy|z
 	||||||||| | ||||||||||||||||||||||||||||||||||||||||
 	||||||||| | |||||||||||||||||||||||||||||||||||||||*----> UNUSED (z)
@@ -86,7 +87,7 @@
 	||||||||| | ||||||||||||||||*---------------------------> (Kk) UNUSED
 	||||||||| | |||||||||||||||*----------------------------> (j) Not implemented
 	||||||||| | ||||||||||||||*---------------------------------> (J) BINARY U32 string
-	||||||||| | |||||||||||||*------------------------------> (i)NTEGER same as 'd
+	||||||||| | |||||||||||||*------------------------------> (i)NTEGER same as 'd'
 	||||||||| | ||||||||||||*-----------------------------------> (I)P address
 	||||||||| | |||||||||||*--------------------------------> (h) Not implemented !!!
 	||||||||| | ||||||||||*-------------------------------------> HEXDUMP, halfword (u16) sized values
@@ -120,14 +121,14 @@
 		HexDump		Reverse Start <> End addresses
 
 # Examples:
-	%'03llJ			- print binary representation, optional separator, llong & field width modifiers
-	%['!#+ll]{BbHhWw}	- hexdump of memory area, USE 2 PARAMETERS FOR START and LENGTH
+	%`03llJ			- print binary representation, optional separator, llong & field width modifiers
+	%[`!#+ll]{BbHhWw}	- hexdump of memory area, USE 2 PARAMETERS FOR START and LENGTH
 					  MUST NOT specify "*", ".", "*." or .*", this will screw up the parameter sequence
 	%[-0]I			- print IP address, justified left or right, pad 0 or ' '
-	%[']{Mm}			- prints MAC address, optional ':' separator, upper/lower case
-	%[!']D			- POSIX [relative/altform] date (1 parameter, pointer to tsz_t
-	%[!']T			- POSIX [relative/altform] time
-	%[!']Z			- POSIX [relative/altform] date, time & zone
+	%[`]{Mm}			- prints MAC address, optional ':' separator, upper/lower case
+	%[!`]D			- POSIX [relative/altform] date (1 parameter, pointer to tsz_t
+	%[!`]T			- POSIX [relative/altform] time
+	%[!`]Z			- POSIX [relative/altform] date, time & zone
 
 # Todo list:
 	Add modifier (and OPTIONAL value specifier) to indicate that pointer to ARRAY of values provided
@@ -144,7 +145,7 @@
 	'l' as applied to 'cns' specifiers
 	'll' as applied to 'n' specifier
 	'L' as applied to 'eEfgG' to specify long double
-	'j, 't' or 'z' as applied to any specifiers	 
+	'j' 't' or 'z' as applied to any specifiers	 
 	Modifier
 	' '
 	locale, radix fixed to '.'

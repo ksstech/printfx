@@ -8,13 +8,10 @@
 #include <math.h>									// isnan()
 #include <float.h>									// DBL_MIN/MAX
 
-#include "printfx.h"
-
 #include "hal_config.h"
 #include "hal_usart.h"
-
+#include "printfx.h"
 #include "FreeRTOS_Support.h"
-
 #include "socketsX.h"
 #include "x_ubuf.h"
 #include "x_string_general.h"						// xinstring function
@@ -155,7 +152,7 @@ char cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
 }
 
 /**
- * xPrintXxx() convert uint64_t value to a formatted string (right to left, L <- R)
+ * xPrintXxx() convert uint64_t value to a formatted string (build right to left)
  * @param	psXPC - pointer to control structure
  * 			ullVal - uint64_t value to convert & output
  * 			pBuffer - pointer to buffer for converted string storage
@@ -167,6 +164,26 @@ char cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
  * 				'+'		Force a '+' or '-' sign on the left
  * 				'0'		Zero pad to the left of the value to fill the field
  * Protection against buffer overflow based on correct sized buffer being allocated in calling function
+ *
+ *	(1)		(2)		(0)
+ *	12.34Q	12Q34	12,345,678,900,000,000,000
+ *	1.234Q	1Q234	1,234,567,890,000,000,000
+ *	123.4q	123q4	123,456,789,000,000,000
+ *	12.34q	12q34	12,345,678,900,000,000
+ *	1.234q	1q234	1,234,567,890,000,000
+ *	123.4T	123T4	123,456,789,000,000
+ *	12.34T	12T34	12,345,678,900,000
+ *	1.234T	1T234	1,234,567,890,000
+ *	123.4B	123B4	123,456,789,000
+ *	12.34B	12B34	12,345,678,900
+ *	1.234B	1B234	1,234,567,890
+ *	123.4M	123M4	123,456,789
+ *	12.34M	12M34	12,345,678
+ *	1.234M	1M234	1,234,567
+ *	123,456	123K4	123,456
+ *	12,345	12K34	12,345
+ *	1,234	1K234	1,234
+ *	123		123		123
  */
 int	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
 	int	Len = 0, Count = 0, iTemp = 0 ;
@@ -174,6 +191,13 @@ int	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
 	if (ullVal) {
 		#if	(xpfSUPPORT_SCALING == 1)
 		uint8_t	ScaleChr = 0 ;
+#define	K1		1000ULL
+#define	M1		1000000ULL
+#define	B1		1000000000ULL
+#define	T1		1000000000000ULL
+#define	q1		1000000000000000ULL
+#define	Q1		1000000000000000000ULL
+
 		if (psXPC->f.alt_form) {
 			if (ullVal > 10000000000000000000ULL) {
 				ullVal		/= 1000000000000000000ULL ;
@@ -422,12 +446,12 @@ void vPrintHexU64(xpc_t * psXPC, uint64_t Value) {
  * @param 	Num		number of bytes to print
  * @param 	pStr	pointer to bytes to print
  * @comment			Use the following modifier flags
- *					'`'	select grouping separators ':' (byte) '-' (short) ' ' (word) '|' (dword)
- *					'#' via alt_form select reverse order (little vs big endian) interpretation
+ *					` select grouping separators ":- |" (byte/half/word/dword)
+ *					# select reverse order (little/big endian)
  */
 void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 	int32_t	Size = 1 << psXPC->f.size ;
-	if (psXPC->f.alt_form)								// '#' specified to invert order ?
+	if (psXPC->f.alt_form)								// invert order ?
 		pStr += Num - Size ;							// working backwards so point to last
 
 	x64_t	x64Val ;
@@ -452,7 +476,7 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 			break ;
 		}
 		// step to the next 8/16/32/64 bit value
-		if (psXPC->f.alt_form)							// '#' specified to invert order ?
+		if (psXPC->f.alt_form)							// invert order ?
 			pStr -= Size ;								// update source pointer backwards
 		else
 			pStr += Size ;								// update source pointer forwards
@@ -819,6 +843,12 @@ void vPrintIpAddress(xpc_t * psXPC, uint32_t Val) {
  * vPrintSetGraphicRendition() - set starting and ending fore/background colors
  * @param psXPC
  * @param Val	U32 value treated as 4x U8 being SGR color/attribute codes
+ *
+ * XXX: Since we are using the same command handler to process (UART, HTTP & TNET)
+ * requests, and we are embedding colour ESC sequences into the formatted output,
+ * and the colour ESC sequences (handled by UART & TNET) are not understood by
+ * the HTTP protocol, we must try to filter out the possible output produced by
+ * the ESC sequences if the output is going to a socket, one way or another.
  */
 void vPrintSetGraphicRendition(xpc_t * psXPC, uint32_t Val) {
 	char Buffer[xpfMAX_LEN_SGR] ;
@@ -866,10 +896,10 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 					++fmt ;								// HEXDUMP / IP swop endian
 					psXPC->f.alt_form = 1 ;				// STRING middle justify
 					break ;
-				case 2:									// "'" decimal= ',' separated 3 digit grouping
-					++fmt ;								// DTZ=alternate format
 					psXPC->f.group = 1 ;
 					break ;
+				case 2:									// "`" decimal ',' separated 3 digit grouping
+					++fmt;								// DTZ, MAC, DUMP select separator set
 				case 3:									// '*' indicate argument will supply field width
 					X32.i32	= va_arg(vaList, int);
 					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.i32 <= xpfMINWID_MAXVAL) ;
@@ -962,12 +992,6 @@ int	xpcprintfx(xpc_t * psXPC, const char * fmt, va_list vaList) {
 			#endif
 			switch (cFmt) {
 			#if	(xpfSUPPORT_SGR == 1)
-			/* XXX: Since we are using the same command handler to process (UART, HTTP & TNET)
-			 * requests, and we are embedding colour ESC sequences into the formatted output,
-			 * and the colour ESC sequences (handled by UART & TNET) are not understood by
-			 * the HTTP protocol, we must try to filter out the possible output produced by
-			 * the ESC sequences if the output is going to a socket, one way or another.
-			 */
 			case CHR_C:
 				vPrintSetGraphicRendition(psXPC, va_arg(vaList, uint32_t)) ;
 				break ;
