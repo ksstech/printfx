@@ -943,7 +943,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt, va_list vaList) {
 			 * the modifiers MUST be in correct sequence of interpretation being [ ! # ' * + - % 0 ] */
 			int	cFmt ;
 			x32_t X32 = { 0 } ;
-			while ((cFmt = xinstring("!#'*+- 0%", *fmt)) != erFAILURE) {
+			while ((cFmt = xinstring("!#`*+- 0%", *fmt)) != erFAILURE) {
 				switch (cFmt) {
 				case 0:									// '!' HEXDUMP absolute->relative address
 					++fmt ;								// DTZ absolute->relative time
