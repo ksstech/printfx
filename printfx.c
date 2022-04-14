@@ -34,6 +34,23 @@
 #define	debugPARAM					(debugFLAG_GLOBAL & debugFLAG & 0x4000)
 #define	debugRESULT					(debugFLAG_GLOBAL & debugFLAG & 0x8000)
 
+// ###################### control functionality included in xprintf.c ##############################
+
+#define	xpfSUPPORT_BINARY			1
+#define	xpfSUPPORT_MAC_ADDR			1
+#define	xpfSUPPORT_IP_ADDR			1
+#define	xpfSUPPORT_HEXDUMP			1
+#define	xpfSUPPORT_POINTER			1
+#define	xpfSUPPORT_DATETIME			1
+#define	xpfSUPPORT_IEEE754			1				// float point support in printfx.c functions
+#define	xpfSUPPORT_SCALING			1				// scale number down by 10^[3/6/9/12/15/18]
+#define	xpfSUPPORT_SGR				1				// Set Graphics Rendition FG & BG colors only
+#define	xpfSUPPORT_URL				1				// URL encoding
+
+#define	xpfSUPPORT_ALIASES			1
+
+#define	xpfSUPPORT_FILTER_NUL		1
+
 // ####################################### Enumerations ############################################
 
 //FLOAT "Gg"	"Ff"	"Ee"	None

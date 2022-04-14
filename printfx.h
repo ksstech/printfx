@@ -51,18 +51,7 @@ extern unsigned long long RunTime ;
 #define	IF_RP(T, f, ...)			if (T) RP(f, ##__VA_ARGS__)
 #define	IF_RL(T, f, ...)			if (T) RL(f, ##__VA_ARGS__)
 
-// ###################### control functionality included in xprintf.c ##############################
-
-#define	xpfSUPPORT_BINARY			1
-#define	xpfSUPPORT_MAC_ADDR			1
-#define	xpfSUPPORT_IP_ADDR			1
-#define	xpfSUPPORT_HEXDUMP			1
-#define	xpfSUPPORT_POINTER			1
-#define	xpfSUPPORT_DATETIME			1
-#define	xpfSUPPORT_IEEE754			1		// float point support in printfx.c functions
-#define	xpfSUPPORT_SCALING			1		// scale number down by 10^3/10^6/10^9/10^12
-#define	xpfSUPPORT_SGR				1		// Set Graphics Rendition FG & BG colors only
-#define	xpfSUPPORT_URL				1		// URL encoding
+// ################################## public build definitions #####################################
 
 #define	xpfMAXIMUM_DECIMALS			15
 #define	xpfDEFAULT_DECIMALS			6
