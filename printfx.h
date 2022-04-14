@@ -59,14 +59,6 @@ extern unsigned long long RunTime ;
 #define	xpfMAX_TIME_FRAC			6		// control resolution mS/uS/nS
 #define	xpfDEF_TIME_FRAC			3
 
-#ifdef ESP_PLATFORM
-		/* Specifically for the ESP-IDF we1`	 * as x[v]fprintf(stdout, format, ...) with locking enabled */
-	#define	xpfSUPPORT_ALIASES			1
-#else
-	#define	xpfSUPPORT_ALIASES		1
-#endif
-#define	xpfSUPPORT_FILTER_NUL		1
-
 // ################################## x[snf]printf() related #######################################
 
 #define	xpfMAX_LEN_TIME				sizeof("12:34:56.654321")
