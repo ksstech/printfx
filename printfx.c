@@ -202,12 +202,6 @@ char cPrintNibbleToChar(xpc_t * psXPC, uint8_t Value) {
  *	1,234	1K234	1,234
  *	123		123		123
  */
-int	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
-	int	Len = 0, Count = 0, iTemp = 0 ;
-	char * pTemp = pBuffer + BufSize - 1 ;				// Point to last space in buffer
-	if (ullVal) {
-		#if	(xpfSUPPORT_SCALING == 1)
-		uint8_t	ScaleChr = 0 ;
 #define	K1		1000ULL
 #define	M1		1000000ULL
 #define	B1		1000000000ULL
@@ -215,51 +209,84 @@ int	xPrintXxx(xpc_t * psXPC, uint64_t ullVal, char * pBuffer, int BufSize) {
 #define	q1		1000000000000000ULL
 #define	Q1		1000000000000000000ULL
 
+int	xPrintXxx(xpc_t * psXPC, uint64_t u64Val, char * pBuffer, int BufSize) {
+	int	Len = 0;
+	int Count, iTemp;
+	char * pTemp = pBuffer + BufSize - 1;				// Point to last space in buffer
+	if (u64Val) {
+		#if	(xpfSUPPORT_SCALING > 0)
 		if (psXPC->f.alt_form) {
-			if (ullVal > 10000000000000000000ULL) {
-				ullVal		/= 1000000000000000000ULL ;
-				ScaleChr	= 's' ;
-			} else if (ullVal > 10000000000000000000ULL) {
-				ullVal		/= 1000000000000000000ULL ;
-				ScaleChr	= 'Q' ;
-			} else if (ullVal > 10000000000000000ULL) {
-				ullVal		/= 1000000000000000ULL ;
-				ScaleChr	= 'q' ;
-			} else if (ullVal > 10000000000000ULL) {
-				ullVal		/= 1000000000000ULL ;
-				ScaleChr	= 'T' ;
-			} else if (ullVal > 10000000000ULL) {
-				ullVal		/= 1000000000ULL ;
-				ScaleChr	= 'B' ;
-			} else if (ullVal > 10000000ULL) {
-				ullVal		/= 1000000ULL ;
-				ScaleChr	= 'M' ;
-			} else if (ullVal > 10000ULL) {
-				ullVal		/= 1000ULL ;
-				ScaleChr	= 'K' ;
+			unsigned int I, F;
+			uint8_t	ScaleChr;
+			if (u64Val >= Q1) {
+				F = (u64Val % Q1) / q1;
+				I = u64Val / Q1;
+				ScaleChr = CHR_Q;
+			} else if (u64Val >= q1) {
+				F = (u64Val % q1) / T1;
+				I = u64Val / q1;
+				ScaleChr = CHR_q;
+			} else if (u64Val >= T1) {
+				F = (u64Val % T1) / B1;
+				I = u64Val / T1;
+				ScaleChr = CHR_T;
+			} else if (u64Val >= B1) {
+				F = (u64Val % B1) / M1;
+				I = u64Val / B1;
+				ScaleChr = CHR_B;
+			} else if (u64Val >= M1) {
+				F = (u64Val % M1) / K1;
+				I = u64Val / M1;
+				ScaleChr = CHR_M;
+			} else if (u64Val >= K1) {
+				F = u64Val % K1;
+				I = u64Val / K1;
+				ScaleChr = CHR_K;
+			} else {
+				ScaleChr = 0;
 			}
-			if (ScaleChr != 0) {
-				*pTemp-- = ScaleChr ;
-				++Len ;
+			if (ScaleChr) {
+				if (psXPC->f.group == 0) {
+					*pTemp-- = ScaleChr;
+					++Len;
+				}
+				// calculate & convert the required # of fractional digits
+				int Ilen = xDigitsInU32(I, 0);			// 1 (0) -> 3 (999)
+				int Flen = xDigitsInU32(F, 0);
+	//			RP("I=%u/%d  F=%u/%d ->", I, Ilen, F, Flen);
+				if (Ilen != 2 || Flen != 2) {
+					Flen = 4 - Ilen;
+					F /= u32pow(psXPC->f.nbase, 3 - Flen);
+				}
+	//			RP(" %u/%d\n", F, Flen);
+				while (Flen--) {
+					*pTemp-- = cPrintNibbleToChar(psXPC, F % psXPC->f.nbase);	// digit
+					++Len;
+					F /= psXPC->f.nbase;
+				}
+				*pTemp-- = psXPC->f.group ? ScaleChr : CHR_FULLSTOP;
+				++Len;
+				u64Val = (uint32_t) I;
 			}
 		}
 		#endif
 		// convert to string starting at end of buffer from Least (R) to Most (L) significant digits
-		while (ullVal) {
-			iTemp	= ullVal % psXPC->f.nbase ;			// calculate the next remainder ie digit
-			*pTemp-- = cPrintNibbleToChar(psXPC, iTemp) ;
-			++Len ;
-			ullVal	/= psXPC->f.nbase ;
-			if (ullVal && psXPC->f.group) {				// handle digit grouping, if required
+		Count = 0;
+		while (u64Val) {
+			iTemp = u64Val % psXPC->f.nbase;			// calculate the next remainder ie digit
+			*pTemp-- = cPrintNibbleToChar(psXPC, iTemp);
+			++Len;
+			u64Val /= psXPC->f.nbase;
+			if (u64Val && psXPC->f.group) {				// handle digit grouping, if required
 				if ((++Count % 3) == 0) {
-					*pTemp-- = ',';
+					*pTemp-- = CHR_COMMA;
 					++Len;
 					Count = 0;
 				}
 			}
 		}
 	} else {
-		*pTemp-- = '0';
+		*pTemp-- = CHR_0;
 		Len = 1;
 	}
 
