@@ -160,7 +160,7 @@ typedef	struct __attribute__((packed)) xpf_t {
 			uint8_t		radix		: 1 ;
 			uint8_t		rel_val		: 1 ;				// relative address / elapsed time
 		// byte 1
-			uint8_t		nbase 		: 5 ;				// 2, 8, 10 or 16
+			uint32_t	nbase 		: 5 ;				// 2, 8, 10 or 16
 			uint8_t		size		: 2 ;				// size of value ie byte / half / word / lword
 			uint8_t		negvalue	: 1 ;				// if value < 0
 		// byte 2
