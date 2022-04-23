@@ -165,8 +165,8 @@ typedef	struct __attribute__((packed)) xpf_t {
 			uint8_t		Pspc		: 1 ;
 			// byte 3
 			uint8_t		spare		: 8 ;				// SPARE !!!
-		} ;
-	} ;
+		};
+	};
 } xpf_t ;
 DUMB_STATIC_ASSERT(sizeof(xpf_t) == 12) ;
 
