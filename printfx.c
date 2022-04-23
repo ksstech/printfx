@@ -685,11 +685,10 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 		#if	(timexTZTYPE_SELECTED == timexTZTYPE_RFC5424)
 		if (psXPC->f.plus) {
 			psXPC->f.signval = 1;						// TZ hours offset is a signed value
-			psXPC->f.plus = 1;							// force display of sign
 			Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer+Len, psXPC->f.minwid = 3);
 			Buffer[Len++] = psXPC->f.form ? CHR_h : CHR_COLON;
 			psXPC->f.signval = 0;						// TZ offset minutes unsigned
-			psXPC->f.plus  = 0;
+			psXPC->f.plus = 0;
 			Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer+Len, psXPC->f.minwid = 2);
 		} else {
 			Buffer[Len++]	= CHR_Z;					// add 'Z' for Zulu/zero time zone
@@ -1092,16 +1091,21 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt, va_list vaList) {
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(psTSZ));
 				psXPC->f.pad0 = 1;
 				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs);
+				xpf_t sXPF = { 0 };
+				sXPF.flags = psXPC->f.flags;
 				// If full local time required, add TZ and DST offsets
 				if (psXPC->f.plus && psTSZ->pTZ)
 					X32.u32 += psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
 				xTimeGMTime(X32.u32, &sTM, psXPC->f.rel_val);
+				psXPC->f.plus = 0;
 				if (cFmt == CHR_D || cFmt == CHR_Z)
 					vPrintDate(psXPC, &sTM);
 				if (cFmt == CHR_T || cFmt == CHR_Z)
 					vPrintTime(psXPC, &sTM, (uint32_t)(psTSZ->usecs % MICROS_IN_SECOND));
-				if (cFmt == CHR_Z)
+				if (cFmt == CHR_Z) {
+					psXPC->f.plus = sXPF.plus;
 					vPrintZone(psXPC, psTSZ);
+				}
 				break ;
 
 			case CHR_R:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
