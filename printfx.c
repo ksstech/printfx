@@ -60,18 +60,19 @@ enum { form0G, form1F, form2E, form3X } ;
 
 // ######################## Character and value translation & rounding tables ######################
 
-const char vPrintStr1[] = {						// table of characters where lc/UC is applicable
-		'X',									// hex formatted 'x' or 'X' values, always there
-#if		(xpfSUPPORT_MAC_ADDR == 1)
-		'M',									// MAC address UC/LC
-#endif
-#if		(xpfSUPPORT_IEEE754 == 1)
-		'A', 'E', 'G',							// float hex/exponential/general
-#endif
-#if		(xpfSUPPORT_POINTER == 1)
-		'P',									// Pointer lc=0x or UC=0X
-#endif
-		'\0' } ;								// terminated
+const char vPrintStr1[] = {								// table of characters where lc/UC is applicable
+	'X',							// hex formatted 'x' or 'X' values, always there
+	#if	(xpfSUPPORT_MAC_ADDR == 1)
+	'M',							// MAC address UC/LC
+	#endif
+	#if	(xpfSUPPORT_IEEE754 == 1)
+	'A', 'E', 'G',					// float hex/exponential/general
+	#endif
+	#if	(xpfSUPPORT_POINTER == 1)
+	'P',							// Pointer lc=0x or UC=0X
+	#endif
+	'\0'
+};
 
 static	const char hexchars[] = "0123456789ABCDEF" ;
 
