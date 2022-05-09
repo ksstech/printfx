@@ -124,6 +124,35 @@ typedef union {
 } sgr_info_t ;
 DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4) ;
 
+typedef union {
+	uint32_t	flags ;								// rest of flags
+	struct __attribute__((packed)) {
+		// byte 0
+			uint8_t		group 		: 1 ;				// 0 = disable, 1 = enable
+			uint8_t		alt_form	: 1 ;				// '#'
+			uint8_t		ljust		: 1 ;				// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
+			uint8_t		Ucase		: 1 ;				// true = 'a' or false = 'A'
+			uint8_t		pad0		: 1 ;				// true = pad with leading'0'
+			uint8_t		llong		: 1 ;				// long long override flag
+			uint8_t		radix		: 1 ;
+			uint8_t		rel_val		: 1 ;				// relative address / elapsed time
+		// byte 1
+			uint32_t	nbase 		: 5 ;				// 2, 8, 10 or 16
+			uint8_t		size		: 2 ;				// size of value ie byte / half / word / lword
+			uint8_t		negvalue	: 1 ;				// if value < 0
+		// byte 2
+			uint8_t		form		: 2 ;				// format specifier FLOAT, DUMP & TIME
+			uint8_t		signval		: 1 ;				// true = content is signed value
+			uint8_t		plus		: 1 ;				// true = force use of '+' or '-' signed
+			uint8_t		arg_width	: 1 ;				// minwid specified
+			uint8_t		arg_prec	: 1 ;				// precis specified
+			uint8_t		dbg			: 1 ;
+			uint8_t		Pspc		: 1 ;
+			// byte 3
+			uint8_t		spare		: 8 ;				// SPARE !!!
+	};
+} xf_t;
+
 typedef	struct __attribute__((packed)) xpf_t {
 	union {
 		uint32_t	lengths ;							// maxlen & curlen ;
