@@ -8,7 +8,7 @@
 #include <math.h>									// isnan()
 #include <float.h>									// DBL_MIN/MAX
 
-#include "hal_config.h"
+#include "hal_variables.h"
 #include "hal_usart.h"
 #include "printfx.h"
 #include "FreeRTOS_Support.h"
