@@ -1492,7 +1492,7 @@ int devprintfx(int (* Hdlr)(int ), const char * format, ...) {
  * TCP sockets, UDP support officially in LwIP 2.6 but has not been included into ESP-IDF yet. */
 
 int	xPrintToSocket(xpc_t * psXPC, int cChr) {
-	char cBuf = cChr ;
+	u8_t cBuf = cChr ;
 	int iRV = xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf));
 	if (iRV != sizeof(cBuf))
 		return iRV;
