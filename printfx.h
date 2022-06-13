@@ -18,7 +18,7 @@ extern "C" {
 // #################################################################################################
 
 // "format" used by ALL tracking macros.
-extern unsigned long long RunTime ;
+extern u64_t RunTime;
 
 #define	_L_(f)						"[%s:%d] " f "", __FUNCTION__, __LINE__
 #define	_T_(f)						"%!.R: " f "", RunTime
