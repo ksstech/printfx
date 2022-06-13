@@ -57,6 +57,6 @@ int32_t	xI8ArrayPrint(const char * pHeader, uint8_t * pArray, int32_t ArraySize)
 		iRV += printfx(pHeader) ;
 	for (int32_t Idx = 0; Idx < ArraySize; ++Idx)
 		iRV += printfx("  #%d=%d", Idx, pArray[Idx]) ;
-	iRV += printfx("\n") ;
+	iRV += printfx("\r\n") ;
 	return iRV ;
 }
