@@ -20,11 +20,11 @@ extern "C" {
 // "format" used by ALL tracking macros.
 extern u64_t RunTime;
 
-#define	_L_(f)						"[%s:%d] " f "", __FUNCTION__, __LINE__
-#define	_T_(f)						"%!.R: " f "", RunTime
-#define	_TL_(f)						"%!.R: %s:%d " f "", RunTime, __FUNCTION__, __LINE__
+#define	_L_(f)						" [%s:%d] " f "", __FUNCTION__, __LINE__
+#define	_T_(f)						" [%!.R] " f "", RunTime
+#define	_TL_(f)						" [%!.R:%s:%d] " f "", RunTime, __FUNCTION__, __LINE__
 
-#define	_RT_(f)						"%d.%03d: " f "", (int) (RunTime/1000000), (int) (RunTime%1000000/1000)
+#define	_RT_(f)						" [%d.%03d] " f "", (int) (RunTime/1000000), (int) (RunTime%1000000/1000)
 
 #define	P(f, ...)					printfx(f, ##__VA_ARGS__)
 #define	PL(f, ...)					printfx(_L_(f), ##__VA_ARGS__)
