@@ -284,8 +284,8 @@ int uprintfx(struct ubuf_t *, const char * , ...);
 
 // #################################### Destination : CRC32 ########################################
 
-int vcrcprintfx(unsigned int *, const char * , va_list);
-int crcprintfx(unsigned int *, const char * , ...);
+int vcrcprintfx(u32_t *, const char * , va_list);
+int crcprintfx(u32_t *, const char * , ...);
 
 // ##################################### functional tests ##########################################
 
