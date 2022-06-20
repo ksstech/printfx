@@ -1,10 +1,8 @@
 /*
- * Copyright (c) 2014-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  * <snf>printfx -  set of routines to replace equivalent printf functionality
+ * Copyright (c) 2014-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
-#include <string.h>
-#include <stdarg.h>
 #include <math.h>									// isnan()
 #include <float.h>									// DBL_MIN/MAX
 
@@ -27,7 +25,7 @@
 	#include "crc-barr.h"						// Barr group CRC
 #endif
 
-#define	debugFLAG					0xE001
+#define	debugFLAG					0xE000
 
 #define	debugTIMING					(debugFLAG_GLOBAL & debugFLAG & 0x1000)
 #define	debugTRACK					(debugFLAG_GLOBAL & debugFLAG & 0x2000)
