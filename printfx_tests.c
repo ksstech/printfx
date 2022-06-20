@@ -26,9 +26,9 @@
 #define		TEST_HEXDUMP	1
 #define		TEST_WIDTH_PREC	1
 
-uint64_t	my_llong = 0x98765432 ;
 void vPrintfUnitTest(void) {
 	#if	(TEST_INTEGER == 1)
+	u64_t my_llong = 0x98765432 ;
 	// Minimums and maximums
 	printfx("\nintegers\n") ;
 	printfx("0---+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8----+----9----+----0----+----1----+----2\n") ;
@@ -127,7 +127,7 @@ void vPrintfUnitTest(void) {
 	printfx ("%g  %g  %g  %g  %g  %g  %g  %g\n", 0.0, 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.0000001) ;
 	printfx ("%g  %g  %g  %g  %g  %g  %g  %g\n", 1.1, 10.01, 100.001, 1000.0001, 10000.00001, 100000.000001, 1000000.0000001, 10000000.00000001) ;
 	double dVal ;
-	int32_t Width, Precis ;
+	int Width, Precis ;
 	for(Width=0, Precis=0, dVal=1234567.7654321; Width < 8 && Precis < 8; ++Width, ++Precis)
 		printfx ("%*.*g  ", Width, Precis, dVal) ;
 	printfx("\n") ;
@@ -180,9 +180,9 @@ void vPrintfUnitTest(void) {
 	printfx("Elapsed S2 x6uS : %!`.6R\n", RunTime) ;
 
 	seconds_t	Seconds ;
-	uint64_t uSecs ;
+	u64_t uSecs ;
 	struct	tm 	sTM ;
-	for(uint64_t i = 0; i <= 1000; i += 50) {
+	for(u64_t i = 0; i <= 1000; i += 50) {
 		printfx("#%llu", i) ;
 		uSecs = i * 86398999000ULL ;
 		Seconds = xTimeStampAsSeconds(uSecs) ;
@@ -202,8 +202,8 @@ void vPrintfUnitTest(void) {
 	}
 	#endif
 
-	uint8_t DumpData[] = "0123456789abcdef0123456789ABCDEF~!@#$%^&*()_+-={}[]:|;'\\<>?,./`01234" ;
 	#if	(TEST_HEXDUMP == 1)
+	u8_t DumpData[] = "0123456789abcdef0123456789ABCDEF~!@#$%^&*()_+-={}[]:|;'\\<>?,./`01234" ;
 	#define DUMPSIZE	(sizeof(DumpData)-1)
 	printfx("DUMP absolute lc byte\n%+B", DUMPSIZE, DumpData) ;
 	printfx("DUMP absolute lc byte\n%'+B", DUMPSIZE, DumpData) ;
@@ -216,7 +216,7 @@ void vPrintfUnitTest(void) {
 
 	printfx("DUMP relative UC dword\n%!+llW", DUMPSIZE, DumpData) ;
 	printfx("DUMP relative UC dword\n%!'+llW", DUMPSIZE, DumpData) ;
-	for (int32_t idx = 0; idx < 16; idx++) {
+	for (int idx = 0; idx < 16; idx++) {
 		printfx("\nDUMP relative lc BYTE %!'+B", idx, DumpData) ;
 	}
 	#endif
