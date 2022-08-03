@@ -749,9 +749,9 @@ void vPrintURL(xpc_t * psXPC, char * pStr) {
 	if (halCONFIG_inMEM(pStr)) {
 		char cIn ;
 		while ((cIn = *pStr++) != 0) {
-			if (INRANGE(CHR_A, cIn, CHR_Z, char) ||
-				INRANGE(CHR_a, cIn, CHR_z, char) ||
-				INRANGE(CHR_0, cIn, CHR_9, char) ||
+			if (INRANGE(CHR_A, cIn, CHR_Z) ||
+				INRANGE(CHR_a, cIn, CHR_z) ||
+				INRANGE(CHR_0, cIn, CHR_9) ||
 				(cIn == CHR_MINUS || cIn == CHR_FULLSTOP || cIn == CHR_UNDERSCORE || cIn == CHR_TILDE)) {
 				vPrintChar(psXPC, cIn) ;
 			} else {
@@ -983,10 +983,10 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt, va_list vaList) {
 				}
 			}
 			// handle pre and post decimal field width/precision indicators
-			if (*fmt == CHR_FULLSTOP || INRANGE(CHR_0, *fmt, CHR_9, char)) {
+			if (*fmt == CHR_FULLSTOP || INRANGE(CHR_0, *fmt, CHR_9)) {
 				X32.i32 = 0;
 				while (1) {
-					if (INRANGE(CHR_0, *fmt, CHR_9, char)) {
+					if (INRANGE(CHR_0, *fmt, CHR_9)) {
 						X32.i32 *= 10;
 						X32.i32 += *fmt - CHR_0;
 						++fmt;
