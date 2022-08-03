@@ -135,7 +135,7 @@ void vPrintString (xpc_t * psXPC, char * pStr) {
 	if (psXPC->f.arg_prec && psXPC->f.arg_width && psXPC->f.precis < psXPC->f.minwid) {
 		Len = xstrnlen(pStr, psXPC->f.precis) ;
 	} else {
-		Len	 = psXPC->f.precis ? psXPC->f.precis : xstrlen(pStr) ;
+		Len	 = psXPC->f.precis ? psXPC->f.precis : strlen(pStr) ;
 	}
 	int	Tpad = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;
 	int	Lpad = 0, Rpad = 0 ;
@@ -941,7 +941,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt, va_list vaList) {
 			 * the modifiers MUST be in correct sequence of interpretation being [ ! # ' * + - % 0 ] */
 			int	cFmt ;
 			x32_t X32 = { 0 } ;
-			while ((cFmt = xinstring("!#`*+- 0%", *fmt)) != erFAILURE) {
+			while ((cFmt = strchr_i("!#`*+- 0%", *fmt)) != erFAILURE) {
 				switch (cFmt) {
 				case 0:									// '!' HEXDUMP absolute->relative address
 					++fmt ;								// DTZ absolute->relative time
@@ -1034,7 +1034,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt, va_list vaList) {
 			}
 			// Check if format character where UC/lc same character control the case of the output
 			cFmt = *fmt ;
-			if (xinstring(vPrintStr1, cFmt) != erFAILURE) {
+			if (strchr_i(vPrintStr1, cFmt) != erFAILURE) {
 				cFmt |= 0x20 ;							// convert to lower case, but ...
 				psXPC->f.Ucase = 1 ;					// indicate as UPPER case requested
 			}
