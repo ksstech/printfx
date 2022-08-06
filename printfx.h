@@ -24,8 +24,6 @@ extern u64_t RunTime;
 #define	_T_(f)						" [%!.R] " f "", RunTime
 #define	_TL_(f)						" [%!.R:%s:%d] " f "", RunTime, __FUNCTION__, __LINE__
 
-#define	_RT_(f)						" [%d.%03d] " f "", (int) (RunTime/1000000), (int) (RunTime%1000000/1000)
-
 #define	P(f, ...)					printfx(f, ##__VA_ARGS__)
 #define	PL(f, ...)					printfx(_L_(f), ##__VA_ARGS__)
 #define	PT(f, ...)					printfx(_T_(f), ##__VA_ARGS__)
@@ -49,7 +47,7 @@ extern u64_t RunTime;
 // Using ROM based esp_rom_printf
 #define	RP(f, ...)					esp_rom_printf(f, ##__VA_ARGS__)
 #define	RPL(f, ...)					esp_rom_printf(_L_(f), ##__VA_ARGS__)
-#define	RPT(f, ...)					esp_rom_printf(_RT_(f), ##__VA_ARGS__)
+#define	RPT(f, ...)					esp_rom_printf(_T_(f), ##__VA_ARGS__)
 
 #define	IF_RP(T, f, ...)			if (T) RP(f, ##__VA_ARGS__)
 #define	IF_RPL(T, f, ...)			if (T) RPL(f, ##__VA_ARGS__)
