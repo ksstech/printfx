@@ -5,7 +5,7 @@
 #pragma once
 
 #include <stdarg.h>
-#include <stdint.h>
+//#include <stdint.h>
 #include <stdio.h>
 
 #include "FreeRTOS_Support.h"
@@ -33,21 +33,31 @@ extern u64_t RunTime;
 #define	IF_PL(T, f, ...)			if (T) PL(f, ##__VA_ARGS__)
 #define	IF_PT(T, f, ...)			if (T) PT(f, ##__VA_ARGS__)
 #define	IF_PTL(T, f, ...)			if (T) PTL(f, ##__VA_ARGS__)
-
+/*
 #define	CP(f, ...)					printfx_nolock(f, ##__VA_ARGS__)
 #define	CPL(f, ...)					printfx_nolock(_L_(f), ##__VA_ARGS__)
 #define	CPT(f, ...)					printfx_nolock(_T_(f), ##__VA_ARGS__)
 #define	CPTL(f, ...)				printfx_nolock(_TL_(f), ##__VA_ARGS__)
+*/
+#define	CP(f, ...)					cprintfx(f, ##__VA_ARGS__)
+#define	CPL(f, ...)					cprintfx(_L_(f), ##__VA_ARGS__)
+#define	CPT(f, ...)					cprintfx(_T_(f), ##__VA_ARGS__)
+#define	CPTL(f, ...)				cprintfx(_TL_(f), ##__VA_ARGS__)
 
 #define	IF_CP(T, f, ...)			if (T) CP(f, ##__VA_ARGS__)
 #define	IF_CPL(T, f, ...)			if (T) CPL(f, ##__VA_ARGS__)
 #define	IF_CPT(T, f, ...)			if (T) CPT(f, ##__VA_ARGS__)
 #define	IF_CPTL(T, f, ...)			if (T) CPTL(f, ##__VA_ARGS__)
 
-// Using ROM based esp_rom_printf
+// Using ROM based esp_rom_printf (no 64bit support so 32bit timestamps)
+#define	_RL_(f)						"[%s:%d " f "]", __FUNCTION__, __LINE__
+#define	_RT_(f)						"[%u.%03u " f "]", u32TS_Seconds(RunTime), u32TS_FracMillis(RunTime)
+#define	_RTL_(f)					"[%u.%03u:%s:%d " f "]", u32TS_Seconds(RunTime), u32TS_FracMillis(RunTime), __FUNCTION__, __LINE__
+
 #define	RP(f, ...)					esp_rom_printf(f, ##__VA_ARGS__)
-#define	RPL(f, ...)					esp_rom_printf(_L_(f), ##__VA_ARGS__)
-#define	RPT(f, ...)					esp_rom_printf(_T_(f), ##__VA_ARGS__)
+#define	RPL(f, ...)					esp_rom_printf(_RL_(f), ##__VA_ARGS__)
+#define	RPT(f, ...)					esp_rom_printf(_RT_(f), ##__VA_ARGS__)
+#define	RPTL(f, ...)				esp_rom_printf(_RTL_(f), ##__VA_ARGS__)
 
 #define	IF_RP(T, f, ...)			if (T) RP(f, ##__VA_ARGS__)
 #define	IF_RPL(T, f, ...)			if (T) RPL(f, ##__VA_ARGS__)
@@ -64,7 +74,7 @@ extern u64_t RunTime;
 // ################################## x[snf]printf() related #######################################
 
 #define	xpfMAX_LEN_TIME				sizeof("12:34:56.654321")
-#define	xpfMAX_LEN_DATE				sizeof("Sun, 10 Sep 2017")
+#define	xpfMAX_LEN_DATE				sizeof("Sun, 10 Sep 2017   ")
 
 #define	xpfMAX_LEN_DTZ				(xpfMAX_LEN_DATE + xpfMAX_LEN_TIME + configTIME_MAX_LEN_TZINFO)
 
@@ -111,115 +121,86 @@ extern u64_t RunTime;
  * http://www.termsys.demon.co.uk/vtansi.htm#colors
  */
 
-#define	xpfSGR(a,b,c,d)				(((uint8_t) d << 24) + ((uint8_t) c << 16) + ((uint8_t) b << 8) + (uint8_t) a)
+#define	xpfSGR(a,b,c,d)				(((u8_t) d << 24) + ((u8_t) c << 16) + ((u8_t) b << 8) + (u8_t) a)
 
 // ####################################### enumerations ############################################
 
-enum { srcS, srcF, srcT, srcN } ;
 
 // #################################### Public structures ##########################################
 
 typedef union {
-	struct __attribute__((packed)) { uint8_t a, b, c, d ; } ;
-	uint8_t u8[sizeof(uint32_t)];
-	uint32_t u32;
+	struct __attribute__((packed)) { u8_t a, b, c, d ; } ;
+	u8_t u8[sizeof(u32_t)];
+	u32_t u32;
 } sgr_info_t ;
 DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4) ;
 
-typedef union {
-	uint32_t	flags ;								// rest of flags
-	struct __attribute__((packed)) {
-		// byte 0
-			uint8_t		group 		: 1 ;				// 0 = disable, 1 = enable
-			uint8_t		alt_form	: 1 ;				// '#'
-			uint8_t		ljust		: 1 ;				// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
-			uint8_t		Ucase		: 1 ;				// true = 'a' or false = 'A'
-			uint8_t		pad0		: 1 ;				// true = pad with leading'0'
-			uint8_t		llong		: 1 ;				// long long override flag
-			uint8_t		radix		: 1 ;
-			uint8_t		rel_val		: 1 ;				// relative address / elapsed time
-		// byte 1
-			uint32_t	nbase 		: 5 ;				// 2, 8, 10 or 16
-			uint8_t		size		: 2 ;				// size of value ie byte / half / word / lword
-			uint8_t		negvalue	: 1 ;				// if value < 0
-		// byte 2
-			uint8_t		form		: 2 ;				// format specifier FLOAT, DUMP & TIME
-			uint8_t		signval		: 1 ;				// true = content is signed value
-			uint8_t		plus		: 1 ;				// true = force use of '+' or '-' signed
-			uint8_t		arg_width	: 1 ;				// minwid specified
-			uint8_t		arg_prec	: 1 ;				// precis specified
-			uint8_t		dbg			: 1 ;
-			uint8_t		Pspc		: 1 ;
-			// byte 3
-			uint8_t		spare		: 8 ;				// SPARE !!!
-	};
-} xf_t;
-
-typedef	struct __attribute__((packed)) xpf_t {
+typedef	struct xpf_t {
 	union {
-		uint32_t	lengths ;							// maxlen & curlen ;
+		u32_t	lengths ;							// maxlen & curlen ;
 		struct __attribute__((packed)) {
-			uint32_t	maxlen		: xpfMAXLEN_BITS ;	// max chars to output 0 = unlimited
-			uint32_t	curlen		: xpfMAXLEN_BITS ;	// number of chars output so far
+			u32_t	maxlen		: xpfMAXLEN_BITS ;	// max chars to output 0 = unlimited
+			u32_t	curlen		: xpfMAXLEN_BITS ;	// number of chars output so far
 		} ;
 	} ;
 	union {
-		uint32_t	limits ;
+		u32_t	limits ;
 		struct __attribute__((packed)) {
-			uint32_t	minwid		: xpfMINWID_BITS ;	// min field width
-			uint32_t	precis		: xpfPRECIS_BITS ;	// float precision or max string length
+			u32_t	minwid		: xpfMINWID_BITS ;	// min field width
+			u32_t	precis		: xpfPRECIS_BITS ;	// float precision or max string length
 		} ;
 	} ;
 	union {
-		uint32_t	flags ;								// rest of flags
+		u32_t	flags ;								// rest of flags
 		struct __attribute__((packed)) {
 		// byte 0
-			uint8_t		group 		: 1 ;				// 0 = disable, 1 = enable
-			uint8_t		alt_form	: 1 ;				// '#'
-			uint8_t		ljust		: 1 ;				// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
-			uint8_t		Ucase		: 1 ;				// true = 'a' or false = 'A'
-			uint8_t		pad0		: 1 ;				// true = pad with leading'0'
-			uint8_t		llong		: 1 ;				// long long override flag
-			uint8_t		radix		: 1 ;
-			uint8_t		rel_val		: 1 ;				// relative address / elapsed time
+			u8_t		group 		: 1 ;				// 0 = disable, 1 = enable
+			u8_t		alt_form	: 1 ;				// '#'
+			u8_t		ljust		: 1 ;				// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
+			u8_t		Ucase		: 1 ;				// true = 'a' or false = 'A'
+			u8_t		pad0		: 1 ;				// true = pad with leading'0'
+			u8_t		radix		: 1 ;
+			u8_t		signval		: 1 ;				// true = content is signed value
+			u8_t		rel_val		: 1 ;				// relative address / elapsed time
 		// byte 1
-			uint32_t	nbase 		: 5 ;				// 2, 8, 10 or 16
-			uint8_t		size		: 2 ;				// size of value ie byte / half / word / lword
-			uint8_t		negvalue	: 1 ;				// if value < 0
+			u32_t		nbase 		: 5 ;				// 2, 8, 10 or 16
+			u8_t		size		: 2 ;				// size of value ie byte / half / word / lword
+			u8_t		negvalue	: 1 ;				// if value < 0
 		// byte 2
-			uint8_t		form		: 2 ;				// format specifier FLOAT, DUMP & TIME
-			uint8_t		signval		: 1 ;				// true = content is signed value
-			uint8_t		plus		: 1 ;				// true = force use of '+' or '-' signed
-			uint8_t		arg_width	: 1 ;				// minwid specified
-			uint8_t		arg_prec	: 1 ;				// precis specified
-			uint8_t		dbg			: 1 ;
-			uint8_t		Pspc		: 1 ;
+			u8_t		llong		: 4 ;				// va_arg override
+			u8_t		form		: 2 ;				// format specifier FLOAT, DUMP & TIME
+			u8_t		arg_width	: 1 ;				// minwid specified
+			u8_t		arg_prec	: 1 ;				// precis specified
 			// byte 3
-			uint8_t		spare		: 8 ;				// SPARE !!!
+			u8_t		plus		: 1 ;				// true = force use of '+' or '-' signed
+			u8_t		dbg			: 1 ;
+			u8_t		Pspc		: 1 ;
+			u8_t		spare		: 5 ;				// SPARE !!!
 		};
 	};
 } xpf_t ;
-DUMB_STATIC_ASSERT(sizeof(xpf_t) == 12) ;
+DUMB_STATIC_ASSERT(sizeof(xpf_t) == 12);
 
-typedef	struct __attribute__((packed)) xpc_t {
-	int 	(*handler)(struct xpc_t * , int ) ;
+typedef	struct xpc_t {
+	int (*handler)(struct xpc_t *, int);
 	union {
-		void *			pVoid ;
-		char *			pStr ;							// string buffer
-		FILE *			stream ;						// file stream
-		struct netx_t *	psSock ;						// socket context
-		struct ubuf_t *	psUBuf ;						// ubuf
-		int				fd ;							// file descriptor/handle
-		int 			(*DevPutc)(int ) ;				// custom device driver
-		unsigned int *	pU32;							// Address of running CRC32 value
-	} ;
-	xpf_t	f ;
+		void * pVoid;
+		char * pStr;				// string buffer
+		FILE * stream;				// file stream
+		struct netx_t *	psSock;		// socket context
+		struct ubuf_t *	psUBuf;		// ubuf
+		int fd;						// file descriptor/handle
+		int (*DevPutc)(int);		// custom device driver
+		unsigned int * pU32;		// Address of running CRC32 value
+	};
+	xpf_t f;
+	va_list vaList;
 } xpc_t ;
-DUMB_STATIC_ASSERT(sizeof(xpc_t) == (12 + sizeof(int *) + sizeof(void *))) ;
+DUMB_STATIC_ASSERT(sizeof(xpc_t) == (sizeof(int *) + sizeof(void *)) + sizeof(xpf_t) + sizeof(va_list));
 
 // ################################### Public functions ############################################
 
-int xPrintFX(xpc_t * psXPC, const char * format, va_list vArgs);
+int xPrintFX(xpc_t * psXPC, const char * format);
 
 int xPrintF(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list);
 
