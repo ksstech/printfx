@@ -1560,7 +1560,7 @@ int devprintfx(int (* Hdlr)(int ), const char * format, ...) {
 
 int	xPrintToSocket(xpc_t * psXPC, int cChr) {
 	u8_t cBuf = cChr ;
-	int iRV = xNetWrite(psXPC->psSock, &cBuf, sizeof(cBuf));
+	int iRV = xNetSend(psXPC->psSock, &cBuf, sizeof(cBuf));
 	if (iRV != sizeof(cBuf))
 		return iRV;
 	return cChr ;
