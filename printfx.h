@@ -33,12 +33,7 @@ extern u64_t RunTime;
 #define	IF_PL(T, f, ...)			if (T) PL(f, ##__VA_ARGS__)
 #define	IF_PT(T, f, ...)			if (T) PT(f, ##__VA_ARGS__)
 #define	IF_PTL(T, f, ...)			if (T) PTL(f, ##__VA_ARGS__)
-/*
-#define	CP(f, ...)					printfx_nolock(f, ##__VA_ARGS__)
-#define	CPL(f, ...)					printfx_nolock(_L_(f), ##__VA_ARGS__)
-#define	CPT(f, ...)					printfx_nolock(_T_(f), ##__VA_ARGS__)
-#define	CPTL(f, ...)				printfx_nolock(_TL_(f), ##__VA_ARGS__)
-*/
+
 #define	CP(f, ...)					cprintfx(f, ##__VA_ARGS__)
 #define	CPL(f, ...)					cprintfx(_L_(f), ##__VA_ARGS__)
 #define	CPT(f, ...)					cprintfx(_T_(f), ##__VA_ARGS__)
