@@ -1074,25 +1074,25 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				++fmt;
 				switch(cFmt) {
 				case 0:
-					if (*fmt == CHR_h) {
+					if (*fmt == CHR_h) {				// "hh"
 						psXPC->f.llong = S_hh;
 						++fmt;
-					} else {
+					} else {							// 'h'
 						psXPC->f.llong = S_h;
 					}
 					break;
 				case 1:
 					if (*fmt != CHR_l) {
-						psXPC->f.llong = S_l;
+						psXPC->f.llong = S_l;			// 'l'
 					} else {
-						psXPC->f.llong = S_ll;
+						psXPC->f.llong = S_ll;			// "ll"
 						++fmt;
 					}
 					break;
-				case 2: psXPC->f.llong = S_j; break;
-				case 3: psXPC->f.llong = S_z; break;
-				case 4: psXPC->f.llong = S_t; break;
-				case 5: psXPC->f.llong = S_L; break;
+				case 2: psXPC->f.llong = S_j; break;	// [u]intmax_t[*]
+				case 3: psXPC->f.llong = S_z; break;	// [s]size_t[*]
+				case 4: psXPC->f.llong = S_t; break;	// ptrdiff[*]
+				case 5: psXPC->f.llong = S_L; break;	// long double float (F128)
 				}
 			}
 			myASSERT(psXPC->f.llong < S_j);				// rest not yet supported
