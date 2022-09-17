@@ -1111,23 +1111,15 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			#endif
 			switch (cFmt) {
 			#if	(xpfSUPPORT_SGR == 1)
-			case CHR_C:
-				vPrintSetGraphicRendition(psXPC, va_arg(psXPC->vaList, unsigned long));
-				break;
+			case CHR_C: vPrintSetGraphicRendition(psXPC, va_arg(psXPC->vaList, unsigned long)); break;
 			#endif
 
 			#if	(xpfSUPPORT_IP_ADDR == 1)						// IP address
-			case CHR_I:
-				vPrintIpAddress(psXPC, va_arg(psXPC->vaList, unsigned long));
-				break;
+			case CHR_I: vPrintIpAddress(psXPC, va_arg(psXPC->vaList, unsigned long)); break;
 			#endif
 
 			#if	(xpfSUPPORT_BINARY == 1)
-			case CHR_J:
-				x64Val = x64PrintGetValue(psXPC);
-//				x64Val.u64 = (psXPC->f.llong == S_ll) ? va_arg(psXPC->vaList, u64_t) : va_arg(psXPC->vaList, u32_t);
-				vPrintBinary(psXPC, x64Val.u64);
-				break;
+			case CHR_J: x64Val = x64PrintGetValue(psXPC); vPrintBinary(psXPC, x64Val.u64); break;
 			#endif
 
 			#if	(xpfSUPPORT_DATETIME == 1)
@@ -1218,15 +1210,12 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				break ;
 			#endif
 
-			case CHR_c:
-				vPrintChar(psXPC, va_arg(psXPC->vaList, int)) ;
-				break ;
+			case CHR_c: vPrintChar(psXPC, va_arg(psXPC->vaList, int)); break ;
 
 			case CHR_d:									// signed decimal "[-]ddddd"
 			case CHR_i:									// signed integer (same as decimal ?)
 				psXPC->f.signval = 1;
 				x64Val = x64PrintGetValue(psXPC);
-//				x64Val.i64 = (psXPC->f.llong == S_ll) ? va_arg(psXPC->vaList, s64_t) : va_arg(psXPC->vaList, s32_t);
 				if (x64Val.i64 < 0LL) {
 					psXPC->f.negvalue = 1;
 					x64Val.i64 *= -1; 					// convert the value to unsigned
@@ -1263,7 +1252,6 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				/* FALLTHRU */ /* no break */
 			case CHR_u:									// unsigned decimal "ddddd"
 				psXPC->f.nbase = (cFmt == CHR_x) ? BASE16 : (cFmt == CHR_u) ? BASE10 : BASE08;
-//				x64Val.u64 = (psXPC->f.llong == S_ll) ? va_arg(psXPC->vaList, u64_t) : (u64_t) va_arg(psXPC->vaList, u32_t);
 				x64Val = x64PrintGetValue(psXPC);
 				vPrintX64(psXPC, x64Val.u64);
 				break;
