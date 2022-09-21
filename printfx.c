@@ -153,7 +153,7 @@ char cPrintNibbleToChar(xpc_t * psXPC, u8_t Value) {
  * 			c - char to be output
  * @return	1 or 0 based on whether char was '\000'
  */
-static int vPrintChar(xpc_t * psXPC, char cChr) {
+static int xPrintChar(xpc_t * psXPC, char cChr) {
 	int iRV = cChr;
 	#if (xpfSUPPORT_FILTER_NUL == 1)
 	if (cChr == 0)
@@ -211,9 +211,9 @@ void vPrintString (xpc_t * psXPC, char * pStr) {
 			Lpad = Tpad ;
 		}
 	}
-	for (;Lpad--; vPrintChar(psXPC, Cpad)) ;
-	for (;Len-- && *pStr; vPrintChar(psXPC, *pStr++)) ;
-	for (;Rpad--; vPrintChar(psXPC, Cpad)) ;
+	for (;Lpad--; xPrintChar(psXPC, Cpad)) ;
+	for (;Len-- && *pStr; xPrintChar(psXPC, *pStr++)) ;
+	for (;Rpad--; xPrintChar(psXPC, Cpad)) ;
 }
 
 /**
@@ -519,8 +519,8 @@ void vPrintPointer(xpc_t * psXPC, px_t pX) {
  * return	none
  */
 void vPrintHexU8(xpc_t * psXPC, u8_t Value) {
-	vPrintChar(psXPC, cPrintNibbleToChar(psXPC, Value >> 4)) ;
-	vPrintChar(psXPC, cPrintNibbleToChar(psXPC, Value & 0x0F)) ;
+	xPrintChar(psXPC, cPrintNibbleToChar(psXPC, Value >> 4)) ;
+	xPrintChar(psXPC, cPrintNibbleToChar(psXPC, Value & 0x0F)) ;
 }
 
 /**
@@ -603,7 +603,7 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 		// now handle the grouping separator(s) if any
 		if (psXPC->f.form == form0G)				// no separator required?
 			continue ;
-		vPrintChar(psXPC, psXPC->f.form == form1F ? CHR_COLON :
+		xPrintChar(psXPC, psXPC->f.form == form1F ? CHR_COLON :
 						  psXPC->f.form == form2E ? CHR_MINUS :
 						  psXPC->f.form == form3X ? (
 							(Idx % 8) == 0 ? CHR_SPACE :
@@ -823,11 +823,11 @@ void vPrintURL(xpc_t * psXPC, char * pStr) {
 				INRANGE(CHR_a, cIn, CHR_z) ||
 				INRANGE(CHR_0, cIn, CHR_9) ||
 				(cIn == CHR_MINUS || cIn == CHR_FULLSTOP || cIn == CHR_UNDERSCORE || cIn == CHR_TILDE)) {
-				vPrintChar(psXPC, cIn) ;
+				xPrintChar(psXPC, cIn) ;
 			} else {
-				vPrintChar(psXPC, CHR_PERCENT) ;
-				vPrintChar(psXPC, cPrintNibbleToChar(psXPC, cIn >> 4)) ;
-				vPrintChar(psXPC, cPrintNibbleToChar(psXPC, cIn & 0x0F)) ;
+				xPrintChar(psXPC, CHR_PERCENT) ;
+				xPrintChar(psXPC, cPrintNibbleToChar(psXPC, cIn >> 4)) ;
+				xPrintChar(psXPC, cPrintNibbleToChar(psXPC, cIn & 0x0F)) ;
 			}
 		}
 	} else {
@@ -1173,7 +1173,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				}
 				vPrintTime(psXPC, &sTM, (u32_t) (x64Val.u64 % MICROS_IN_SECOND)) ;
 				if (psXPC->f.rel_val == 0)
-					vPrintChar(psXPC, CHR_Z);
+					xPrintChar(psXPC, CHR_Z);
 				break ;
 			#endif
 
@@ -1309,20 +1309,20 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				// Required to avoid crash when wifi message is intercepted and a string pointer parameter
 				// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
 				px.pc8 = halCONFIG_inMEM(px.pc8) ? px.pc8 : px.pc8 == NULL ? STRING_NULL : STRING_OOR;
-				vPrintString(psXPC, px.pc8);
+				vPrintString(psXPC, pX.pc8);
 				break;
 
 			default:
 				/* At this stage we have handled the '%' as assumed, but the next character found is invalid.
 				 * Show the '%' we swallowed and then the extra, invalid, character as well */
-				vPrintChar(psXPC, CHR_PERCENT);
-				vPrintChar(psXPC, *fmt);
+				xPrintChar(psXPC, CHR_PERCENT);
+				xPrintChar(psXPC, *fmt);
 				break;
 			}
 			psXPC->f.plus = 0;							// reset this form after printing one value
 		} else {
 out_lbl:
-			vPrintChar(psXPC, *fmt) ;
+			xPrintChar(psXPC, *fmt) ;
 		}
 	}
 	return psXPC->f.curlen ;
