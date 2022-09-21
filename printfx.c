@@ -1277,13 +1277,11 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				break;
 
 			#if	(xpfSUPPORT_IEEE754 == 1)
-			case CHR_e:									// form = 2
-				++psXPC->f.form;
+//			case CHR_a:									// HEX format not yet supported
+			case CHR_e: ++psXPC->f.form;				// form = 2
 				/* FALLTHRU */ /* no break */
-			case CHR_f:									// form = 1
-				++psXPC->f.form;
+			case CHR_f:	++psXPC->f.form;				// form = 1
 				/* FALLTHRU */ /* no break */
-			case CHR_a:									// stopgap, HEX format not supported
 			case CHR_g:									// form = 0
 				psXPC->f.signval = 1;					// float always signed value.
 				/* https://en.cppreference.com/w/c/io/fprintf
