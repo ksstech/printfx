@@ -100,16 +100,16 @@ x64_t x64PrintGetValue(xpc_t * psXPC) {
 		break;
 	case S_l:
 		if (psXPC->f.signval == 1) {
-			X64.i64 = (i64_t) va_arg(psXPC->vaList, long);
+			X64.i64 = (i64_t) va_arg(psXPC->vaList, i32_t);
 		} else {
-			X64.u64 = (u64_t) va_arg(psXPC->vaList, unsigned long);
+			X64.u64 = (u64_t) va_arg(psXPC->vaList, u32_t);
 		}
 		break;
 	case S_ll:
 		if (psXPC->f.signval) {
-			X64.i64 = va_arg(psXPC->vaList, long long);
+			X64.i64 = va_arg(psXPC->vaList, i64_t);
 		} else {
-			X64.u64 = va_arg(psXPC->vaList, unsigned long long);
+			X64.u64 = va_arg(psXPC->vaList, u64_t);
 		}
 		break;
 	case S_z:
@@ -977,11 +977,11 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					psXPC->f.group = 1;
 					break;
 				case 3:									// '*' indicate argument will supply field width
-					X32.i32	= va_arg(psXPC->vaList, int);
-					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.i32 <= xpfMINWID_MAXVAL);
-					++fmt ;
-					psXPC->f.minwid = X32.i32 ;
-					psXPC->f.arg_width = 1 ;
+					X32.iX	= va_arg(psXPC->vaList, int);
+					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.iX <= xpfMINWID_MAXVAL);
+					++fmt;
+					psXPC->f.minwid = X32.iX;
+					psXPC->f.arg_width = 1;
 					break ;
 				case 4:									// '+' force leading +/- signed
 					++fmt ;								// or HEXDUMP add ASCII char dump
@@ -1017,17 +1017,17 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 						++fmt;
 						psXPC->f.radix = 1;
 						if (X32.i32 > 0) {
-							IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.i32 <= xpfMINWID_MAXVAL);
-							psXPC->f.minwid = X32.i32;
+							IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.iX <= xpfMINWID_MAXVAL);
+							psXPC->f.minwid = X32.iX;
 							psXPC->f.arg_width = 1;
 							X32.i32 = 0;
 						}
 					} else if (*fmt == CHR_ASTERISK) {
-						IF_myASSERT(debugTRACK, psXPC->f.radix == 1 && X32.i32 == 0);
+						IF_myASSERT(debugTRACK, psXPC->f.radix == 1 && X32.iX == 0);
 						++fmt;
-						X32.i32	= va_arg(psXPC->vaList, int);
-						IF_myASSERT(debugTRACK, X32.i32 <= xpfPRECIS_MAXVAL);
-						psXPC->f.precis = X32.i32;
+						X32.iX	= va_arg(psXPC->vaList, int);
+						IF_myASSERT(debugTRACK, X32.iX <= xpfPRECIS_MAXVAL);
+						psXPC->f.precis = X32.iX;
 						psXPC->f.arg_prec = 1;
 						X32.i32 = 0;
 					} else {
@@ -1037,12 +1037,12 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				// Save possible parsed value
 				if (X32.i32 > 0) {
 					if (psXPC->f.arg_width == 0 && psXPC->f.radix == 0) {
-						IF_myASSERT(debugTRACK, X32.i32 <= xpfMINWID_MAXVAL);
-						psXPC->f.minwid	= X32.i32;
+						IF_myASSERT(debugTRACK, X32.iX <= xpfMINWID_MAXVAL);
+						psXPC->f.minwid	= X32.iX;
 						psXPC->f.arg_width = 1;
 					} else if (psXPC->f.arg_prec == 0 && psXPC->f.radix == 1) {
-						IF_myASSERT(debugTRACK, X32.i32 <= xpfPRECIS_MAXVAL) ;
-						psXPC->f.precis	= X32.i32;
+						IF_myASSERT(debugTRACK, X32.iX <= xpfPRECIS_MAXVAL) ;
+						psXPC->f.precis	= X32.iX;
 						psXPC->f.arg_prec = 1;
 					} else {
 						IF_myASSERT(debugTRACK, 0) ;
@@ -1094,11 +1094,11 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			#endif
 			switch (cFmt) {
 			#if	(xpfSUPPORT_SGR == 1)
-			case CHR_C: vPrintSetGraphicRendition(psXPC, va_arg(psXPC->vaList, unsigned long)); break;
+			case CHR_C: vPrintSetGraphicRendition(psXPC, va_arg(psXPC->vaList, u32_t)); break;
 			#endif
 
 			#if	(xpfSUPPORT_IP_ADDR == 1)						// IP address
-			case CHR_I: vPrintIpAddress(psXPC, va_arg(psXPC->vaList, unsigned long)); break;
+			case CHR_I: vPrintIpAddress(psXPC, va_arg(psXPC->vaList, u32_t)); break;
 			#endif
 
 			#if	(xpfSUPPORT_DATETIME == 1)
@@ -1195,10 +1195,10 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				/* In order for formatting to work  the "*" or "." radix specifiers
 				 * should not be used. The requirement for a second parameter is implied and assumed */
 				psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
-				X32.i32	= va_arg(psXPC->vaList, int) ;
+				X32.iX	= va_arg(psXPC->vaList, int) ;
 				pX.pc8	= va_arg(psXPC->vaList, char *) ;
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pX.pc8));
-				vPrintHexDump(psXPC, X32.i32, pX.pc8);
+				vPrintHexDump(psXPC, X32.iX, pX.pc8);
 				break ;
 			#endif
 
@@ -1260,7 +1260,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				} else {
 					psXPC->f.precis	= xpfDEFAULT_DECIMALS;
 				}
-				vPrintF64(psXPC, va_arg(psXPC->vaList, double));
+				vPrintF64(psXPC, va_arg(psXPC->vaList, f64_t));
 				break;
 			#endif
 
