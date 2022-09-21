@@ -630,6 +630,35 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 void vPrintPointer(xpc_t * psXPC, void * pVoid) {
 	xPrintChars(psXPC, (char *) "0x") ;
 	vPrintHexU32(psXPC, (u32_t) pVoid) ;
+void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
+	for (int Now = 0; Now < xLen; Now += xpfHEXDUMP_WIDTH) {
+		if (psXPC->f.ljust == 0) {						// display absolute or relative address
+			vPrintPointer(psXPC, (px_t) (psXPC->f.rel_val ? (void *) Now : (void *) (pStr + Now)));
+			xPrintChars(psXPC, (char *) ": ") ;
+		}
+		// then the actual series of values in 8-32 bit groups
+		int Width = (xLen - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : xLen - Now ;
+		vPrintHexValues(psXPC, Width, pStr + Now) ;
+		if (psXPC->f.plus) {							// ASCII equivalent requested?
+			u32_t Count;
+			int Size = S_bytes[psXPC->f.llong];
+			Count = (xLen <= xpfHEXDUMP_WIDTH) ? 1 :
+					((xpfHEXDUMP_WIDTH - Width) / Size) * (Size*2 + (psXPC->f.form ? 1 : 0)) + 1;
+			while (Count--)			// handle space padding for ASCII dump to line up
+				xPrintChar(psXPC, CHR_SPACE);
+			for (Count = 0; Count < Width; ++Count) {	// values as ASCII characters
+				int cChr = *(pStr + Now + Count);
+				#if 0				// Device supports characters in range 0x80 to 0xFE
+				xPrintChar(psXPC, (cChr < CHR_SPACE || cChr == CHR_DEL || cChr == 0xFF) ? CHR_FULLSTOP : cChr);
+				#else				// Device does NOT support ANY characters > 0x7E
+				xPrintChar(psXPC, (cChr < CHR_SPACE || cChr >= CHR_DEL) ? CHR_FULLSTOP : cChr);
+				#endif
+			}
+			xPrintChar(psXPC, CHR_SPACE) ;
+		}
+		if ((Now < xLen) && (xLen > xpfHEXDUMP_WIDTH))
+			xPrintChars(psXPC, strCRLF);
+	}
 }
 
 // ############################# Proprietary extensions: date & time ###############################
@@ -844,39 +873,6 @@ void vPrintURL(xpc_t * psXPC, char * pStr) {
 	}
 }
 
-void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
-	for (int Now = 0; Now < xLen; Now += xpfHEXDUMP_WIDTH) {
-		#if	(xpfSUPPORT_POINTER == 1)
-		if (psXPC->f.ljust == 0) {						// display absolute or relative address
-			vPrintPointer(psXPC, psXPC->f.rel_val ? (void *) Now : (void *)(pStr + Now)) ;
-			xPrintChars(psXPC, (char *) ": ") ;
-		}
-		#endif
-		// then the actual series of values in 8-32 bit groups
-		int Width = (xLen - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : xLen - Now ;
-		vPrintHexValues(psXPC, Width, pStr + Now) ;
-		if (psXPC->f.plus) {							// handle values dumped as ASCII chars
-		// handle space padding for ASCII dump to line up
-			u32_t Count;
-			int	Size = 1 << psXPC->f.size ;
-			Count = (xLen <= xpfHEXDUMP_WIDTH) ? 1 :
-					((xpfHEXDUMP_WIDTH - Width) / Size) * (Size*2 + (psXPC->f.form ? 1 : 0)) + 1;
-			while (Count--)
-				vPrintChar(psXPC, CHR_SPACE);
-			// handle same values dumped as ASCII characters
-			for (Count = 0; Count < Width; ++Count) {
-				u32_t cChr = *(pStr + Now + Count) ;
-			#if 0					// Device supports characters in range 0x80 to 0xFE
-				vPrintChar(psXPC, (cChr < CHR_SPACE || cChr == CHR_DEL || cChr == 0xFF) ? CHR_FULLSTOP : cChr);
-			#else					// Device does NOT support ANY characters > 0x7E
-				vPrintChar(psXPC, (cChr < CHR_SPACE || cChr >= CHR_DEL) ? CHR_FULLSTOP : cChr);
-			#endif
-			}
-			vPrintChar(psXPC, CHR_SPACE) ;
-		}
-		if ((Now < xLen) && (xLen > xpfHEXDUMP_WIDTH))
-			vPrintChar(psXPC, CHR_LF);
-	}
 }
 
 // ############################## Proprietary extension: IP address ################################
