@@ -1295,6 +1295,9 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			case CHR_u:									// unsigned decimal "ddddd"
 				psXPC->f.nbase = (cFmt == CHR_x) ? BASE16 : (cFmt == CHR_u) ? BASE10 : BASE08;
 				X64 = x64PrintGetValue(psXPC);
+				// Ensure sign-extended bits removed
+				int Wid = psXPC->f.llong==S_hh ? 7 : psXPC->f.llong==S_h ? 15 : psXPC->f.llong==S_l ? 31 : 63;
+				X64.u64 &= BIT_MASK64(0, Wid);
 				vPrintX64(psXPC, X64.u64);
 			case CHR_p:
 				pX.pv = va_arg(psXPC->vaList, void *);
