@@ -88,7 +88,6 @@ const char hexchars[] = "0123456789ABCDEF" ;
 
 x64_t x64PrintGetValue(xpc_t * psXPC) {
 	x64_t X64;
-//	RP("[ll=%d] ", psXPC->f.llong);
 	switch(psXPC->f.llong) {
 	case S_none:
 	case S_hh:
