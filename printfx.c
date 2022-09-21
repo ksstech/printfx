@@ -1202,7 +1202,6 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				break ;
 			#endif
 
-			case CHR_c: vPrintChar(psXPC, va_arg(psXPC->vaList, int)); break ;
 			/* convert unsigned 32/64 bit value to 1/0 ASCI string
 			 * field width specifier is applied as mask starting from LSB to MSB
 			 * '#'	change prepended "0b" to "0B"
@@ -1231,6 +1230,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				}
 				break;
 
+			case CHR_c: xPrintChar(psXPC, va_arg(psXPC->vaList, int)); break;
 
 			case CHR_d:									// signed decimal "[-]ddddd"
 			case CHR_i:									// signed integer (same as decimal ?)
