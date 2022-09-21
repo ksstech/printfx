@@ -1259,14 +1259,6 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				break;
 			#endif
 
-			case CHR_o:									// unsigned octal "ddddd"
-			case CHR_x:									// hex as in "789abcd" UC/LC
-				psXPC->f.group = 0 ;					// disable grouping
-				/* FALLTHRU */ /* no break */
-			case CHR_u:									// unsigned decimal "ddddd"
-				psXPC->f.nbase = (cFmt == CHR_x) ? BASE16 : (cFmt == CHR_u) ? BASE10 : BASE08;
-				x64Val = x64PrintGetValue(psXPC);
-				vPrintX64(psXPC, x64Val.u64);
 				vPrintX64(psXPC, X64.u64);
 				break;
 
@@ -1297,6 +1289,13 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				*pX.piX = psXPC->f.curlen;
 				break;
 
+			case CHR_o:									// unsigned octal "ddddd"
+			case CHR_x: psXPC->f.group = 0;				// hex as in "789abcd" UC/LC, disable grouping
+				/* FALLTHRU */ /* no break */
+			case CHR_u:									// unsigned decimal "ddddd"
+				psXPC->f.nbase = (cFmt == CHR_x) ? BASE16 : (cFmt == CHR_u) ? BASE10 : BASE08;
+				X64 = x64PrintGetValue(psXPC);
+				vPrintX64(psXPC, X64.u64);
 			case CHR_p:
 				pX.pv = va_arg(psXPC->vaList, void *);
 				vPrintPointer(psXPC, pX);
