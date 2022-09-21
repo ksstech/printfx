@@ -192,7 +192,7 @@ static int xPrintChars(xpc_t * psXPC, char * pStr) {
  * 			string - pointer to the string to be output
  * @return	number of ACTUAL characters output.
  */
-void vPrintString (xpc_t * psXPC, char * pStr) {
+void vPrintString(xpc_t * psXPC, char * pStr) {
 	// determine natural or limited length of string
 	int	Len ;
 	if (psXPC->f.arg_prec && psXPC->f.arg_width && psXPC->f.precis < psXPC->f.minwid) {
@@ -226,9 +226,9 @@ void vPrintString (xpc_t * psXPC, char * pStr) {
  * @return	number of actual characters output (incl leading '-' and/or ' ' and/or '0' as possibly added)
  * @comment		Honour & interpret the following modifier flags
  * 				'`'		Group digits in 3 digits groups to left of decimal '.'
- * 				'-'		Left align the individual numbers between the '.'
- * 				'+'		Force a '+' or '-' sign on the left
- * 				'0'		Zero pad to the left of the value to fill the field
+ * 				-	Left align the individual numbers between the '.'
+ * 				+	Force a '+' or '-' sign on the left
+ * 				0	Zero pad to the left of the value to fill the field
  * Protection against buffer overflow based on correct sized buffer being allocated in calling function
  *
  *	(1)		(2)		(0)
@@ -259,7 +259,7 @@ int	xPrintXxx(xpc_t * psXPC, u64_t u64Val, char * pBuffer, int BufSize) {
 		#if	(xpfSUPPORT_SCALING > 0)
 		if (psXPC->f.alt_form) {
 			unsigned int I, F;
-			u8_t	ScaleChr;
+			u8_t ScaleChr;
 			if (u64Val >= Q1) {
 				F = (u64Val % Q1) / q1;
 				I = u64Val / Q1;
@@ -386,11 +386,11 @@ void vPrintX64(xpc_t * psXPC, u64_t Value) {
  */
 void vPrintF64(xpc_t * psXPC, double F64) {
 	if (isnan(F64)) {
-		vPrintString(psXPC, psXPC->f.Ucase ? "NAN" : "nan") ;
-		return ;
+		vPrintString(psXPC, psXPC->f.Ucase ? "NAN" : "nan");
+		return;
 	} else if (isinf(F64)) {
-		vPrintString(psXPC, psXPC->f.Ucase ? "INF" : "inf") ;
-		return ;
+		vPrintString(psXPC, psXPC->f.Ucase ? "INF" : "inf");
+		return;
 	}
 	psXPC->f.negvalue	= F64 < 0.0 ? 1 : 0 ;			// set negvalue if < 0.0
 	F64	*= psXPC->f.negvalue ? -1.0 : 1.0 ;				// convert to positive number
@@ -424,8 +424,8 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 	if (F64 < (DBL_MAX - round_nums[psXPC->f.precis])) {// if addition of rounding value will NOT cause overflow.
 		F64 += round_nums[psXPC->f.precis] ;			// round by adding .5LSB to the value
 	}
-	char	Buffer[xpfMAX_LEN_F64] ;
-	Buffer[xpfMAX_LEN_F64 - 1] = 0 ;					// building R to L, ensure buffer NULL-term
+	char Buffer[xpfMAX_LEN_F64];
+	Buffer[xpfMAX_LEN_F64 - 1] = 0;						// building R to L, ensure buffer NULL-term
 
 	int Len = 0 ;
 	if (AdjForm == form2E) {							// If required, handle the exponent
@@ -440,9 +440,9 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 		++Len ;
 	}
 
-	X64.f64	= F64 - (u64_t) F64 ;					// isolate fraction as double
+	X64.f64	= F64 - (u64_t) F64 ;						// isolate fraction as double
 	X64.f64	= X64.f64 * (double) u64pow(10, psXPC->f.precis) ;	// fraction to integer
-	X64.u64	= (u64_t) X64.f64 ;						// extract integer portion
+	X64.u64	= (u64_t) X64.f64 ;							// extract integer portion
 
 	if (psXPC->f.arg_prec) {							// explicit minwid specified ?
 		psXPC->f.minwid	= psXPC->f.precis ; 			// yes, stick to it.
@@ -569,38 +569,37 @@ void vPrintHexU64(xpc_t * psXPC, u64_t Value) {
 void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 	int	Size = 1 << psXPC->f.size;
 	if (psXPC->f.alt_form)								// invert order ?
-		pStr += Num - Size ;							// working backwards so point to last
+		pStr += Num - Size;								// working backwards so point to last
 
 	x64_t x64Val;
 	int	Idx	= 0;
 	while (Idx < Num) {
 		switch (psXPC->f.size) {
 		case 0:
-			x64Val.x8[0].u8	  = *((u8_t *) pStr) ;
-			vPrintHexU8(psXPC, x64Val.x8[0].u8) ;
-			break ;
+			x64Val.x8[0].u8	  = *((u8_t *) pStr);
+			vPrintHexU8(psXPC, x64Val.x8[0].u8);
+			break;
 		case 1:
-			x64Val.x16[0].u16 = *((u16_t *) pStr) ;
-			vPrintHexU16(psXPC, x64Val.x16[0].u16) ;
-			break ;
+			x64Val.x16[0].u16 = *((u16_t *) pStr);
+			vPrintHexU16(psXPC, x64Val.x16[0].u16);
+			break;
 		case 2:
-			x64Val.x32[0].u32 = *((u32_t *) pStr) ;
-			vPrintHexU32(psXPC, x64Val.x32[0].u32) ;
-			break ;
 		case 3:
-			x64Val.u64	  = *((u64_t *) pStr) ;
-			vPrintHexU64(psXPC, x64Val.u64) ;
-			break ;
+			x64Val.x32[0].u32 = *((u32_t *) pStr);
+			vPrintHexU32(psXPC, x64Val.x32[0].u32);
+			break;
+			x64Val.u64	  = *((u64_t *) pStr);
+			vPrintHexU64(psXPC, x64Val.u64);
+			break;
 		}
 		// step to the next 8/16/32/64 bit value
 		if (psXPC->f.alt_form)							// invert order ?
 			pStr -= Size ;								// update source pointer backwards
 		else
 			pStr += Size ;								// update source pointer forwards
-		Idx += Size ;
-		if (Idx >= Num) {
-			break ;
-		}
+		Idx += Size;
+		if (Idx >= Num)
+			break;
 		// now handle the grouping separator(s) if any
 		if (psXPC->f.form == form0G)				// no separator required?
 			continue ;
@@ -933,7 +932,7 @@ void vPrintIpAddress(xpc_t * psXPC, u32_t Val) {
 }
 
 /**
- * vPrintSetGraphicRendition() - set starting and ending fore/background colors
+ * set starting and ending fore/background colors
  * @param psXPC
  * @param Val	U32 value treated as 4x U8 being SGR color/attribute codes
  *
@@ -993,7 +992,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					break;
 				case 3:									// '*' indicate argument will supply field width
 					X32.i32	= va_arg(psXPC->vaList, int);
-					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.i32 <= xpfMINWID_MAXVAL) ;
+					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.i32 <= xpfMINWID_MAXVAL);
 					++fmt ;
 					psXPC->f.minwid = X32.i32 ;
 					psXPC->f.arg_width = 1 ;
