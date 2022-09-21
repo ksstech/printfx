@@ -1186,15 +1186,11 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			#endif
 
 			#if	(xpfSUPPORT_HEXDUMP == 1)
-			case CHR_B:									// HEXDUMP 8bit sized
-			case CHR_H:									// HEXDUMP 16bit sized
-			case CHR_W:									// HEXDUMP 32bit sized
-				IF_myASSERT(debugTRACK, !psXPC->f.arg_width && !psXPC->f.arg_prec) ;
+			case CHR_Y:									// HEXDUMP
+				IF_myASSERT(debugTRACK, !psXPC->f.arg_width && !psXPC->f.arg_prec);
 				/* In order for formatting to work  the "*" or "." radix specifiers
 				 * should not be used. The requirement for a second parameter is implied and assumed */
 				psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
-				psXPC->f.size = cFmt == 'B' ? xpfSIZING_BYTE : cFmt == 'H' ? xpfSIZING_SHORT : xpfSIZING_WORD ;
-				psXPC->f.size	+= (psXPC->f.llong > S_l) ? 1 : 0 ; 	// apply ll modifier to size
 				X32.i32	= va_arg(psXPC->vaList, int) ;
 				pX.pc8	= va_arg(psXPC->vaList, char *) ;
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pX.pc8));
