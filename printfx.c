@@ -1536,9 +1536,9 @@ int vcprintfx(const char * format, va_list vaList) {
 int cprintfx(const char * format, ...) {
 	va_list vaList ;
 	va_start(vaList, format) ;
-	printfx_lock();
+//	printfx_lock();
 	int iRV = xPrintF(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vaList) ;
-	printfx_unlock();
+//	printfx_unlock();
 	va_end(vaList) ;
 	return iRV ;
 }
