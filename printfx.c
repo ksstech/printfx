@@ -37,11 +37,9 @@
 
 // ###################### control functionality included in xprintf.c ##############################
 
-#define	xpfSUPPORT_BINARY			1
 #define	xpfSUPPORT_MAC_ADDR			1
 #define	xpfSUPPORT_IP_ADDR			1
 #define	xpfSUPPORT_HEXDUMP			1
-#define	xpfSUPPORT_POINTER			1
 #define	xpfSUPPORT_DATETIME			1
 #define	xpfSUPPORT_IEEE754			1					// float point support in printfx.c functions
 #define	xpfSUPPORT_SCALING			1					// scale number down by 10^[3/6/9/12/15/18]
@@ -78,15 +76,13 @@ const u8_t S_bytes[9] = {
 };
 
 const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
+	'B',							// Binary formatted, prepend "0b" or "0B"
 	'X',							// hex formatted 'x' or 'X' values, always there
 	#if	(xpfSUPPORT_MAC_ADDR == 1)
 	'M',							// MAC address UC/LC
 	#endif
 	#if	(xpfSUPPORT_IEEE754 == 1)
 	'A', 'E', 'F', 'G',				// float hex/exponential/general
-	#endif
-	#if	(xpfSUPPORT_POINTER == 1)
-	'P',							// Pointer lc=0x or UC=0X
 	#endif
 	'\0'
 };
@@ -489,6 +485,33 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64 - 1 - Len)) ;
 }
 
+void vPrintPointer(xpc_t * psXPC, px_t pX) {
+	char caBuf[xpfMAX_LEN_PNTR];
+	caBuf[xpfMAX_LEN_PNTR-1] = CHR_NUL;
+	psXPC->f.nbase = BASE16;
+	psXPC->f.negvalue = 0;
+	psXPC->f.plus = 0;									// no leading '+'
+	psXPC->f.alt_form = 0;								// disable scaling
+	psXPC->f.group = 0;									// disable 3-digit grouping
+	psXPC->f.minwid = 8;
+	psXPC->f.pad0 = 1;
+	x64_t X64;
+	#if (xpfSIZE_POINTER == 2)
+	X64.u64 = (u16_t) pX.pv;
+	#elif (xpfSIZE_POINTER == 4)
+	X64.u64 = (u32_t) pX.pv;
+	#elif (xpfSIZE_POINTER == 8)
+	X64.u64 = pX.pv;
+	#else
+	#error "Unsupported architecture"
+	#endif
+	int Len = xPrintXxx(psXPC, X64.u64, caBuf, xpfMAX_LEN_PNTR - 1);
+	memcpy(&caBuf[xpfMAX_LEN_PNTR - 3 - Len], "0x", 2);
+	vPrintString(psXPC, &caBuf[xpfMAX_LEN_PNTR - 3 - Len]);
+}
+
+// ############################# Proprietary extension: hexdump ####################################
+
 /**
  * @brief	write char value as 2 hex chars to the buffer, always NULL terminated
  * @param	psXPC - pointer to control structure
@@ -863,34 +886,6 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 	}
 }
 
-/**
- * vPrintBinary()
- * @brief		convert unsigned 32/64 bit value to 1/0 ASCI string
- * 				field width specifier is applied as mask starting from LSB to MSB
- * @param[in]	psXPC - pointer to print control structure
- * @param[in]	ullVal - 64bit value to convert to binary string & display
- * @param[out]	none
- * @return		none
- * @comment		Honour & interpret the following modifier flags
- * 				'`'		Group digits using '|' (bytes) and '-' (nibbles)
- */
-void vPrintBinary(xpc_t * psXPC, u64_t ullVal) {
-	int len = S_bytes[psXPC->f.llong] * BITS_IN_BYTE;
-	if (psXPC->f.minwid)
-		len = (psXPC->f.minwid > len) ? len : psXPC->f.minwid;
-	u64_t mask = 1ULL << (len - 1);
-	psXPC->f.form = psXPC->f.group ? form3X : form0G ;
-	while (mask) {
-		vPrintChar(psXPC, (ullVal & mask) ? CHR_1 : CHR_0) ;
-		mask >>= 1;
-		// handle the complex grouping separator(s) boundary 8 use '|' or 4 use '-'
-		if (--len && psXPC->f.form && (len % 4) == 0) {
-			vPrintChar(psXPC, len % 32 == 0 ? CHR_VERT_BAR :		// word boundary
-							  len % 16 == 0 ? CHR_COLON :			// short boundary
-							  len % 8 == 0 ? CHR_SPACE : CHR_MINUS);// byte boundary or nibble
-		}
-	}
-}
 
 /**
  * vPrintIpAddress()
@@ -1119,10 +1114,6 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			case CHR_I: vPrintIpAddress(psXPC, va_arg(psXPC->vaList, unsigned long)); break;
 			#endif
 
-			#if	(xpfSUPPORT_BINARY == 1)
-			case CHR_J: x64Val = x64PrintGetValue(psXPC); vPrintBinary(psXPC, x64Val.u64); break;
-			#endif
-
 			#if	(xpfSUPPORT_DATETIME == 1)
 			/* Prints date and/or time in POSIX format
 			 * Use the following modifier flags
@@ -1212,6 +1203,34 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			#endif
 
 			case CHR_c: vPrintChar(psXPC, va_arg(psXPC->vaList, int)); break ;
+			/* convert unsigned 32/64 bit value to 1/0 ASCI string
+			 * field width specifier is applied as mask starting from LSB to MSB
+			 * '#'	change prepended "0b" to "0B"
+			 * '''	Group digits using '|' (bytes) and '-' (nibbles)
+			 */
+			case CHR_b:
+				{
+					X64 = x64PrintGetValue(psXPC);
+					psXPC->f.group = 0;
+					X32.iX = S_bytes[psXPC->f.llong] * BITS_IN_BYTE;
+					if (psXPC->f.minwid)
+						X32.iX = (psXPC->f.minwid > X32.iX) ? X32.iX : psXPC->f.minwid;
+					u64_t mask = 1ULL << (X32.iX - 1);
+					psXPC->f.form = psXPC->f.group ? form3X : form0G;
+					xPrintChars(psXPC, psXPC->f.alt_form ? "0B" : "0b");
+					while (mask) {
+						xPrintChar(psXPC, (X64.u64 & mask) ? CHR_1 : CHR_0) ;
+						mask >>= 1;
+						// handle the complex grouping separator(s) boundary 8 use '|' or 4 use '-'
+						if (--X32.iX && psXPC->f.form && (X32.iX % 4) == 0) {
+							xPrintChar(psXPC, X32.iX % 32 == 0 ? CHR_VERT_BAR :		// word boundary
+											  X32.iX % 16 == 0 ? CHR_COLON :			// short boundary
+										  	  X32.iX % 8 == 0 ? CHR_SPACE : CHR_MINUS);// byte boundary or nibble
+						}
+					}
+				}
+				break;
+
 
 			case CHR_d:									// signed decimal "[-]ddddd"
 			case CHR_i:									// signed integer (same as decimal ?)
@@ -1280,13 +1299,10 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				break;
 			#endif
 
-			#if	(xpfSUPPORT_POINTER == 1)				// pointer value UC/lc
 			case CHR_p:
-				// Does cause crash if pointer not currently mapped
-				px.pv = va_arg(psXPC->vaList, char *);
-				vPrintPointer(psXPC, px.pv);
+				pX.pv = va_arg(psXPC->vaList, void *);
+				vPrintPointer(psXPC, pX);
 				break ;
-			#endif
 
 			case CHR_s:
 				px.pc8 = va_arg(psXPC->vaList, char *);
