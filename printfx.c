@@ -612,20 +612,28 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 	}
 }
 
-// ############################### Proprietary extensions to printf() ##############################
-
 /**
- * @brief	display a 32 bit hexadecimal number as address
- * @brief	Currently 64 bit addresses not supported ...
- * @param	psXPC - pointer to print control structure
- * @param	u32_t - address to be printed
- * @param	psXPC - updated based on characters displayed
- * @return	none
+ * vPrintHexDump()
+ * @brief		Dumps a block of memory in debug style format. depending on options output can be
+ * 				formatted as 8/16/32 or 64 bit variables, optionally with no, absolute or relative address
+ * @param[in]	psXPC - pointer to print control structure
+ * @param[in]	pStr - pointer to memory starting address
+ * @param[in]	Len - Length/size of memory buffer to display
+ * @param[out]	none
+ * @return		none
+ * @comment		Use the following modifier flags
+ *				'	Grouping of values using ' ' '-' or '|' as separators
+ * 				!	Use relative address format
+ * 				#	Use absolute address format
+ *					Relative/absolute address prefixed using format '0x12345678:'
+ * 				+	Add the ASCII char equivalents to the right of the hex output
  */
 void vPrintPointer(xpc_t * psXPC, void * pVoid) {
 	xPrintChars(psXPC, (char *) "0x") ;
 	vPrintHexU32(psXPC, (u32_t) pVoid) ;
 }
+
+// ############################# Proprietary extensions: date & time ###############################
 
 seconds_t xPrintCalcSeconds(xpc_t * psXPC, tsz_t * psTSZ, struct tm * psTM) {
 	seconds_t	Seconds ;
@@ -810,6 +818,8 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 	vPrintString(psXPC, Buffer) ;
 }
 
+// ################################# Proprietary extension: URLs ###################################
+
 /**
  * vPrintURL() -
  * @param psXPC
@@ -835,22 +845,6 @@ void vPrintURL(xpc_t * psXPC, char * pStr) {
 	}
 }
 
-/**
- * vPrintHexDump()
- * @brief		Dumps a block of memory in debug style format. depending on options output can be
- * 				formatted as 8/16/32 or 64 bit variables, optionally with no, absolute or relative address
- * @param[in]	psXPC - pointer to print control structure
- * @param[in]	pStr - pointer to memory starting address
- * @param[in]	Len - Length/size of memory buffer to display
- * @param[out]	none
- * @return		none
- * @comment		Use the following modifier flags
- *				'`'		Grouping of values using ' ' '-' or '|' as separators
- * 				'!'		Use relative address format
- * 				'#'		Use absolute address format
- *						Relative/absolute address prefixed using format '0x12345678:'
- * 				'+'		Add the ASCII char equivalents to the right of the hex output
- */
 void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 	for (int Now = 0; Now < xLen; Now += xpfHEXDUMP_WIDTH) {
 		#if	(xpfSUPPORT_POINTER == 1)
@@ -886,6 +880,7 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 	}
 }
 
+// ############################## Proprietary extension: IP address ################################
 
 /**
  * vPrintIpAddress()
@@ -930,6 +925,8 @@ void vPrintIpAddress(xpc_t * psXPC, u32_t Val) {
 	psXPC->f.limits	= 0 ;
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_IP - 1 - Len)) ;
 }
+
+// ########################### Proprietary extension: SBR attributes ###############################
 
 /**
  * set starting and ending fore/background colors
