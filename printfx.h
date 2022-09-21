@@ -66,7 +66,30 @@ extern u64_t RunTime;
 #define	xpfMAX_TIME_FRAC			6		// control resolution mS/uS/nS
 #define	xpfDEF_TIME_FRAC			3
 
+// ################################## C11 Pointer size determination ###############################
+
+#include <stdint.h>
+
+_Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determine pointer size");
+
+// C99 or later
+#if UINTPTR_MAX == 0xFFFF
+	#define xpfSIZE_POINTER			2
+#elif UINTPTR_MAX == 0xFFFFFFFF
+	#define xpfSIZE_POINTER			4
+#elif UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu
+	#define xpfSIZE_POINTER			8
+#else
+	#error TBD pointer size
+#endif
+
+/* Number of bits in inttype_MAX, or in any (1<<k)-1 where 0 <= k < 2040 */
+#define IMAX_BITS(m) ((m)/((m)%255+1) / 255%255*8 + 7-86/((m)%255+12))
+#define UINTPTR_MAX_BITWIDTH IMAX_BITS(UINTPTR_MAX)
+
 // ################################## x[snf]printf() related #######################################
+
+#define xpfMAX_LEN_PNTR				((xpfSIZE_POINTER * 2) + sizeof("0x"))
 
 #define	xpfMAX_LEN_TIME				sizeof("12:34:56.654321")
 #define	xpfMAX_LEN_DATE				sizeof("Sun, 10 Sep 2017   ")
