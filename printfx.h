@@ -24,12 +24,14 @@ extern u64_t RunTime;
 #define	_T_(f)						" [%!.R] " f "", RunTime
 #define	_TL_(f)						" [%!.R:%s:%d] " f "", RunTime, __FUNCTION__, __LINE__
 
-#define	P(f, ...)					printfx(f, ##__VA_ARGS__)
+#define	P(f, ...)					printf(f, ##__VA_ARGS__)
+#define	PX(f, ...)					printfx(f, ##__VA_ARGS__)
 #define	PL(f, ...)					printfx(_L_(f), ##__VA_ARGS__)
 #define	PT(f, ...)					printfx(_T_(f), ##__VA_ARGS__)
 #define	PTL(f, ...)					printfx(_TL_(f), ##__VA_ARGS__)
 
 #define	IF_P(T, f, ...)				if (T) P(f, ##__VA_ARGS__)
+#define	IF_PX(T, f, ...)			if (T) PX(f, ##__VA_ARGS__)
 #define	IF_PL(T, f, ...)			if (T) PL(f, ##__VA_ARGS__)
 #define	IF_PT(T, f, ...)			if (T) PT(f, ##__VA_ARGS__)
 #define	IF_PTL(T, f, ...)			if (T) PTL(f, ##__VA_ARGS__)
