@@ -1608,7 +1608,7 @@ int	uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 
 // #################################### Destination : CRC32 ########################################
 
-static int xPrintToCRC32(xpc_t * psXPC, int cChr) {
+int xPrintToCRC32(xpc_t * psXPC, int cChr) {
 	#if defined(ESP_PLATFORM)							// use ROM based CRC lookup table
 	u8_t cBuf = cChr;
 	*psXPC->pU32 = crc32_le(*psXPC->pU32, &cBuf, sizeof(cBuf));
