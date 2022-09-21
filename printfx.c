@@ -1259,12 +1259,6 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				break;
 			#endif
 
-			case CHR_n:									// store chars to date at location.
-				px.piX = va_arg(psXPC->vaList, int *);
-				IF_myASSERT(debugTRACK, halCONFIG_inSRAM(px.pc8));
-				*px.piX = psXPC->f.curlen;
-				break;
-
 			case CHR_o:									// unsigned octal "ddddd"
 			case CHR_x:									// hex as in "789abcd" UC/LC
 				psXPC->f.group = 0 ;					// disable grouping
@@ -1296,6 +1290,12 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				vPrintF64(psXPC, va_arg(psXPC->vaList, double));
 				break;
 			#endif
+
+			case CHR_n:									// store chars to date at location.
+				pX.piX = va_arg(psXPC->vaList, int *);
+				IF_myASSERT(debugTRACK, halCONFIG_inSRAM(pX.pc8));
+				*pX.piX = psXPC->f.curlen;
+				break;
 
 			case CHR_p:
 				pX.pv = va_arg(psXPC->vaList, void *);
