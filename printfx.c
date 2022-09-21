@@ -175,14 +175,15 @@ static int xPrintChar(xpc_t * psXPC, char cChr) {
  * 			string - pointer to the string to be output
  * @return	number of ACTUAL characters output.
  */
-static int xPrintChars (xpc_t * psXPC, char * pStr) {
-	int len ;
-	for (len = 0; *pStr; ++len, ++pStr) {
-		int iRV = vPrintChar(psXPC, *pStr);
-		if (iRV != *pStr)
-			return iRV;
+static int xPrintChars(xpc_t * psXPC, char * pStr) {
+	int iRV = 0, cChr;
+	while (*pStr) {
+		cChr = xPrintChar(psXPC, *pStr);
+		if (cChr != *pStr++)
+			return cChr;
+		++iRV;
 	}
-	return len ;
+	return iRV;
 }
 
 /**
