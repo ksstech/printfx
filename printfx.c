@@ -87,11 +87,6 @@ const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 
 const char hexchars[] = "0123456789ABCDEF" ;
 
-const double round_nums[xpfMAXIMUM_DECIMALS+1] = {
-	0.5, 			0.05, 			0.005, 			0.0005,			0.00005, 			0.000005, 			0.0000005, 			0.00000005,
-	0.000000005,	0.0000000005, 	0.00000000005, 	0.000000000005,	0.0000000000005, 	0.00000000000005, 	0.000000000000005, 	0.0000000000000005
-} ;
-
 // #################################### local only functions #######################################
 
 x64_t x64PrintGetValue(xpc_t * psXPC) {
@@ -383,6 +378,11 @@ void vPrintX64(xpc_t * psXPC, u64_t Value) {
  * 	http://git.musl-libc.org/cgit/musl/blob/src/stdio/vfprintf.c?h=v1.1.6
  */
 void vPrintF64(xpc_t * psXPC, double F64) {
+	const double round_nums[xpfMAXIMUM_DECIMALS+1] = {
+		0.5, 0.05, 0.005, 0.0005, 0.00005, 0.000005, 0.0000005, 0.00000005, 0.000000005,
+		0.0000000005, 0.00000000005, 0.000000000005, 0.0000000000005, 0.00000000000005,
+		0.000000000000005, 0.0000000000000005 };
+
 	if (isnan(F64)) {
 		vPrintString(psXPC, psXPC->f.Ucase ? "NAN" : "nan");
 		return;
