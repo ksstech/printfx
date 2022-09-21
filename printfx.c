@@ -116,6 +116,13 @@ x64_t x64PrintGetValue(xpc_t * psXPC) {
 			X64.u64 = va_arg(psXPC->vaList, unsigned long long);
 		}
 		break;
+	case S_z:
+		if (psXPC->f.signval) {
+			X64.i64 = (i64_t) va_arg(psXPC->vaList, size_t);
+		} else {
+			X64.u64 = (u64_t) va_arg(psXPC->vaList, size_t);
+		}
+		break;
 	default:
 		myASSERT(0);
 		X64.u64 = 0ULL;
