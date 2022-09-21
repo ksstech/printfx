@@ -66,14 +66,12 @@
 //Other			'!'				'''
 enum { form0G, form1F, form2E, form3X };
 
-enum { S_none, S_hh, S_h, S_l, S_ll, S_j, S_z, S_t, S_L };
+enum { S_none, S_hh, S_h, S_l, S_ll, S_j, S_z, S_t, S_L, S_XXX };
 
 // ######################## Character and value translation & rounding tables ######################
 
-const u8_t S_bytes[9] = {
-	sizeof(int), sizeof(char), sizeof(short), sizeof(long), sizeof(long long),
-	sizeof(intmax_t), sizeof(size_t), sizeof(ptrdiff_t), sizeof(long double)
-};
+const u8_t S_bytes[S_XXX] = { sizeof(int), sizeof(char), sizeof(short), sizeof(long), sizeof(long long),
+							sizeof(intmax_t), sizeof(size_t), sizeof(ptrdiff_t), sizeof(long double) };
 
 const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 	'B',							// Binary formatted, prepend "0b" or "0B"
@@ -567,14 +565,14 @@ void vPrintHexU64(xpc_t * psXPC, u64_t Value) {
  *					# select reverse order (little/big endian)
  */
 void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
-	int	Size = 1 << psXPC->f.size;
+	int Size = S_bytes[psXPC->f.llong];
 	if (psXPC->f.alt_form)								// invert order ?
 		pStr += Num - Size;								// working backwards so point to last
 
 	x64_t x64Val;
 	int	Idx	= 0;
 	while (Idx < Num) {
-		switch (psXPC->f.size) {
+		switch (Size >> 1) {
 		case 0:
 			x64Val.x8[0].u8	  = *((u8_t *) pStr);
 			vPrintHexU8(psXPC, x64Val.x8[0].u8);
@@ -584,13 +582,15 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 			vPrintHexU16(psXPC, x64Val.x16[0].u16);
 			break;
 		case 2:
-		case 3:
 			x64Val.x32[0].u32 = *((u32_t *) pStr);
 			vPrintHexU32(psXPC, x64Val.x32[0].u32);
 			break;
+		case 4:
 			x64Val.u64	  = *((u64_t *) pStr);
 			vPrintHexU64(psXPC, x64Val.u64);
 			break;
+		default:
+			assert(0);
 		}
 		// step to the next 8/16/32/64 bit value
 		if (psXPC->f.alt_form)							// invert order ?
@@ -1089,9 +1089,10 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				case 3: psXPC->f.llong = S_z; break;	// [s]size_t[*]
 				case 4: psXPC->f.llong = S_t; break;	// ptrdiff[*]
 				case 5: psXPC->f.llong = S_L; break;	// long double float (F128)
+				default: assert(0);
 				}
 			}
-			myASSERT(psXPC->f.llong < S_j);				// rest not yet supported
+			myASSERT(psXPC->f.llong < S_XXX);				// rest not yet supported
 			// Check if format character where UC/lc same character control the case of the output
 			cFmt = *fmt;
 			if (strchr_i(vPrintStr1, cFmt) != erFAILURE) {
