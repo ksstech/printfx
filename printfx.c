@@ -1240,8 +1240,6 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					psXPC->f.negvalue = 1;
 					X64.i64 *= -1; 					// convert the value to unsigned
 				}
-				break;
-
 			#if	(xpfSUPPORT_MAC_ADDR == 1)
 			/* Formats 6 byte string (0x00 is valid) as a series of hex characters.
 			 * default format uses no separators eg. '0123456789AB'
@@ -1299,6 +1297,8 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				int Wid = psXPC->f.llong==S_hh ? 7 : psXPC->f.llong==S_h ? 15 : psXPC->f.llong==S_l ? 31 : 63;
 				X64.u64 &= BIT_MASK64(0, Wid);
 				vPrintX64(psXPC, X64.u64);
+				break;
+
 			case CHR_p:
 				pX.pv = va_arg(psXPC->vaList, void *);
 				vPrintPointer(psXPC, pX);
