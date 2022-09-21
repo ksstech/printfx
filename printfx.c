@@ -411,12 +411,7 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 			}
 		}
 	}
-	u8_t	AdjForm ;
-	if (psXPC->f.form == form0G) {						// 'gG' req, check exponent & select mode.
-		AdjForm = Exp < -4 || Exp >= psXPC->f.precis ? form2E : form1F ;
-	} else {
-		AdjForm = psXPC->f.form ;
-	}
+	u8_t AdjForm = psXPC->f.form!=form0G ? psXPC->f.form : (Exp<-4 || Exp>=psXPC->f.precis) ? form2E : form1F;
 	if (AdjForm == form2E)
 		F64 = X64.f64 ;									// change to exponent adjusted value
 	if (F64 < (DBL_MAX - round_nums[psXPC->f.precis])) {// if addition of rounding value will NOT cause overflow.
