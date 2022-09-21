@@ -208,7 +208,7 @@ typedef	struct xpc_t {
 	xpf_t f;
 	va_list vaList;
 } xpc_t ;
-DUMB_STATIC_ASSERT(sizeof(xpc_t) == (sizeof(int *) + sizeof(void *)) + sizeof(xpf_t) + sizeof(va_list));
+DUMB_STATIC_ASSERT(sizeof(xpc_t) == (sizeof(int *) + sizeof(void *) + sizeof(xpf_t) + sizeof(va_list)));
 
 // ################################### Public functions ############################################
 
