@@ -1,28 +1,29 @@
 /*
  * <snf>printfx -  set of routines to replace equivalent printf functionality
  * Copyright (c) 2014-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
+ *
+ * https://codereview.stackexchange.com/questions/219994/register-b-conversion-specifier
+ *
  */
 
-#include <math.h>									// isnan()
-#include <float.h>									// DBL_MIN/MAX
+#include <math.h>					// isnan()
+#include <float.h>					// DBL_MIN/MAX
+
+#include "printfx.h"
 
 #include "hal_variables.h"
+#include "struct_union.h"
 #include "hal_usart.h"
-#include "printfx.h"
-#include "FreeRTOS_Support.h"
 #include "socketsX.h"
 #include "x_ubuf.h"
-#include "x_string_general.h"						// xinstring function
+#include "x_string_general.h"		// xinstring function
 #include "x_errors_events.h"
 #include "x_terminal.h"
 #include "x_utilities.h"
-#include "struct_union.h"
-
-#include "definitions.h"
 
 #ifdef ESP_PLATFORM
 	#include "esp_log.h"
-	#include "esp32/rom/crc.h"					// ESP32 ROM routine
+	#include "esp32/rom/crc.h"		// ESP32 ROM routine
 #else
 	#include "crc-barr.h"						// Barr group CRC
 #endif
