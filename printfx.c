@@ -1099,8 +1099,8 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				psXPC->f.Ucase = 1 ;					// indicate as UPPER case requested
 			}
 
-			x64_t x64Val;								// default x64 variable
-			px_t px;
+			x64_t X64;								// default x64 variable
+			px_t pX;
 			#if	(xpfSUPPORT_DATETIME == 1)
 			tsz_t * psTSZ;
 			struct tm sTM;
@@ -1162,7 +1162,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					psXPC->f.group = 1 ;
 					psXPC->f.alt_form = 0 ;
 				}
-				X32.u32 = xTimeStampAsSeconds(x64Val.u64) ;
+				X32.u32 = xTimeStampAsSeconds(X64.u64) ;
 				xTimeGMTime(X32.u32, &sTM, psXPC->f.rel_val) ;
 				if (psXPC->f.rel_val == 0)
 					psXPC->f.pad0 = 1;
@@ -1171,7 +1171,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					vPrintDate(psXPC, &sTM) ;
 					psXPC->f.limits = limits ;
 				}
-				vPrintTime(psXPC, &sTM, (u32_t) (x64Val.u64 % MICROS_IN_SECOND)) ;
+				vPrintTime(psXPC, &sTM, (u32_t) (X64.u64 % MICROS_IN_SECOND)) ;
 				if (psXPC->f.rel_val == 0)
 					xPrintChar(psXPC, CHR_Z);
 				break ;
@@ -1179,9 +1179,9 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 
 			#if	(xpfSUPPORT_URL == 1)					// para = pointer to string to be encoded
 			case CHR_U:
-				px.pc8	= va_arg(psXPC->vaList, char *) ;
-				IF_myASSERT(debugTRACK, halCONFIG_inMEM(px.pc8)) ;
-				vPrintURL(psXPC, px.pc8) ;
+				pX.pc8	= va_arg(psXPC->vaList, char *);
+				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pX.pc8)) ;
+				vPrintURL(psXPC, pX.pc8) ;
 				break ;
 			#endif
 
@@ -1196,9 +1196,9 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				psXPC->f.size = cFmt == 'B' ? xpfSIZING_BYTE : cFmt == 'H' ? xpfSIZING_SHORT : xpfSIZING_WORD ;
 				psXPC->f.size	+= (psXPC->f.llong > S_l) ? 1 : 0 ; 	// apply ll modifier to size
 				X32.i32	= va_arg(psXPC->vaList, int) ;
-				px.pc8	= va_arg(psXPC->vaList, char *) ;
-				IF_myASSERT(debugTRACK, halCONFIG_inMEM(px.pc8)) ;
-				vPrintHexDump(psXPC, X32.i32, px.pc8) ;
+				pX.pc8	= va_arg(psXPC->vaList, char *) ;
+				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pX.pc8));
+				vPrintHexDump(psXPC, X32.i32, pX.pc8);
 				break ;
 			#endif
 
@@ -1235,12 +1235,11 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			case CHR_d:									// signed decimal "[-]ddddd"
 			case CHR_i:									// signed integer (same as decimal ?)
 				psXPC->f.signval = 1;
-				x64Val = x64PrintGetValue(psXPC);
-				if (x64Val.i64 < 0LL) {
+				X64 = x64PrintGetValue(psXPC);
+				if (X64.i64 < 0LL) {
 					psXPC->f.negvalue = 1;
-					x64Val.i64 *= -1; 					// convert the value to unsigned
+					X64.i64 *= -1; 					// convert the value to unsigned
 				}
-				vPrintX64(psXPC, x64Val.i64);
 				break;
 
 			#if	(xpfSUPPORT_MAC_ADDR == 1)
@@ -1274,6 +1273,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				psXPC->f.nbase = (cFmt == CHR_x) ? BASE16 : (cFmt == CHR_u) ? BASE10 : BASE08;
 				x64Val = x64PrintGetValue(psXPC);
 				vPrintX64(psXPC, x64Val.u64);
+				vPrintX64(psXPC, X64.u64);
 				break;
 
 			#if	(xpfSUPPORT_IEEE754 == 1)
@@ -1306,7 +1306,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				px.pc8 = va_arg(psXPC->vaList, char *);
 				// Required to avoid crash when wifi message is intercepted and a string pointer parameter
 				// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
-				px.pc8 = halCONFIG_inMEM(px.pc8) ? px.pc8 : px.pc8 == NULL ? STRING_NULL : STRING_OOR;
+				pX.pc8 = halCONFIG_inMEM(pX.pc8) ? pX.pc8 : pX.pc8 == NULL ? STRING_NULL : STRING_OOR;
 				vPrintString(psXPC, pX.pc8);
 				break;
 
