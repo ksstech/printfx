@@ -1157,7 +1157,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 
 			case CHR_R:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
 				IF_myASSERT(debugTRACK, !psXPC->f.plus && !psXPC->f.pad0 && !psXPC->f.group);
-				x64Val.u64 = va_arg(psXPC->vaList, unsigned long long);
+				X64.u64 = va_arg(psXPC->vaList, u64_t);
 				if (psXPC->f.alt_form) {
 					psXPC->f.group = 1 ;
 					psXPC->f.alt_form = 0 ;
