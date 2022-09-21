@@ -627,9 +627,6 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
  *					Relative/absolute address prefixed using format '0x12345678:'
  * 				+	Add the ASCII char equivalents to the right of the hex output
  */
-void vPrintPointer(xpc_t * psXPC, void * pVoid) {
-	xPrintChars(psXPC, (char *) "0x") ;
-	vPrintHexU32(psXPC, (u32_t) pVoid) ;
 void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 	for (int Now = 0; Now < xLen; Now += xpfHEXDUMP_WIDTH) {
 		if (psXPC->f.ljust == 0) {						// display absolute or relative address
@@ -871,8 +868,6 @@ void vPrintURL(xpc_t * psXPC, char * pStr) {
 	} else {
 		vPrintString(psXPC, pStr) ;						// "null" or "pOOR"
 	}
-}
-
 }
 
 // ############################## Proprietary extension: IP address ################################
