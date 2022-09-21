@@ -70,7 +70,6 @@ extern u64_t RunTime;
 
 #define	xpfMAX_LEN_TIME				sizeof("12:34:56.654321")
 #define	xpfMAX_LEN_DATE				sizeof("Sun, 10 Sep 2017   ")
-
 #define	xpfMAX_LEN_DTZ				(xpfMAX_LEN_DATE + xpfMAX_LEN_TIME + configTIME_MAX_LEN_TZINFO)
 
 #define xpfMAX_LEN_X32				sizeof("+4,294,967,295")
@@ -191,7 +190,6 @@ DUMB_STATIC_ASSERT(sizeof(xpc_t) == (sizeof(int *) + sizeof(void *)) + sizeof(xp
 // ################################### Public functions ############################################
 
 int xPrintFX(xpc_t * psXPC, const char * format);
-
 int xPrintF(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list);
 
 /* Public function prototypes for extended functionality version of stdio supplied functions
