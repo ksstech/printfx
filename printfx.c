@@ -1052,7 +1052,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 
 			// Optional SIZE indicators
 			cFmt = strchr_i("hljztL", *fmt);
-			if (cFmt >= 0) {
+			if (cFmt != erFAILURE) {
 				++fmt;
 				switch(cFmt) {
 				case 0:
