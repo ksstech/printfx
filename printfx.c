@@ -63,7 +63,7 @@
 
 //FLOAT "Gg"	"Ff"	"Ee"	None
 //Dump	None	':'		'-'		Complex
-//Other			'!'				'`'
+//Other			'!'				'''
 enum { form0G, form1F, form2E, form3X };
 
 enum { S_none, S_hh, S_h, S_l, S_ll, S_j, S_z, S_t, S_L };
@@ -225,7 +225,7 @@ void vPrintString(xpc_t * psXPC, char * pStr) {
  * 			BufSize - available (remaining) space in buffer
  * @return	number of actual characters output (incl leading '-' and/or ' ' and/or '0' as possibly added)
  * @comment		Honour & interpret the following modifier flags
- * 				'`'		Group digits in 3 digits groups to left of decimal '.'
+ * 				'	Group digits in 3 digits groups to left of decimal '.'
  * 				-	Left align the individual numbers between the '.'
  * 				+	Force a '+' or '-' sign on the left
  * 				0	Zero pad to the left of the value to fill the field
@@ -563,7 +563,7 @@ void vPrintHexU64(xpc_t * psXPC, u64_t Value) {
  * @param 	Num		number of bytes to print
  * @param 	pStr	pointer to bytes to print
  * @comment			Use the following modifier flags
- *					` select grouping separators ":- |" (byte/half/word/dword)
+ *					' select grouping separators ":- |" (byte/half/word/dword)
  *					# select reverse order (little/big endian)
  */
 void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
@@ -976,7 +976,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			int	cFmt ;
 			x32_t X32 = { 0 } ;
 			// Optional FLAGS must be in correct sequence of interpretation
-			while ((cFmt = strchr_i("!#`*+- 0%", *fmt)) != erFAILURE) {
+			while ((cFmt = strchr_i("!#'*+- 0%", *fmt)) != erFAILURE) {
 				switch (cFmt) {
 				case 0:									// '!' HEXDUMP absolute->relative address
 					++fmt ;								// DTZ absolute->relative time
@@ -1117,7 +1117,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			#if	(xpfSUPPORT_DATETIME == 1)
 			/* Prints date and/or time in POSIX format
 			 * Use the following modifier flags
-			 *	'`'		select between 2 different separator sets being
+			 *	'''		select between 2 different separator sets being
 			 *			'/' or '-' (years)
 			 *			'/' or '-' (months)
 			 *			'T' or ' ' (days)

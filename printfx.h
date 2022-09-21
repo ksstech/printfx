@@ -204,10 +204,17 @@ int xPrintF(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list);
 
 // ##################################### Destination = STRING ######################################
 
-int vsnprintfx(char * , size_t , const char * , va_list );
-int snprintfx(char * , size_t , const char * , ...);
-int vsprintfx(char * , const char * , va_list );
-int sprintfx(char * , const char * , ...);
+int vsnprintfx(char *, size_t, const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 3, 0)));
+//int vsnprintfx(char *, size_t, const char *, va_list);
+
+int vsprintfx(char *, const char *, va_list)			_ATTRIBUTE ((__format__ (__printf__, 2, 0)));
+//int vsprintfx(char *, const char *, va_list);
+
+//int snprintfx(char *, size_t, const char *, ...)		_ATTRIBUTE ((__format__ (__printf__, 3, 4)));
+int snprintfx(char *, size_t, const char *, ...);
+
+int sprintfx(char *, const char *, ...)					_ATTRIBUTE ((__format__ (__printf__, 2, 3)));
+//int sprintfx(char *, const char *, ...);
 
 // ##################################### Destination = STDOUT ######################################
 
@@ -215,14 +222,21 @@ extern SemaphoreHandle_t printfxMux;
 void printfx_lock(void);
 void printfx_unlock(void);
 
-int vnprintfx(size_t, const char *, va_list);
-int vprintfx(const char * , va_list);
-int nprintfx(size_t, const char *, ...);
-int printfx(const char *, ...);
-
 int vnprintfx_nolock(size_t count, const char * format, va_list);
 int vprintfx_nolock(const char * format, va_list);
 int printfx_nolock(const char * format, ...);
+
+int vnprintfx(size_t, const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 2, 0)));
+//int vnprintfx(size_t, const char *, va_list);
+
+int vprintfx(const char * , va_list)			_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
+//int vprintfx(const char * , va_list);
+
+int nprintfx(size_t, const char *, ...) 		_ATTRIBUTE ((__format__ (__printf__, 2, 3)));
+//int nprintfx(size_t, const char *, ...);
+
+//int printfx(const char *, ...)					_ATTRIBUTE ((__format__ (__printf__, 1, 2)));
+int printfx(const char *, ...);
 
 // ############################## LOW LEVEL DIRECT formatted output ################################
 

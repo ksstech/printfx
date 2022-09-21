@@ -17,11 +17,11 @@
 
 // ##################################### functional tests ##########################################
 
-#define		TEST_INTEGER	0
-#define		TEST_STRING		0
-#define		TEST_FLOAT		0
-#define		TEST_BINARY		0
-#define		TEST_ADDRESS	0
+#define		TEST_INTEGER	1
+#define		TEST_STRING		1
+#define		TEST_FLOAT		1
+#define		TEST_BINARY		1
+#define		TEST_ADDRESS	1
 #define		TEST_DATETIME	1
 #define		TEST_HEXDUMP	1
 #define		TEST_WIDTH_PREC	1
@@ -43,9 +43,9 @@ void vPrintfUnitTest(void) {
 	TESTP("Min/max i64 : %lld %lld\n", INT64_MIN, INT64_MAX);
 	TESTP("Min/max u64 : %llu %llu\n", UINT64_MIN, UINT64_MAX);
 
-	TESTP("0x%llx , %`lld un/signed long long\n", 9876543210ULL, -9876543210LL) ;
-	TESTP("0x%llX , %`lld un/signed long long\n", 0x0000000076543210ULL, 0x0000000076543210ULL) ;
-	TESTP("%`lld , %`llX , %07lld dec-hex-dec(=0 but 7 wide) long long\n", my_llong, my_llong, 0ULL) ;
+	TESTP("0x%llx , %'lld un/signed long long\n", 9876543210ULL, -9876543210LL) ;
+	TESTP("0x%llX , %'lld un/signed long long\n", 0x0000000076543210ULL, 0x0000000076543210ULL) ;
+	TESTP("%'lld , %'llX , %07lld dec-hex-dec(=0 but 7 wide) long long\n", my_llong, my_llong, 0ULL) ;
 	TESTP("long long: %lld, %llu, 0x%llX, 0x%llx\n", -831326121984LL, 831326121984LLU, 831326121984LLU, 831326121984LLU) ;
 
 	// left & right padding
@@ -54,7 +54,7 @@ void vPrintfUnitTest(void) {
 
 	TESTP("multiple unsigneds: %u %u %2u %X %u\n", 15, 5, 23, 0xb38f, 65535) ;
 	TESTP("hex %x = ff, hex 02=%02x\n", 0xff, 2) ;		//  hex handling
-	TESTP("signed %`d = %`u U = 0x%`X\n", -3, -3, -3) ;	//  int formats
+	TESTP("signed %'d = %'u U = 0x%'X\n", -3, -3, -3) ;	//  int formats
 
 	TESTP("octal examples 0xFF = %o , 0x7FFF = %o 0x7FFF7FFF7FFF = %16llo\n", 0xff, 0x7FFF, 0x7FFF7FFF7FFFULL) ;
 	TESTP("octal examples 0xFF = %04o , 0x7FFF = %08o 0x7FFF7FFF7FFF = %016llo\n", 0xff, 0x7FFF, 0x7FFF7FFF7FFFULL) ;
@@ -97,25 +97,25 @@ void vPrintfUnitTest(void) {
 
 	TESTP("\nfloat/double\n") ;
 	TESTP("0---+----1----+----2----+----3----+----4----+----5----+----6----+----7----+----8----+----9----+----0----+----1----+----2\n") ;
-	TESTP("DBL MAX=%`.15f MIN=%`.15f\n", DBL_MAX, DBL_MIN) ;
-	TESTP("DBL MAX=%`.15e MIN=%`.15E\n", DBL_MAX, DBL_MIN) ;
-	TESTP("DBL MAX=%`.15g MIN=%`.15G\n", DBL_MAX, DBL_MIN) ;
+	TESTP("DBL MAX=%'.15f MIN=%'.15f\n", DBL_MAX, DBL_MIN) ;
+	TESTP("DBL MAX=%'.15e MIN=%'.15E\n", DBL_MAX, DBL_MIN) ;
+	TESTP("DBL MAX=%'.15g MIN=%'.15G\n", DBL_MAX, DBL_MIN) ;
 
 	TESTP("float padding (pos): zero=[%020.9f], left=[%-20.9f], right=[%20.9f]\n", my_double, my_double, my_double) ;
 	TESTP("float padding (neg): zero=[%020.9f], left=[%-20.9f], right=[%20.9f]\n", -my_double, -my_double, -my_double) ;
 	TESTP("float padding (pos): zero=[%+020.9f], left=[%-+20.9f], right=[%+20.9f]\n", my_double, my_double, my_double) ;
 	TESTP("float padding (neg): zero=[%+020.9f], left=[%-+20.9f], right=[%+20.9f]\n", my_double*(-1.0), my_double*(-1.0), my_double*(-1.0)) ;
 
-	TESTP("%`.20f = float(f)\n", my_float) ;
-	TESTP("%`.20e = float(e)\n", my_float) ;
-	TESTP("%`.20e = float(e)\n", my_float/100.0) ;
+	TESTP("%'.20f = float(f)\n", my_float) ;
+	TESTP("%'.20e = float(e)\n", my_float) ;
+	TESTP("%'.20e = float(e)\n", my_float/100.0) ;
 
-	TESTP("%`.7f = double(f)\n", my_double) ;
-	TESTP("%`.7e = double(e)\n", my_double) ;
-	TESTP("%`.7E = double(E)\n", my_double/1000.00) ;
+	TESTP("%'.7f = double(f)\n", my_double) ;
+	TESTP("%'.7e = double(e)\n", my_double) ;
+	TESTP("%'.7E = double(E)\n", my_double/1000.00) ;
 
-	TESTP("%`.12g = double(g)\n", my_double/10000000.0) ;
-	TESTP("%`.12G = double(G)\n", my_double*10000.0) ;
+	TESTP("%'.12g = double(g)\n", my_double/10000000.0) ;
+	TESTP("%'.12G = double(G)\n", my_double*10000.0) ;
 
 	TESTP("%.20f is a double\n", 22.0/7.0) ;
 	TESTP("+ format: int: %+d, %+d, double: %+.1f, %+.1f, reset: %d, %.1f\n", 3, -3, 3.0, -3.0, 3, 3.0) ;
@@ -146,23 +146,23 @@ void vPrintfUnitTest(void) {
 	TESTP("%#I - IP Address (Rev Default)\n", 0x01020304UL) ;
 	TESTP("%#0I - IP Address (Rev PAD0)\n", 0x01020304UL) ;
 	TESTP("%#-I - IP Address (Rev L-Just)\n", 0x01020304UL) ;
-	TESTP("%m - MAC address (LC)\n", &MacAdr[0]) ;
-	TESTP("%M - MAC address (UC)\n", &MacAdr[0]) ;
-	TESTP("%`m - MAC address (LC+sep)\n", &MacAdr[0]) ;
-	TESTP("%`M - MAC address (UC+sep)\n", &MacAdr[0]) ;
+	TESTP("%M - MAC address (LC)\n", &MacAdr[0]);
+	TESTP("%M - MAC address (UC)\n", &MacAdr[0]);
+	TESTP("%'M - MAC address (LC+sep)\n", &MacAdr[0]);
+	TESTP("%'M - MAC address (UC+sep)\n", &MacAdr[0]);
 	#endif
 
 	#if	(TEST_BINARY == 1)
-	TESTP("%J - Binary 32/32 bit\n", 0xF77FA55AUL) ;
-	TESTP("%`J - Binary 32/32 bit\n", 0xF77FA55AUL) ;
-	TESTP("%24J - Binary 24/32 bit\n", 0xF77FA55AUL) ;
-	TESTP("%`24J - Binary 24/32 bit\n", 0xF77FA55AUL) ;
-	TESTP("%llJ - Binary 64/64 bit\n", 0xc44c9779F77FA55AULL) ;
-	TESTP("%`llJ - Binary 64/64 bit\n", 0xc44c9779F77FA55AULL) ;
-	TESTP("%40llJ - Binary 40/64 bit\n", 0xc44c9779F77FA55AULL) ;
-	TESTP("%`40llJ - Binary 40/64 bit\n", 0xc44c9779F77FA55AULL) ;
-	TESTP("%70llJ - Binary 64/64 bit in 70 width\n", 0xc44c9779F77FA55AULL) ;
-	TESTP("%`70llJ - Binary 64/64 bit in 70 width\n", 0xc44c9779F77FA55AULL) ;
+	TESTP("%b - Binary 32/32 bit\n", 0xF77FA55AUL) ;
+	TESTP("%'b - Binary 32/32 bit\n", 0xF77FA55AUL) ;
+	TESTP("%24b - Binary 24/32 bit\n", 0xF77FA55AUL) ;
+	TESTP("%'24b - Binary 24/32 bit\n", 0xF77FA55AUL) ;
+	TESTP("%llb - Binary 64/64 bit\n", 0xc44c9779F77FA55AULL) ;
+	TESTP("%'llb - Binary 64/64 bit\n", 0xc44c9779F77FA55AULL) ;
+	TESTP("%40llb - Binary 40/64 bit\n", 0xc44c9779F77FA55AULL) ;
+	TESTP("%'40llb - Binary 40/64 bit\n", 0xc44c9779F77FA55AULL) ;
+	TESTP("%70llb - Binary 64/64 bit in 70 width\n", 0xc44c9779F77FA55AULL) ;
+	TESTP("%'70llb - Binary 64/64 bit in 70 width\n", 0xc44c9779F77FA55AULL) ;
 	#endif
 
 	#if	(TEST_DATETIME == 1)
@@ -209,19 +209,19 @@ void vPrintfUnitTest(void) {
 	#if	(TEST_HEXDUMP == 1)
 	u8_t DumpData[] = "0123456789abcdef0123456789ABCDEF~!@#$%^&*()_+-={}[]:|;'\\<>?,./`01234" ;
 	#define DUMPSIZE	(sizeof(DumpData)-1)
-	TESTP("DUMP absolute lc byte\n%+B", DUMPSIZE, DumpData) ;
-	TESTP("DUMP absolute lc byte\n%`+B", DUMPSIZE, DumpData) ;
+	TESTP("DUMP absolute lc byte\n%+hhY", DUMPSIZE, DumpData) ;
+	TESTP("DUMP absolute lc byte\n%'+hhY", DUMPSIZE, DumpData) ;
 
-	TESTP("DUMP absolute UC half\n%+H", DUMPSIZE, DumpData) ;
-	TESTP("DUMP absolute UC half\n%`+H", DUMPSIZE, DumpData) ;
+	TESTP("DUMP absolute UC half\n%+hY", DUMPSIZE, DumpData) ;
+	TESTP("DUMP absolute UC half\n%'+hY", DUMPSIZE, DumpData) ;
 
-	TESTP("DUMP relative lc word\n%!+W", DUMPSIZE, DumpData) ;
-	TESTP("DUMP relative lc word\n%!`+W", DUMPSIZE, DumpData) ;
+	TESTP("DUMP relative lc word\n%!+lY", DUMPSIZE, DumpData) ;
+	TESTP("DUMP relative lc word\n%!'+lY", DUMPSIZE, DumpData) ;
 
-	TESTP("DUMP relative UC dword\n%!+llW", DUMPSIZE, DumpData) ;
-	TESTP("DUMP relative UC dword\n%!`+llW", DUMPSIZE, DumpData) ;
+	TESTP("DUMP relative UC dword\n%!+llY", DUMPSIZE, DumpData) ;
+	TESTP("DUMP relative UC dword\n%!'+llY", DUMPSIZE, DumpData) ;
 	for (int idx = 0; idx < 16; ++idx) {
-		TESTP("\nDUMP relative lc BYTE %!`+B", idx, DumpData) ;
+		TESTP("\nDUMP relative lc BYTE %!+hhY", idx, DumpData) ;
 	}
 	#endif
 
