@@ -1185,6 +1185,23 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				break ;
 			#endif
 
+			#if	(xpfSUPPORT_MAC_ADDR == 1)
+			/* Formats 6 byte string (0x00 is valid) as a series of hex characters.
+			 * default format uses no separators eg. '0123456789AB'
+			 * Support the following modifier flags:
+			 *  '#' select upper case alternative form
+			 *  '!'	select ':' separator between digits
+			 */
+			case CHR_M:									// MAC address ??:??:??:??:??:??
+				IF_myASSERT(debugTRACK, !psXPC->f.arg_width && !psXPC->f.arg_prec);
+				psXPC->f.llong	= S_hh;					// force interpretation as sequence of U8 values
+				psXPC->f.form	= psXPC->f.group ? form1F : form0G;
+				pX.pc8 = va_arg(psXPC->vaList, char *);
+				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pX.pc8));
+				vPrintHexValues(psXPC, lenMAC_ADDRESS, pX.pc8);
+				break;
+			#endif
+
 			#if	(xpfSUPPORT_HEXDUMP == 1)
 			case CHR_Y:									// HEXDUMP
 				IF_myASSERT(debugTRACK, !psXPC->f.arg_width && !psXPC->f.arg_prec);
@@ -1236,23 +1253,6 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					psXPC->f.negvalue = 1;
 					X64.i64 *= -1; 					// convert the value to unsigned
 				}
-			#if	(xpfSUPPORT_MAC_ADDR == 1)
-			/* Formats 6 byte string (0x00 is valid) as a series of hex characters.
-			 * default format uses no separators eg. '0123456789AB'
-			 * Support the following modifier flags:
-			 *  '!'	select ':' separator between digits
-			 */
-			case CHR_m:									// MAC address UC/LC format ??:??:??:??:??:??
-				IF_myASSERT(debugTRACK, !psXPC->f.arg_width && !psXPC->f.arg_prec);
-				psXPC->f.size	= 0;
-				psXPC->f.llong	= 0;					// force interpretation as sequence of U8 values
-				psXPC->f.form	= psXPC->f.group ? form1F : form0G;
-				px.pc8	= va_arg(psXPC->vaList, char *);
-				IF_myASSERT(debugTRACK, halCONFIG_inMEM(px.pc8));
-				vPrintHexValues(psXPC, lenMAC_ADDRESS, px.pc8);
-				break;
-			#endif
-
 				vPrintX64(psXPC, X64.u64);
 				break;
 
