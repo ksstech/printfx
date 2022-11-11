@@ -1092,12 +1092,13 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			tsz_t * psTSZ;
 			struct tm sTM;
 			#endif
+
 			switch (cFmt) {
 			#if	(xpfSUPPORT_SGR == 1)
 			case CHR_C: vPrintSetGraphicRendition(psXPC, va_arg(psXPC->vaList, u32_t)); break;
 			#endif
 
-			#if	(xpfSUPPORT_IP_ADDR == 1)						// IP address
+			#if	(xpfSUPPORT_IP_ADDR == 1)				// IP address
 			case CHR_I: vPrintIpAddress(psXPC, va_arg(psXPC->vaList, u32_t)); break;
 			#endif
 
