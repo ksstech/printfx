@@ -956,13 +956,14 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 		if (*fmt == CHR_PERCENT) {
 			++fmt;
 			if (*fmt == CHR_NUL)		break;
+			if (*fmt == CHR_PERCENT)	goto out_lbl;
 			psXPC->f.flags = 0;							// set ALL flags to default 0
 			psXPC->f.limits	= 0;						// reset field specific limits
 			psXPC->f.nbase = BASE10;					// default number base
 			int	cFmt;
 			x32_t X32 = { 0 };
 			// Optional FLAGS must be in correct sequence of interpretation
-			while ((cFmt = strchr_i("!#'*+- 0%", *fmt)) != erFAILURE) {
+			while ((cFmt = strchr_i("!#'*+- 0", *fmt)) != erFAILURE) {
 				switch (cFmt) {
 				case 0:									// '!' HEXDUMP absolute->relative address
 					++fmt ;								// DTZ absolute->relative time
