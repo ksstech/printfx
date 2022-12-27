@@ -246,8 +246,8 @@ int printfx_nolock(const char * format, ...);
 int vnprintfx(size_t, const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 2, 0)));
 //int vnprintfx(size_t, const char *, va_list);
 
-int vprintfx(const char * , va_list)			_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
-//int vprintfx(const char * , va_list);
+int vprintfx(const char *, va_list)			_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
+//int vprintfx(const char *, va_list);
 
 int nprintfx(size_t, const char *, ...) 		_ATTRIBUTE ((__format__ (__printf__, 2, 3)));
 //int nprintfx(size_t, const char *, ...);
