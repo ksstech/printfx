@@ -1000,6 +1000,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					break ;
 				default:								// '%' literal to display
 					goto out_lbl ;
+				default: assert(0);
 				}
 			}
 
@@ -1044,7 +1045,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 						psXPC->f.precis	= X32.iX;
 						psXPC->f.arg_prec = 1;
 					} else {
-						IF_myASSERT(debugTRACK, 0) ;
+						assert(0);
 					}
 				}
 			}
@@ -1077,7 +1078,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				default: assert(0);
 				}
 			}
-			myASSERT(psXPC->f.llong < S_XXX);				// rest not yet supported
+			IF_myASSERT(debugTRACK, psXPC->f.llong < S_XXX);	// rest not yet supported
 			// Check if format character where UC/lc same character control the case of the output
 			cFmt = *fmt;
 			if (strchr_i(vPrintStr1, cFmt) != erFAILURE) {
