@@ -638,9 +638,8 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 		int Width = (xLen - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : xLen - Now;
 		vPrintHexValues(psXPC, Width, pStr + Now);
 		if (psXPC->f.plus) {							// ASCII equivalent requested?
-			u32_t Count;
 			int Size = S_bytes[psXPC->f.llong];
-			Count = (xLen <= xpfHEXDUMP_WIDTH) ? 1 :
+			u32_t Count = (xLen <= xpfHEXDUMP_WIDTH) ? 1 :
 					((xpfHEXDUMP_WIDTH - Width) / Size) * (Size*2 + (psXPC->f.form ? 1 : 0)) + 1;
 			while (Count--)			// handle space padding for ASCII dump to line up
 				xPrintChar(psXPC, CHR_SPACE);
