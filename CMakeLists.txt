@@ -5,7 +5,7 @@ if( ESP_PLATFORM )
 	set( include_dirs "." )
 	set( priv_include_dirs )
 	set( requires common )
-	set( priv_requires buffers driver hal_esp32 rtos-support stringsX socketsX )
+	set( priv_requires buffers hal_esp32 rtos-support stringsX socketsX )
 	
 	idf_component_register(
 		SRCS ${srcs} 
