@@ -965,45 +965,22 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			// Optional FLAGS must be in correct sequence of interpretation
 			while ((cFmt = strchr_i("!#'*+- 0", *fmt)) != erFAILURE) {
 				switch (cFmt) {
-				case 0:									// '!' HEXDUMP absolute->relative address
-					++fmt ;								// DTZ absolute->relative time
-					psXPC->f.rel_val = 1 ;				// MAC use ':' separator
-					break ;
-				case 1:									// '#' DTZ select GMT format
-					++fmt ;								// HEXDUMP / IP swop endian
-					psXPC->f.alt_form = 1;				// STRING middle justify
-					break ;
-				case 2:									// "diu" select ',' separated 3 digit grouping
-					++fmt;								// DTZ, MAC, DUMP select separator set
-					psXPC->f.group = 1;
-					break;
-				case 3:									// '*' indicate argument will supply field width
+				case 0:	psXPC->f.rel_val = 1; break;	// !	HEXDUMP/DTZ abs->rel address/time, MAC use ':' separator
+				case 1:	psXPC->f.alt_form = 1; break;	// #	DTZ=GMT format, HEXDUMP/IP swop endian, STRING centre
+				case 2: psXPC->f.group = 1; break;		// '	"diu" add 3 digit grouping, DTZ, MAC, DUMP select separator set
+				case 3:									// *	indicate argument will supply field width
 					X32.iX	= va_arg(psXPC->vaList, int);
 					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.iX <= xpfMINWID_MAXVAL);
-					++fmt;
 					psXPC->f.minwid = X32.iX;
 					psXPC->f.arg_width = 1;
-					break ;
-				case 4:									// '+' force leading +/- signed
-					++fmt ;								// or HEXDUMP add ASCII char dump
-					psXPC->f.plus = 1 ;					// or TIME add TZ info
-					break ;
-				case 5:									// '-' Left justify modifier
-					++fmt ;								// or HEXDUMP remove address pointer
-					psXPC->f.ljust = 1 ;
-					break ;
-				case 6:									// ' ' instead of '+'
-					++fmt ;
-					psXPC->f.Pspc = 1 ;
-					break ;
-				case 7:									// '0 force leading '0's
-					++fmt ;
-					psXPC->f.pad0 = 1 ;
-					break ;
-				default:								// '%' literal to display
-					goto out_lbl ;
+					break;
+				case 4: psXPC->f.plus = 1; break;		// +	force +/-, HEXDUMP add ASCII, TIME add TZ info
+				case 5: psXPC->f.ljust = 1; break;		// -	Left justify, HEXDUMP remove address pointer
+				case 6:	psXPC->f.Pspc = 1; break;		//  	' ' instead of '+'
+				case 7:	psXPC->f.pad0 = 1; break;		// 0	force leading '0's
 				default: assert(0);
 				}
+				++fmt;
 			}
 
 			// Optional WIDTH and PRECISION indicators
