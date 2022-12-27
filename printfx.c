@@ -572,7 +572,7 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 	while (Idx < Num) {
 		switch (Size >> 1) {
 		case 0:
-			x64Val.x8[0].u8	  = *((u8_t *) pStr);
+			x64Val.x8[0].u8 = *((u8_t *) pStr);
 			vPrintHexU8(psXPC, x64Val.x8[0].u8);
 			break;
 		case 1:
@@ -584,7 +584,7 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 			vPrintHexU32(psXPC, x64Val.x32[0].u32);
 			break;
 		case 4:
-			x64Val.u64	  = *((u64_t *) pStr);
+			x64Val.u64 = *((u64_t *) pStr);
 			vPrintHexU64(psXPC, x64Val.u64);
 			break;
 		default:
@@ -592,21 +592,21 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 		}
 		// step to the next 8/16/32/64 bit value
 		if (psXPC->f.alt_form)							// invert order ?
-			pStr -= Size ;								// update source pointer backwards
+			pStr -= Size;								// update source pointer backwards
 		else
-			pStr += Size ;								// update source pointer forwards
+			pStr += Size;								// update source pointer forwards
 		Idx += Size;
 		if (Idx >= Num)
 			break;
 		// now handle the grouping separator(s) if any
-		if (psXPC->f.form == form0G)				// no separator required?
-			continue ;
+		if (psXPC->f.form == form0G)					// no separator required?
+			continue;
 		xPrintChar(psXPC, psXPC->f.form == form1F ? CHR_COLON :
 						  psXPC->f.form == form2E ? CHR_MINUS :
-						  psXPC->f.form == form3X ? (
-							(Idx % 8) == 0 ? CHR_SPACE :
-							(Idx % 4) == 0 ? CHR_VERT_BAR :
-							(Idx % 2) == 0 ? CHR_MINUS : CHR_COLON ) : CHR_QUESTION) ;
+						  psXPC->f.form == form3X ? ( (Idx % 8) == 0 ? CHR_SPACE :
+								  	  	  	  	  	  (Idx % 4) == 0 ? CHR_VERT_BAR :
+								  	  	  	  	  	  (Idx % 2) == 0 ? CHR_MINUS : CHR_COLON ) :
+								  	  	  	  	  	  CHR_QUESTION);
 	}
 }
 
@@ -630,11 +630,11 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 	for (int Now = 0; Now < xLen; Now += xpfHEXDUMP_WIDTH) {
 		if (psXPC->f.ljust == 0) {						// display absolute or relative address
 			vPrintPointer(psXPC, (px_t) (psXPC->f.rel_val ? (void *) Now : (void *) (pStr + Now)));
-			xPrintChars(psXPC, (char *) ": ") ;
+			xPrintChars(psXPC, (char *) ": ");
 		}
 		// then the actual series of values in 8-32 bit groups
-		int Width = (xLen - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : xLen - Now ;
-		vPrintHexValues(psXPC, Width, pStr + Now) ;
+		int Width = (xLen - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : xLen - Now;
+		vPrintHexValues(psXPC, Width, pStr + Now);
 		if (psXPC->f.plus) {							// ASCII equivalent requested?
 			u32_t Count;
 			int Size = S_bytes[psXPC->f.llong];
@@ -650,7 +650,7 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 				xPrintChar(psXPC, (cChr < CHR_SPACE || cChr >= CHR_DEL) ? CHR_FULLSTOP : cChr);
 				#endif
 			}
-			xPrintChar(psXPC, CHR_SPACE) ;
+			xPrintChar(psXPC, CHR_SPACE);
 		}
 		if ((Now < xLen) && (xLen > xpfHEXDUMP_WIDTH))
 			xPrintChars(psXPC, strCRLF);
@@ -953,14 +953,13 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 	for (; *fmt != 0; ++fmt) {
 	// start by expecting format indicator
 		if (*fmt == CHR_PERCENT) {
-			psXPC->f.flags 	= 0 ;						// set ALL flags to default 0
-			psXPC->f.limits	= 0 ;						// reset field specific limits
-			psXPC->f.nbase	= BASE10 ;					// default number base
-			++fmt ;
-			if (*fmt == 0)
-				break;
-			int	cFmt ;
-			x32_t X32 = { 0 } ;
+			++fmt;
+			if (*fmt == CHR_NUL)		break;
+			psXPC->f.flags = 0;							// set ALL flags to default 0
+			psXPC->f.limits	= 0;						// reset field specific limits
+			psXPC->f.nbase = BASE10;					// default number base
+			int	cFmt;
+			x32_t X32 = { 0 };
 			// Optional FLAGS must be in correct sequence of interpretation
 			while ((cFmt = strchr_i("!#'*+- 0%", *fmt)) != erFAILURE) {
 				switch (cFmt) {
@@ -1082,8 +1081,8 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			// Check if format character where UC/lc same character control the case of the output
 			cFmt = *fmt;
 			if (strchr_i(vPrintStr1, cFmt) != erFAILURE) {
-				cFmt |= 0x20 ;							// convert to lower case, but ...
-				psXPC->f.Ucase = 1 ;					// indicate as UPPER case requested
+				cFmt |= 0x20;							// convert to lower case, but ...
+				psXPC->f.Ucase = 1;						// indicate as UPPER case requested
 			}
 
 			x64_t X64;								// default x64 variable
@@ -1167,10 +1166,10 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 
 			#if	(xpfSUPPORT_URL == 1)					// para = pointer to string to be encoded
 			case CHR_U:
-				pX.pc8	= va_arg(psXPC->vaList, char *);
-				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pX.pc8)) ;
-				vPrintURL(psXPC, pX.pc8) ;
-				break ;
+				pX.pc8 = va_arg(psXPC->vaList, char *);
+				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pX.pc8));
+				vPrintURL(psXPC, pX.pc8);
+				break;
 			#endif
 
 			#if	(xpfSUPPORT_MAC_ADDR == 1)
@@ -1182,8 +1181,8 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			 */
 			case CHR_M:									// MAC address ??:??:??:??:??:??
 				IF_myASSERT(debugTRACK, !psXPC->f.arg_width && !psXPC->f.arg_prec);
-				psXPC->f.llong	= S_hh;					// force interpretation as sequence of U8 values
-				psXPC->f.form	= psXPC->f.group ? form1F : form0G;
+				psXPC->f.llong = S_hh;					// force interpretation as sequence of U8 values
+				psXPC->f.form = psXPC->f.group ? form1F : form0G;
 				pX.pc8 = va_arg(psXPC->vaList, char *);
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pX.pc8));
 				vPrintHexValues(psXPC, lenMAC_ADDRESS, pX.pc8);
@@ -1195,12 +1194,12 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				IF_myASSERT(debugTRACK, !psXPC->f.arg_width && !psXPC->f.arg_prec);
 				/* In order for formatting to work  the "*" or "." radix specifiers
 				 * should not be used. The requirement for a second parameter is implied and assumed */
-				psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
-				X32.iX	= va_arg(psXPC->vaList, int) ;
-				pX.pc8	= va_arg(psXPC->vaList, char *) ;
+				psXPC->f.form = psXPC->f.group ? form3X : form0G;
+				X32.iX	= va_arg(psXPC->vaList, int);
+				pX.pc8	= va_arg(psXPC->vaList, char *);
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pX.pc8));
 				vPrintHexDump(psXPC, X32.iX, pX.pc8);
-				break ;
+				break;
 			#endif
 
 			/* convert unsigned 32/64 bit value to 1/0 ASCI string
@@ -1307,7 +1306,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			psXPC->f.plus = 0;							// reset this form after printing one value
 		} else {
 out_lbl:
-			xPrintChar(psXPC, *fmt) ;
+			xPrintChar(psXPC, *fmt);
 		}
 	}
 	return psXPC->f.curlen ;
