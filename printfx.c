@@ -627,10 +627,12 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
  * 				+	Add the ASCII char equivalents to the right of the hex output
  */
 void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
+	xpf_t sXPF = psXPC->f;
 	for (int Now = 0; Now < xLen; Now += xpfHEXDUMP_WIDTH) {
 		if (psXPC->f.ljust == 0) {						// display absolute or relative address
 			vPrintPointer(psXPC, (px_t) (psXPC->f.rel_val ? (void *) Now : (void *) (pStr + Now)));
 			xPrintChars(psXPC, (char *) ": ");
+			psXPC->f.flags = sXPF.flags;
 		}
 		// then the actual series of values in 8-32 bit groups
 		int Width = (xLen - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : xLen - Now;
