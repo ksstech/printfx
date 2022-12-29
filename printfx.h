@@ -46,9 +46,9 @@ extern u64_t RunTime;
 #define	IF_CPTL(T, f, ...)			if (T) CPTL(f, ##__VA_ARGS__)
 
 // Using ROM based esp_rom_printf (no 64bit support so 32bit timestamps)
-#define	_RL_(f)						"[%s:%d " f "]", __FUNCTION__, __LINE__
-#define	_RT_(f)						"[%u.%03u " f "]", u32TS_Seconds(RunTime), u32TS_FracMillis(RunTime)
-#define	_RTL_(f)					"[%u.%03u:%s:%d " f "]", u32TS_Seconds(RunTime), u32TS_FracMillis(RunTime), __FUNCTION__, __LINE__
+#define	_RL_(f)						"[%s:%d]" f "", __FUNCTION__, __LINE__
+#define	_RT_(f)						"[%u.%03u]" f "", u32TS_Seconds(RunTime), u32TS_FracMillis(RunTime)
+#define	_RTL_(f)					"[%u.%03u:%s:%d]" f "", u32TS_Seconds(RunTime), u32TS_FracMillis(RunTime), __FUNCTION__, __LINE__
 
 #define	RP(f, ...)					esp_rom_printf(f, ##__VA_ARGS__)
 #define	RPL(f, ...)					esp_rom_printf(_RL_(f), ##__VA_ARGS__)
