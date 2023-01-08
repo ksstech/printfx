@@ -127,13 +127,13 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 
 /* Maximum size is determined by bit width of maxlen and curlen fields below */
 #define	xpfMAXLEN_BITS				16			// Number of bits in field(s)
-#define	xpfMAXLEN_MAXVAL			((1 << xpfMAXLEN_BITS) - 1)
+#define	xpfMAXLEN_MAXVAL			((u32_t) ((1 << xpfMAXLEN_BITS) - 1))
 
 #define	xpfMINWID_BITS				16			// Number of bits in field(s)
-#define	xpfMINWID_MAXVAL			((1 << xpfMINWID_BITS) - 1)
+#define	xpfMINWID_MAXVAL			((u32_t) ((1 << xpfMINWID_BITS) - 1))
 
 #define	xpfPRECIS_BITS				16			// Number of bits in field(s)
-#define	xpfPRECIS_MAXVAL			((1 << xpfPRECIS_BITS) - 1)
+#define	xpfPRECIS_MAXVAL			((u32_t) ((1 << xpfPRECIS_BITS) - 1))
 
 /* https://en.wikipedia.org/wiki/ANSI_escape_code#Escape_sequences
  * http://www.termsys.demon.co.uk/vtansi.htm#colors

@@ -190,27 +190,26 @@ static int xPrintChars(xpc_t * psXPC, char * pStr) {
  */
 void vPrintString(xpc_t * psXPC, char * pStr) {
 	// determine natural or limited length of string
-	int	Len ;
-	if (psXPC->f.arg_prec && psXPC->f.arg_width && psXPC->f.precis < psXPC->f.minwid) {
-		Len = xstrnlen(pStr, psXPC->f.precis) ;
+	size_t uLen;
+	if (psXPC->f.arg_prec && psXPC->f.arg_width && (psXPC->f.precis < psXPC->f.minwid)) {
+		uLen = xstrnlen(pStr, psXPC->f.precis);
 	} else {
-		Len	 = psXPC->f.precis ? psXPC->f.precis : strlen(pStr) ;
+		uLen = psXPC->f.precis ? psXPC->f.precis : strlen(pStr);
 	}
-	int	Tpad = psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;
-	int	Lpad = 0, Rpad = 0 ;
-	u8_t	Cpad = psXPC->f.pad0 ? CHR_0 : CHR_SPACE ;
+	size_t Lpad = 0, Rpad = 0, Tpad = psXPC->f.minwid > uLen ? psXPC->f.minwid - uLen : 0;
+	u8_t Cpad = psXPC->f.pad0 ? CHR_0 : CHR_SPACE;
 	if (Tpad) {
 		if (psXPC->f.alt_form) {
-			Rpad = Tpad >> 1 ; Lpad = Tpad - Rpad ;
+			Rpad = Tpad >> 1 ; Lpad = Tpad - Rpad;
 		} else if (psXPC->f.ljust) {
-			Rpad = Tpad ;
+			Rpad = Tpad;
 		} else {
-			Lpad = Tpad ;
+			Lpad = Tpad;
 		}
 	}
-	for (;Lpad--; xPrintChar(psXPC, Cpad)) ;
-	for (;Len-- && *pStr; xPrintChar(psXPC, *pStr++)) ;
-	for (;Rpad--; xPrintChar(psXPC, Cpad)) ;
+	for (;Lpad--; xPrintChar(psXPC, Cpad));
+	for (;uLen-- && *pStr; xPrintChar(psXPC, *pStr++));
+	for (;Rpad--; xPrintChar(psXPC, Cpad));
 }
 
 /**
