@@ -1362,7 +1362,7 @@ int xPrintStdOut(xpc_t * psXPC, int cChr) {
 #if	defined(ESP_PLATFORM)
 	return putcharX(cChr, configSTDIO_UART_CHAN);
 #else
-	return putchar(cChr) ;
+	return putchar(cChr);
 #endif
 }
 
@@ -1431,20 +1431,20 @@ int printfx_nolock(const char * format, ...) {
  */
 
 int	wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...) {
-	va_list vaList ;
-	va_start(vaList, pcFormat) ;
-	int iRV ;
+	va_list vaList;
+	va_start(vaList, pcFormat);
+	int iRV;
 	if (*ppcBuf && (*pSize > 1)) {
-		iRV = vsnprintfx(*ppcBuf, *pSize, pcFormat, vaList) ;
+		iRV = vsnprintfx(*ppcBuf, *pSize, pcFormat, vaList);
 		if (iRV > 0) {
-			*ppcBuf	+= iRV ;
-			*pSize	-= iRV ;
+			*ppcBuf	+= iRV;
+			*pSize	-= iRV;
 		}
 	} else {
-		iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, pcFormat, vaList) ;
+		iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, pcFormat, vaList);
 	}
-	va_end(vaList) ;
-	return iRV ;
+	va_end(vaList);
+	return iRV;
 }
 
 // ################################### Destination = FILE PTR ######################################
