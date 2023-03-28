@@ -260,7 +260,11 @@ int printfx(const char *, ...);
 int vcprintfx(const char *, va_list);
 int cprintfx(const char *, ...);
 
-int wsnprintfx(char ** ppcBuf, size_t * pSize, const char * pcFormat, ...);
+#define wsnPRINTFX_DIRECT(a,b) ((a == NULL || b == NULL || *a == NULL || *b == 0) ? 1 : 0)
+#define wsnPRINTFX_LOCK(a,b) { if wsnPRINTFX_DIRECT(a,b) printfx_lock(); }
+#define wsnPRINTFX_UNLOCK(a,b) { if wsnPRINTFX_DIRECT(a,b) printfx_unlock(); }
+
+int wprintfx(report_t * psRprt, const char * pcFormat, ...);
 
 // ################################### Destination = FILE PTR ######################################
 
