@@ -53,7 +53,7 @@
 	M	format specifier.
 	Modifier(s):
 		# 	alt format for sequence inversion.
-		'	enable ':' seperator characters between bytes
+		'	enable seperator character  ':' between bytes
 
 	BINARY format output
 	J	format specifier taking U32 or U64 value as input
