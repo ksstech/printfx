@@ -1271,7 +1271,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				pX.pc8 = (cFmt == CHR_s) ? va_arg(psXPC->vaList, char *) : strerror(errno);
 				// Required to avoid crash when wifi message is intercepted and a string pointer parameter
 				// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
-				pX.pc8 = halCONFIG_inMEM(pX.pc8) ? pX.pc8 : pX.pc8 == NULL ? STRING_NULL : STRING_OOR;
+				pX.pc8 = halCONFIG_inMEM(pX.pc8) ? pX.pc8 : pX.pc8 == NULL ? strNULL : strOOR;
 				vPrintString(psXPC, pX.pc8);
 				break;
 
