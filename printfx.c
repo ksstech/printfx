@@ -490,17 +490,17 @@ void vPrintPointer(xpc_t * psXPC, px_t pX) {
 	psXPC->f.plus = 0;									// no leading '+'
 	psXPC->f.alt_form = 0;								// disable scaling
 	psXPC->f.group = 0;									// disable 3-digit grouping
-	psXPC->f.minwid = 8;
 	psXPC->f.pad0 = 1;
 	x64_t X64;
 	#if (xpfSIZE_POINTER == 2)
+	psXPC->f.minwid = 4;
 	X64.u64 = (u16_t) pX.pv;
 	#elif (xpfSIZE_POINTER == 4)
+	psXPC->f.minwid = 8;
 	X64.u64 = (u32_t) pX.pv;
 	#elif (xpfSIZE_POINTER == 8)
+	psXPC->f.minwid = 16;
 	X64.u64 = pX.pv;
-	#else
-	#error "Unsupported architecture"
 	#endif
 	int Len = xPrintXxx(psXPC, X64.u64, caBuf, xpfMAX_LEN_PNTR - 1);
 	memcpy(&caBuf[xpfMAX_LEN_PNTR - 3 - Len], "0x", 2);
