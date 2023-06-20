@@ -75,6 +75,7 @@ const u8_t S_bytes[S_XXX] = { sizeof(int), sizeof(char), sizeof(short), sizeof(l
 
 const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 	'B',							// Binary formatted, prepend "0b" or "0B"
+	'P',							// pointer formatted, 0x00abcdef or 0X00ABCDEF
 	'X',							// hex formatted 'x' or 'X' values, always there
 	#if	(xpfSUPPORT_IEEE754 == 1)
 	'A', 'E', 'F', 'G',				// float hex/exponential/general
