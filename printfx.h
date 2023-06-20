@@ -81,7 +81,7 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #elif UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu
 	#define xpfSIZE_POINTER			8
 #else
-	#error TBD pointer size
+	#error "TBD pointer size!!!"
 #endif
 
 /* Number of bits in inttype_MAX, or in any (1<<k)-1 where 0 <= k < 2040 */

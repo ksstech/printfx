@@ -82,7 +82,7 @@ const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 	'\0'
 };
 
-const char hexchars[] = "0123456789ABCDEF" ;
+const char hexchars[] = "0123456789ABCDEF";
 
 // #################################### local only functions #######################################
 
@@ -133,10 +133,10 @@ x64_t x64PrintGetValue(xpc_t * psXPC) {
  * @return		pointer to the correct character
  */
 char cPrintNibbleToChar(xpc_t * psXPC, u8_t Value) {
-	char cChr = hexchars[Value] ;
+	char cChr = hexchars[Value];
 	if (psXPC->f.Ucase == 0 && Value > 9)
-		cChr += 0x20 ;									// convert to lower case
-	return cChr ;
+		cChr += 0x20;									// convert to lower case
+	return cChr;
 }
 
 // ############################# Foundation character and string output ############################
@@ -158,7 +158,7 @@ static int xPrintChar(xpc_t * psXPC, char cChr) {
 	if ((psXPC->f.maxlen == 0) || (psXPC->f.curlen < psXPC->f.maxlen)) {
 		iRV = psXPC->handler(psXPC, cChr);
 		if (iRV == cChr) {
-			psXPC->f.curlen++ ;							// adjust count
+			psXPC->f.curlen++;							// adjust count
 		}
 	}
 	return iRV;
@@ -200,7 +200,7 @@ void vPrintString(xpc_t * psXPC, char * pStr) {
 	u8_t Cpad = psXPC->f.pad0 ? CHR_0 : CHR_SPACE;
 	if (Tpad) {
 		if (psXPC->f.alt_form) {
-			Rpad = Tpad >> 1 ; Lpad = Tpad - Rpad;
+			Rpad = Tpad >> 1; Lpad = Tpad - Rpad;
 		} else if (psXPC->f.ljust) {
 			Rpad = Tpad;
 		} else {
@@ -360,7 +360,7 @@ int	xPrintXxx(xpc_t * psXPC, u64_t u64Val, char * pBuffer, int BufSize) {
 			++Len;
 		}
 	}
-	return Len ;
+	return Len;
 }
 
 void vPrintX64(xpc_t * psXPC, u64_t Value) {
@@ -392,93 +392,93 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 		vPrintString(psXPC, psXPC->f.Ucase ? "INF" : "inf");
 		return;
 	}
-	psXPC->f.negvalue	= F64 < 0.0 ? 1 : 0 ;			// set negvalue if < 0.0
-	F64	*= psXPC->f.negvalue ? -1.0 : 1.0 ;				// convert to positive number
-	xpf_t xpf ;
-	xpf.limits	= psXPC->f.limits ;						// save original flags
-	xpf.flags	= psXPC->f.flags ;
-	x64_t X64 	= { 0 } ;
+	psXPC->f.negvalue	= F64 < 0.0 ? 1 : 0;			// set negvalue if < 0.0
+	F64	*= psXPC->f.negvalue ? -1.0 : 1.0;				// convert to positive number
+	xpf_t xpf;
+	xpf.limits	= psXPC->f.limits;						// save original flags
+	xpf.flags	= psXPC->f.flags;
+	x64_t X64 	= { 0 };
 
-	int	Exp = 0 ;										// if exponential format requested, calculate the exponent
+	int	Exp = 0;										// if exponential format requested, calculate the exponent
 	if (F64 != 0.0) {									// if not 0 and...
 		if (psXPC->f.form != form1F) {					// any of "eEgG" specified ?
-			X64.f64	= F64 ;
+			X64.f64	= F64;
 			while (X64.f64 > 10.0) {					// if number is greater that 10.0
-				X64.f64 /= 10.0 ;						// re-adjust and
-				Exp += 1 ;								// update exponent
+				X64.f64 /= 10.0;						// re-adjust and
+				Exp += 1;								// update exponent
 			}
 			while (X64.f64 < 1.0) {						// similarly, if number smaller than 1.0
-				X64.f64 *= 10.0 ;						// re-adjust upwards and
-				Exp	-= 1 ;								// update exponent
+				X64.f64 *= 10.0;						// re-adjust upwards and
+				Exp	-= 1;								// update exponent
 			}
 		}
 	}
 	u8_t AdjForm = psXPC->f.form!=form0G ? psXPC->f.form : (Exp<-4 || Exp>=psXPC->f.precis) ? form2E : form1F;
 	if (AdjForm == form2E)
-		F64 = X64.f64 ;									// change to exponent adjusted value
+		F64 = X64.f64;									// change to exponent adjusted value
 	if (F64 < (DBL_MAX - round_nums[psXPC->f.precis])) {// if addition of rounding value will NOT cause overflow.
-		F64 += round_nums[psXPC->f.precis] ;			// round by adding .5LSB to the value
+		F64 += round_nums[psXPC->f.precis];			// round by adding .5LSB to the value
 	}
 	char Buffer[xpfMAX_LEN_F64];
 	Buffer[xpfMAX_LEN_F64 - 1] = 0;						// building R to L, ensure buffer NULL-term
 
-	int Len = 0 ;
+	int Len = 0;
 	if (AdjForm == form2E) {							// If required, handle the exponent
-		psXPC->f.minwid		= 2 ;
-		psXPC->f.pad0		= 1 ;						// MUST left pad with '0'
-		psXPC->f.signval	= 1 ;
-		psXPC->f.ljust		= 0 ;
-		psXPC->f.negvalue	= (Exp < 0) ? 1 : 0 ;
-		Exp *= psXPC->f.negvalue ? -1LL : 1LL ;
-		Len += xPrintXxx(psXPC, Exp, Buffer, xpfMAX_LEN_F64 - 1) ;
-		Buffer[xpfMAX_LEN_F64-2-Len] = psXPC->f.Ucase ? CHR_E : CHR_e ;
-		++Len ;
+		psXPC->f.minwid		= 2;
+		psXPC->f.pad0		= 1;						// MUST left pad with '0'
+		psXPC->f.signval	= 1;
+		psXPC->f.ljust		= 0;
+		psXPC->f.negvalue	= (Exp < 0) ? 1 : 0;
+		Exp *= psXPC->f.negvalue ? -1LL : 1LL;
+		Len += xPrintXxx(psXPC, Exp, Buffer, xpfMAX_LEN_F64 - 1);
+		Buffer[xpfMAX_LEN_F64-2-Len] = psXPC->f.Ucase ? CHR_E : CHR_e;
+		++Len;
 	}
 
-	X64.f64	= F64 - (u64_t) F64 ;						// isolate fraction as double
-	X64.f64	= X64.f64 * (double) u64pow(10, psXPC->f.precis) ;	// fraction to integer
-	X64.u64	= (u64_t) X64.f64 ;							// extract integer portion
+	X64.f64	= F64 - (u64_t) F64;						// isolate fraction as double
+	X64.f64	= X64.f64 * (double) u64pow(10, psXPC->f.precis);	// fraction to integer
+	X64.u64	= (u64_t) X64.f64;							// extract integer portion
 
 	if (psXPC->f.arg_prec) {							// explicit minwid specified ?
-		psXPC->f.minwid	= psXPC->f.precis ; 			// yes, stick to it.
+		psXPC->f.minwid	= psXPC->f.precis; 			// yes, stick to it.
 	} else if (X64.u64 == 0) {							// process 0 value
 		psXPC->f.minwid	= psXPC->f.radix ? 1 : 0;
 	} else {											// process non 0 value
 		if (psXPC->f.alt_form && psXPC->f.form == form0G) {
-			psXPC->f.minwid	= psXPC->f.precis ;			// keep trailing 0's
+			psXPC->f.minwid	= psXPC->f.precis;			// keep trailing 0's
 		} else {
-			u32_t u = u64Trailing0(X64.u64) ;
-			X64.u64 /= u64pow(10, u) ;
-			psXPC->f.minwid	= psXPC->f.precis - u ;		// remove trailing 0's
+			u32_t u = u64Trailing0(X64.u64);
+			X64.u64 /= u64pow(10, u);
+			psXPC->f.minwid	= psXPC->f.precis - u;		// remove trailing 0's
 		}
 	}
 	if (psXPC->f.minwid > 0) {
-		psXPC->f.pad0		= 1 ;						// MUST left pad with '0'
-		psXPC->f.group		= 0 ;						// cannot group in fractional
-		psXPC->f.signval	= 0 ;						// always unsigned value
-		psXPC->f.negvalue	= 0 ;						// and never negative
-		psXPC->f.plus		= 0 ;						// no leading +/- before fractional part
-		Len += xPrintXxx(psXPC, X64.u64, Buffer, xpfMAX_LEN_F64-1-Len) ;
+		psXPC->f.pad0		= 1;						// MUST left pad with '0'
+		psXPC->f.group		= 0;						// cannot group in fractional
+		psXPC->f.signval	= 0;						// always unsigned value
+		psXPC->f.negvalue	= 0;						// and never negative
+		psXPC->f.plus		= 0;						// no leading +/- before fractional part
+		Len += xPrintXxx(psXPC, X64.u64, Buffer, xpfMAX_LEN_F64-1-Len);
 	}
 	// process the radix = '.'
 	if (psXPC->f.minwid || psXPC->f.radix) {
 		Buffer[xpfMAX_LEN_F64 - 2 - Len] = CHR_FULLSTOP;
-		++Len ;
+		++Len;
 	}
 
-	X64.u64	= F64 ;										// extract and convert the whole number portions
-	psXPC->f.limits	= xpf.limits ;						// restore original limits & flags
-	psXPC->f.flags	= xpf.flags ;
+	X64.u64	= F64;										// extract and convert the whole number portions
+	psXPC->f.limits	= xpf.limits;						// restore original limits & flags
+	psXPC->f.flags	= xpf.flags;
 
 	// adjust minwid to do padding (if required) based on string length after adding whole number
-	psXPC->f.minwid	= psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0 ;
-	Len += xPrintXxx(psXPC, X64.u64, Buffer, xpfMAX_LEN_F64 - 1 - Len) ;
+	psXPC->f.minwid	= psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0;
+	Len += xPrintXxx(psXPC, X64.u64, Buffer, xpfMAX_LEN_F64 - 1 - Len);
 
-	psXPC->f.arg_prec	= 1 ;
-	psXPC->f.precis		= Len ;
-	psXPC->f.arg_width	= xpf.arg_width ;
-	psXPC->f.minwid		= xpf.minwid ;
-	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64 - 1 - Len)) ;
+	psXPC->f.arg_prec	= 1;
+	psXPC->f.precis		= Len;
+	psXPC->f.arg_width	= xpf.arg_width;
+	psXPC->f.minwid		= xpf.minwid;
+	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64 - 1 - Len));
 }
 
 void vPrintPointer(xpc_t * psXPC, px_t pX) {
@@ -515,8 +515,8 @@ void vPrintPointer(xpc_t * psXPC, px_t pX) {
  * return	none
  */
 void vPrintHexU8(xpc_t * psXPC, u8_t Value) {
-	xPrintChar(psXPC, cPrintNibbleToChar(psXPC, Value >> 4)) ;
-	xPrintChar(psXPC, cPrintNibbleToChar(psXPC, Value & 0x0F)) ;
+	xPrintChar(psXPC, cPrintNibbleToChar(psXPC, Value >> 4));
+	xPrintChar(psXPC, cPrintNibbleToChar(psXPC, Value & 0x0F));
 }
 
 /**
@@ -526,8 +526,8 @@ void vPrintHexU8(xpc_t * psXPC, u8_t Value) {
  * return	none
  */
 void vPrintHexU16(xpc_t * psXPC, u16_t Value) {
-	vPrintHexU8(psXPC, (Value >> 8) & 0x000000FF) ;
-	vPrintHexU8(psXPC, Value & 0x000000FF) ;
+	vPrintHexU8(psXPC, (Value >> 8) & 0x000000FF);
+	vPrintHexU8(psXPC, Value & 0x000000FF);
 }
 
 /**
@@ -537,8 +537,8 @@ void vPrintHexU16(xpc_t * psXPC, u16_t Value) {
  * return	none
  */
 void vPrintHexU32(xpc_t * psXPC, u32_t Value) {
-	vPrintHexU16(psXPC, (Value >> 16) & 0x0000FFFF) ;
-	vPrintHexU16(psXPC, Value & 0x0000FFFF) ;
+	vPrintHexU16(psXPC, (Value >> 16) & 0x0000FFFF);
+	vPrintHexU16(psXPC, Value & 0x0000FFFF);
 }
 
 /**
@@ -548,8 +548,8 @@ void vPrintHexU32(xpc_t * psXPC, u32_t Value) {
  * return	none
  */
 void vPrintHexU64(xpc_t * psXPC, u64_t Value) {
-	vPrintHexU32(psXPC, (Value >> 32) & 0xFFFFFFFFULL) ;
-	vPrintHexU32(psXPC, Value & 0xFFFFFFFFULL) ;
+	vPrintHexU32(psXPC, (Value >> 32) & 0xFFFFFFFFULL);
+	vPrintHexU32(psXPC, Value & 0xFFFFFFFFULL);
 }
 
 /**
@@ -573,6 +573,7 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 		case 0:
 			x64Val.x8[0].u8 = *((u8_t *) pStr);
 			vPrintHexU8(psXPC, x64Val.x8[0].u8);
+
 			break;
 		case 1:
 			x64Val.x16[0].u16 = *((u16_t *) pStr);
@@ -660,40 +661,40 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 // ############################# Proprietary extensions: date & time ###############################
 
 seconds_t xPrintCalcSeconds(xpc_t * psXPC, tsz_t * psTSZ, struct tm * psTM) {
-	seconds_t	Seconds ;
+	seconds_t	Seconds;
 	// Get seconds value to use... (adjust for TZ if required/allowed)
 	if (psTSZ->pTZ &&									// TZ info available
 		psXPC->f.plus == 1 &&							// TZ info requested
 		psXPC->f.alt_form == 0 &&						// NOT alt_form (always GMT/UTC)
 		psXPC->f.rel_val == 0) {						// NOT relative time (has no TZ info)
-		Seconds = xTimeCalcLocalTimeSeconds(psTSZ) ;
+		Seconds = xTimeCalcLocalTimeSeconds(psTSZ);
 	} else
-		Seconds = xTimeStampAsSeconds(psTSZ->usecs) ;
+		Seconds = xTimeStampAsSeconds(psTSZ->usecs);
 
 	if (psTM)											// convert seconds into components
-		xTimeGMTime(Seconds, psTM, psXPC->f.rel_val) ;
-	return Seconds ;
+		xTimeGMTime(Seconds, psTM, psXPC->f.rel_val);
+	return Seconds;
 }
 
 int	xPrintTimeCalcSize(xpc_t * psXPC, int i32Val) {
 	if (!psXPC->f.rel_val || psXPC->f.pad0 || i32Val > 9)
 		return psXPC->f.minwid = 2;
-	psXPC->f.minwid = 1 ;
-	return xDigitsInI32(i32Val, psXPC->f.group) ;
+	psXPC->f.minwid = 1;
+	return xDigitsInI32(i32Val, psXPC->f.group);
 }
 
 int	xPrintDate_Year(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
-	psXPC->f.minwid	= 0 ;
-	int Len = xPrintXxx(psXPC, (u64_t) (psTM->tm_year + YEAR_BASE_MIN), pBuffer, 4) ;
+	psXPC->f.minwid	= 0;
+	int Len = xPrintXxx(psXPC, (u64_t) (psTM->tm_year + YEAR_BASE_MIN), pBuffer, 4);
 	if (psXPC->f.alt_form == 0)
 		pBuffer[Len++] = (psXPC->f.form == form3X) ? CHR_FWDSLASH : CHR_MINUS;
-	return Len ;
+	return Len;
 }
 
 int	xPrintDate_Month(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
-	int Len = xPrintXxx(psXPC, (u64_t) (psTM->tm_mon + 1), pBuffer, psXPC->f.minwid = 2) ;
-	pBuffer[Len++] = psXPC->f.alt_form ? CHR_SPACE : (psXPC->f.form == form3X) ? CHR_FWDSLASH : CHR_MINUS ;
-	return Len ;
+	int Len = xPrintXxx(psXPC, (u64_t) (psTM->tm_mon + 1), pBuffer, psXPC->f.minwid = 2);
+	pBuffer[Len++] = psXPC->f.alt_form ? CHR_SPACE : (psXPC->f.form == form3X) ? CHR_FWDSLASH : CHR_MINUS;
+	return Len;
 }
 
 int	xPrintDate_Day(xpc_t * psXPC, struct tm * psTM, char * pBuffer) {
@@ -731,12 +732,12 @@ void vPrintDate(xpc_t * psXPC, struct tm * psTM) {
 }
 
 void vPrintTime(xpc_t * psXPC, struct tm * psTM, u32_t uSecs) {
-	char Buffer[xpfMAX_LEN_TIME] ;
-	int	Len ;
-	psXPC->f.form	= psXPC->f.group ? form3X : form0G ;
+	char Buffer[xpfMAX_LEN_TIME];
+	int	Len;
+	psXPC->f.form	= psXPC->f.group ? form3X : form0G;
 	// Part 1: hours
 	if (psTM->tm_hour || psXPC->f.pad0) {
-		Len = xPrintXxx(psXPC, (u64_t) psTM->tm_hour, Buffer, xPrintTimeCalcSize(psXPC, psTM->tm_hour)) ;
+		Len = xPrintXxx(psXPC, (u64_t) psTM->tm_hour, Buffer, xPrintTimeCalcSize(psXPC, psTM->tm_hour));
 		Buffer[Len++] = psXPC->f.form == form3X ? CHR_h : CHR_COLON;
 		psXPC->f.pad0 = 1;
 	} else {
@@ -744,13 +745,13 @@ void vPrintTime(xpc_t * psXPC, struct tm * psTM, u32_t uSecs) {
 	}
 	// Part 2: minutes
 	if (psTM->tm_min || psXPC->f.pad0) {
-		Len += xPrintXxx(psXPC, (u64_t) psTM->tm_min, Buffer+Len, xPrintTimeCalcSize(psXPC, psTM->tm_min)) ;
-		Buffer[Len++]	= psXPC->f.form == form3X ? CHR_m :  CHR_COLON ;
-		psXPC->f.pad0	= 1 ;
+		Len += xPrintXxx(psXPC, (u64_t) psTM->tm_min, Buffer+Len, xPrintTimeCalcSize(psXPC, psTM->tm_min));
+		Buffer[Len++]	= psXPC->f.form == form3X ? CHR_m :  CHR_COLON;
+		psXPC->f.pad0	= 1;
 	}
 
 	// Part 3: seconds
-	Len += xPrintXxx(psXPC, (u64_t) psTM->tm_sec, Buffer+Len, xPrintTimeCalcSize(psXPC, psTM->tm_sec)) ;
+	Len += xPrintXxx(psXPC, (u64_t) psTM->tm_sec, Buffer+Len, xPrintTimeCalcSize(psXPC, psTM->tm_sec));
 	// Part 4: [.xxxxxx]
 	if (psXPC->f.radix && psXPC->f.alt_form == 0) {
 		Buffer[Len++]	= psXPC->f.form == form3X ? CHR_s : CHR_FULLSTOP;
@@ -759,17 +760,17 @@ void vPrintTime(xpc_t * psXPC, struct tm * psTM, u32_t uSecs) {
 						  psXPC->f.precis;
 		if (psXPC->f.precis < xpfMAX_TIME_FRAC)
 			uSecs /= u32pow(10, xpfMAX_TIME_FRAC - psXPC->f.precis);
-		psXPC->f.pad0	= 1 ;						// need leading '0's
-		psXPC->f.signval= 0 ;
-		psXPC->f.ljust	= 0 ;						// force R-just
-		Len += xPrintXxx(psXPC, uSecs, Buffer+Len, psXPC->f.minwid	= psXPC->f.precis) ;
+		psXPC->f.pad0	= 1;						// need leading '0's
+		psXPC->f.signval= 0;
+		psXPC->f.ljust	= 0;						// force R-just
+		Len += xPrintXxx(psXPC, uSecs, Buffer+Len, psXPC->f.minwid	= psXPC->f.precis);
 	} else if (psXPC->f.form == form3X) {
 		Buffer[Len++] = CHR_s;
 	}
 
-	Buffer[Len] = 0 ;
-	psXPC->f.limits	= 0 ;							// enable full string
-	vPrintString(psXPC, Buffer) ;
+	Buffer[Len] = 0;
+	psXPC->f.limits	= 0;							// enable full string
+	vPrintString(psXPC, Buffer);
 }
 
 void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
@@ -779,7 +780,7 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 		Buffer[Len++] = CHR_Z;
 
 	} else if (psXPC->f.alt_form) {						// TZ info available but '#' format specified
-		Len = xstrncpy(Buffer, (char *) " GMT", 4) ;	// show as GMT (ie UTC)
+		Len = xstrncpy(Buffer, (char *) " GMT", 4);	// show as GMT (ie UTC)
 
 	} else {											// TZ info available & '+x:xx(???)' format requested
 		#if	(timexTZTYPE_SELECTED == timexTZTYPE_RFC5424)
@@ -794,52 +795,52 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
 			Buffer[Len++]	= CHR_Z;					// add 'Z' for Zulu/zero time zone
 		}
 		#elif (timexTZTYPE_SELECTED == timexTZTYPE_POINTER)
-		psXPC->f.signval	= 1 ;						// TZ hours offset is a signed value
-		psXPC->f.plus		= 1 ;						// force display of sign
-		Len = xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXPC->f.minwid = 3) ;
-		Buffer[Len++]	= psXPC->f.form ? CHR_h : CHR_COLON ;
-		psXPC->f.signval	= 0 ;						// TZ offset minutes unsigned
-		psXPC->f.plus		= 0 ;
-		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXPC->f.minwid = 2) ;
+		psXPC->f.signval	= 1;						// TZ hours offset is a signed value
+		psXPC->f.plus		= 1;						// force display of sign
+		Len = xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXPC->f.minwid = 3);
+		Buffer[Len++]	= psXPC->f.form ? CHR_h : CHR_COLON;
+		psXPC->f.signval	= 0;						// TZ offset minutes unsigned
+		psXPC->f.plus		= 0;
+		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXPC->f.minwid = 2);
 		if (psTSZ->pTZ->pcTZName) {						// handle TZ name (as string pointer) if there
-			Buffer[Len++]	= CHR_L_ROUND ;
-			psXPC->f.minwid = 0 ;						// then complete with the TZ name
+			Buffer[Len++]	= CHR_L_ROUND;
+			psXPC->f.minwid = 0;						// then complete with the TZ name
 			while (psXPC->f.minwid < configTIME_MAX_LEN_TZNAME &&
 					psTSZ->pTZ->pcTZName[psXPC->f.minwid] != 0) {
-				Buffer[Len + psXPC->f.minwid] = psTSZ->pTZ->pcTZName[psXPC->f.minwid] ;
-				psXPC->f.minwid++ ;
+				Buffer[Len + psXPC->f.minwid] = psTSZ->pTZ->pcTZName[psXPC->f.minwid];
+				psXPC->f.minwid++;
 			}
-			Len += psXPC->f.minwid ;
-			Buffer[Len++]	= CHR_R_ROUND ;
+			Len += psXPC->f.minwid;
+			Buffer[Len++]	= CHR_R_ROUND;
 		}
 
 		#elif (timexTZTYPE_SELECTED == timexTZTYPE_FOURCHARS)
-		psXPC->f.signval	= 1 ;						// TZ hours offset is a signed value
-		psXPC->f.plus		= 1 ;						// force display of sign
-		Len = xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXPC->f.minwid = 3) ;
-		Buffer[Len++]	= psXPC->f.form ? CHR_h : CHR_COLON ;
-		psXPC->f.signval	= 0 ;						// TZ offset minutes unsigned
-		psXPC->f.plus		= 0 ;
-		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXPC->f.minwid = 2) ;
+		psXPC->f.signval	= 1;						// TZ hours offset is a signed value
+		psXPC->f.plus		= 1;						// force display of sign
+		Len = xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXPC->f.minwid = 3);
+		Buffer[Len++]	= psXPC->f.form ? CHR_h : CHR_COLON;
+		psXPC->f.signval	= 0;						// TZ offset minutes unsigned
+		psXPC->f.plus		= 0;
+		Len += xPrintXxx(psXPC, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXPC->f.minwid = 2);
 		// Now handle the TZ name if there, check to ensure max 4 chars all UCase
 		if (xstrverify(&psTSZ->pTZ->tzname[0], CHR_A, CHR_Z, configTIME_MAX_LEN_TZNAME) == erSUCCESS) {
-			Buffer[Len++]	= CHR_L_ROUND ;
+			Buffer[Len++]	= CHR_L_ROUND;
 			// then complete with the TZ name
-			psXPC->f.minwid = 0 ;
+			psXPC->f.minwid = 0;
 			while ((psXPC->f.minwid < configTIME_MAX_LEN_TZNAME) &&
 					(psTSZ->pTZ->tzname[psXPC->f.minwid] != 0) &&
 					(psTSZ->pTZ->tzname[psXPC->f.minwid] != CHR_SPACE)) {
-				Buffer[Len + psXPC->f.minwid] = psTSZ->pTZ->tzname[psXPC->f.minwid] ;
-				psXPC->f.minwid++ ;
+				Buffer[Len + psXPC->f.minwid] = psTSZ->pTZ->tzname[psXPC->f.minwid];
+				psXPC->f.minwid++;
 			}
-			Len += psXPC->f.minwid ;
-			Buffer[Len++]	= CHR_R_ROUND ;
+			Len += psXPC->f.minwid;
+			Buffer[Len++]	= CHR_R_ROUND;
 		}
 		#endif
 	}
-	Buffer[Len]		= 0 ;								// converted L to R, so add terminating NUL
-	psXPC->f.limits	= 0 ;								// enable full string
-	vPrintString(psXPC, Buffer) ;
+	Buffer[Len]		= 0;								// converted L to R, so add terminating NUL
+	psXPC->f.limits	= 0;								// enable full string
+	vPrintString(psXPC, Buffer);
 }
 
 // ################################# Proprietary extension: URLs ###################################
@@ -851,21 +852,21 @@ void vPrintZone(xpc_t * psXPC, tsz_t * psTSZ) {
  */
 void vPrintURL(xpc_t * psXPC, char * pStr) {
 	if (halCONFIG_inMEM(pStr)) {
-		char cIn ;
+		char cIn;
 		while ((cIn = *pStr++) != 0) {
 			if (INRANGE(CHR_A, cIn, CHR_Z) ||
 				INRANGE(CHR_a, cIn, CHR_z) ||
 				INRANGE(CHR_0, cIn, CHR_9) ||
 				(cIn == CHR_MINUS || cIn == CHR_FULLSTOP || cIn == CHR_UNDERSCORE || cIn == CHR_TILDE)) {
-				xPrintChar(psXPC, cIn) ;
+				xPrintChar(psXPC, cIn);
 			} else {
-				xPrintChar(psXPC, CHR_PERCENT) ;
-				xPrintChar(psXPC, cPrintNibbleToChar(psXPC, cIn >> 4)) ;
-				xPrintChar(psXPC, cPrintNibbleToChar(psXPC, cIn & 0x0F)) ;
+				xPrintChar(psXPC, CHR_PERCENT);
+				xPrintChar(psXPC, cPrintNibbleToChar(psXPC, cIn >> 4));
+				xPrintChar(psXPC, cPrintNibbleToChar(psXPC, cIn & 0x0F));
 			}
 		}
 	} else {
-		vPrintString(psXPC, pStr) ;						// "null" or "pOOR"
+		vPrintString(psXPC, pStr);						// "null" or "pOOR"
 	}
 }
 
@@ -884,35 +885,35 @@ void vPrintURL(xpc_t * psXPC, char * pStr) {
  * 				'0'		Zero pad the individual numbers between the '.'
  */
 void vPrintIpAddress(xpc_t * psXPC, u32_t Val) {
-	psXPC->f.minwid		= psXPC->f.ljust ? 0 : 3 ;
-	psXPC->f.signval	= 0 ;							// ensure interpreted as unsigned
-	psXPC->f.plus		= 0 ;							// and no sign to be shown
-	u8_t * pChr = (u8_t *) &Val ;
+	psXPC->f.minwid		= psXPC->f.ljust ? 0 : 3;
+	psXPC->f.signval	= 0;							// ensure interpreted as unsigned
+	psXPC->f.plus		= 0;							// and no sign to be shown
+	u8_t * pChr = (u8_t *) &Val;
 	if (psXPC->f.alt_form) {							// '#' specified to invert order ?
-		psXPC->f.alt_form = 0 ;							// clear so not to confuse xPrintXxx()
-		u8_t temp ;
-		temp		= *pChr ;
-		*pChr		= *(pChr+3) ;
-		*(pChr+3)	= temp ;
-		temp		= *(pChr+1) ;
-		*(pChr+1)	= *(pChr+2) ;
-		*(pChr+2)	= temp ;
+		psXPC->f.alt_form = 0;							// clear so not to confuse xPrintXxx()
+		u8_t temp;
+		temp		= *pChr;
+		*pChr		= *(pChr+3);
+		*(pChr+3)	= temp;
+		temp		= *(pChr+1);
+		*(pChr+1)	= *(pChr+2);
+		*(pChr+2)	= temp;
 	}
 	// building R to L, ensure buffer NULL-term
 	char Buffer[xpfMAX_LEN_IP];
-	Buffer[xpfMAX_LEN_IP - 1] = 0 ;
+	Buffer[xpfMAX_LEN_IP - 1] = 0;
 
 	// then convert the IP address, LSB first
-	int	Idx, Len ;
+	int	Idx, Len;
 	for (Idx = 0, Len = 0; Idx < sizeof(Val); ++Idx) {
-		u64_t u64Val = (u8_t) pChr[Idx] ;
-		Len += xPrintXxx(psXPC, u64Val, Buffer + xpfMAX_LEN_IP - 5 - Len, 4) ;
+		u64_t u64Val = (u8_t) pChr[Idx];
+		Len += xPrintXxx(psXPC, u64Val, Buffer + xpfMAX_LEN_IP - 5 - Len, 4);
 		if (Idx < 3)
 			Buffer[xpfMAX_LEN_IP - 1 - ++Len] = CHR_FULLSTOP;
 	}
 	// then send the formatted output to the correct stream
-	psXPC->f.limits	= 0 ;
-	vPrintString(psXPC, Buffer + (xpfMAX_LEN_IP - 1 - Len)) ;
+	psXPC->f.limits	= 0;
+	vPrintString(psXPC, Buffer + (xpfMAX_LEN_IP - 1 - Len));
 }
 
 // ########################### Proprietary extension: SBR attributes ###############################
@@ -929,13 +930,13 @@ void vPrintIpAddress(xpc_t * psXPC, u32_t Val) {
  * the ESC sequences if the output is going to a socket, one way or another.
  */
 void vPrintSetGraphicRendition(xpc_t * psXPC, u32_t Val) {
-	char Buffer[xpfMAX_LEN_SGR] ;
-	sgr_info_t sSGR ;
-	sSGR.u32 = Val ;
+	char Buffer[xpfMAX_LEN_SGR];
+	sgr_info_t sSGR;
+	sSGR.u32 = Val;
 	if (pcANSIlocate(Buffer, sSGR.c, sSGR.d) != Buffer)
-		xPrintChars(psXPC, Buffer) ;
+		xPrintChars(psXPC, Buffer);
 	if (pcANSIattrib(Buffer, sSGR.a, sSGR.b) != Buffer)
-		xPrintChars(psXPC, Buffer) ;
+		xPrintChars(psXPC, Buffer);
 }
 
 /* ################################# The HEART of the PRINTFX matter ###############################
@@ -1019,7 +1020,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 						psXPC->f.minwid	= X32.iX;
 						psXPC->f.arg_width = 1;
 					} else if (psXPC->f.arg_prec == 0 && psXPC->f.radix == 1) {
-						IF_myASSERT(debugTRACK, X32.iX <= xpfPRECIS_MAXVAL) ;
+						IF_myASSERT(debugTRACK, X32.iX <= xpfPRECIS_MAXVAL);
 						psXPC->f.precis	= X32.iX;
 						psXPC->f.arg_prec = 1;
 					} else {
@@ -1119,28 +1120,28 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					psXPC->f.plus = sXPF.plus;
 					vPrintZone(psXPC, psTSZ);
 				}
-				break ;
+				break;
 
 			case CHR_R:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
 				IF_myASSERT(debugTRACK, !psXPC->f.plus && !psXPC->f.pad0 && !psXPC->f.group);
 				X64.u64 = va_arg(psXPC->vaList, u64_t);
 				if (psXPC->f.alt_form) {
-					psXPC->f.group = 1 ;
-					psXPC->f.alt_form = 0 ;
+					psXPC->f.group = 1;
+					psXPC->f.alt_form = 0;
 				}
-				X32.u32 = xTimeStampAsSeconds(X64.u64) ;
-				xTimeGMTime(X32.u32, &sTM, psXPC->f.rel_val) ;
+				X32.u32 = xTimeStampAsSeconds(X64.u64);
+				xTimeGMTime(X32.u32, &sTM, psXPC->f.rel_val);
 				if (psXPC->f.rel_val == 0)
 					psXPC->f.pad0 = 1;
 				if (psXPC->f.rel_val == 0 || sTM.tm_mday) {
-					u32_t limits = psXPC->f.limits ;
-					vPrintDate(psXPC, &sTM) ;
-					psXPC->f.limits = limits ;
+					u32_t limits = psXPC->f.limits;
+					vPrintDate(psXPC, &sTM);
+					psXPC->f.limits = limits;
 				}
-				vPrintTime(psXPC, &sTM, (u32_t) (X64.u64 % MICROS_IN_SECOND)) ;
+				vPrintTime(psXPC, &sTM, (u32_t) (X64.u64 % MICROS_IN_SECOND));
 				if (psXPC->f.rel_val == 0)
 					xPrintChar(psXPC, CHR_Z);
-				break ;
+				break;
 			#endif
 
 			#if	(xpfSUPPORT_URL == 1)					// para = pointer to string to be encoded
@@ -1197,7 +1198,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					psXPC->f.form = psXPC->f.group ? form3X : form0G;
 					xPrintChars(psXPC, psXPC->f.alt_form ? "0B" : "0b");
 					while (mask) {
-						xPrintChar(psXPC, (X64.u64 & mask) ? CHR_1 : CHR_0) ;
+						xPrintChar(psXPC, (X64.u64 & mask) ? CHR_1 : CHR_0);
 						mask >>= 1;
 						// handle the complex grouping separator(s) boundary 8 use '|' or 4 use '-'
 						if (--X32.iX && psXPC->f.form && (X32.iX % 4) == 0) {
@@ -1264,14 +1265,14 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			case CHR_p:
 				pX.pv = va_arg(psXPC->vaList, void *);
 				vPrintPointer(psXPC, pX);
-				break ;
+				break;
 
 			case CHR_m:
 			case CHR_s:
 				pX.pc8 = (cFmt == CHR_s) ? va_arg(psXPC->vaList, char *) : strerror(errno);
 				// Required to avoid crash when wifi message is intercepted and a string pointer parameter
 				// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
-				pX.pc8 = halCONFIG_inMEM(pX.pc8) ? pX.pc8 : pX.pc8 == NULL ? strNULL : strOOR;
+				pX.pc8 = halCONFIG_inMEM(pX.pc8) ? pX.pc8 : (pX.pc8 == NULL) ? strNULL : strOOR;
 				vPrintString(psXPC, pX.pc8);
 				break;
 
@@ -1288,7 +1289,7 @@ out_lbl:
 			xPrintChar(psXPC, *fmt);
 		}
 	}
-	return psXPC->f.curlen ;
+	return psXPC->f.curlen;
 }
 
 int	xPrintF(int (Hdlr)(xpc_t *, int), void * pVoid, size_t szBuf, const char * fmt, va_list vaList) {
@@ -1306,47 +1307,47 @@ int	xPrintF(int (Hdlr)(xpc_t *, int), void * pVoid, size_t szBuf, const char * f
 int	xPrintToString(xpc_t * psXPC, int cChr) {
 	if (psXPC->pStr)
 		*psXPC->pStr++ = cChr;
-	return cChr ;
+	return cChr;
 }
 
 int vsnprintfx(char * pBuf, size_t szBuf, const char * format, va_list vaList) {
 	if (szBuf == 1) {									// any "real" space ?
 		if (pBuf)										// no, buffer supplied?
-			*pBuf = 0 ;									// yes, terminate
-		return 0 ; 										// & return
+			*pBuf = 0;									// yes, terminate
+		return 0; 										// & return
 	}
-	int iRV = xPrintF(xPrintToString, pBuf, szBuf, format, vaList) ;
+	int iRV = xPrintF(xPrintToString, pBuf, szBuf, format, vaList);
 	if (pBuf) {											// buffer specified ?
 		if (iRV == szBuf) 								// yes, but full?
-			--iRV ;										// make space for terminator
-		pBuf[iRV] = 0 ;									// terminate
+			--iRV;										// make space for terminator
+		pBuf[iRV] = 0;									// terminate
 	}
-	return iRV ;
+	return iRV;
 }
 
 int snprintfx(char * pBuf, size_t szBuf, const char * format, ...) {
-	va_list vaList ;
-	va_start(vaList, format) ;
-	int iRV = vsnprintfx(pBuf, szBuf, format, vaList) ;
-	va_end(vaList) ;
-	return iRV ;
+	va_list vaList;
+	va_start(vaList, format);
+	int iRV = vsnprintfx(pBuf, szBuf, format, vaList);
+	va_end(vaList);
+	return iRV;
 }
 
 int vsprintfx(char * pBuf, const char * format, va_list vaList) {
-	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList) ;
+	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList);
 }
 
 int sprintfx(char * pBuf, const char * format, ...) {
-	va_list	vaList ;
-	va_start(vaList, format) ;
-	int iRV = vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList) ;
-	va_end(vaList) ;
-	return iRV ;
+	va_list	vaList;
+	va_start(vaList, format);
+	int iRV = vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList);
+	va_end(vaList);
+	return iRV;
 }
 
 // ################################### Destination = STDOUT ########################################
 
-SemaphoreHandle_t printfxMux = NULL ;
+SemaphoreHandle_t printfxMux = NULL;
 
 /**
  * Locks the STDOUT semaphore and sets the status/tracking flag
@@ -1370,7 +1371,7 @@ int vnprintfx(size_t szLen, const char * format, va_list vaList) {
 	printfx_lock();
 	int iRV = xPrintF(xPrintStdOut, NULL, szLen, format, vaList);
 	printfx_unlock();
-	return iRV ;
+	return iRV;
 }
 
 int nprintfx(size_t szLen, const char * format, ...) {
@@ -1415,9 +1416,9 @@ int vprintfx_nolock(const char * format, va_list vaList) {
 int printfx_nolock(const char * format, ...) {
 	va_list vaList;
 	va_start(vaList, format);
-	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList) ;
-	va_end(vaList) ;
-	return iRV ;
+	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
+	va_end(vaList);
+	return iRV;
 }
 
 /* ################################# Destination - String buffer or STDOUT #########################
@@ -1451,45 +1452,45 @@ int	wprintfx(report_t * psRprt, const char * pcFormat, ...) {
 
 // ################################### Destination = FILE PTR ######################################
 
-int	xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream) ; }
+int	xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream); }
 
 int vfprintfx(FILE * stream, const char * format, va_list vaList) {
 	return xPrintF(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vaList);
 }
 
 int fprintfx(FILE * stream, const char * format, ...) {
-	va_list vaList ;
-	va_start(vaList, format) ;
-	int count = xPrintF(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vaList) ;
-	va_end(vaList) ;
-	return count ;
+	va_list vaList;
+	va_start(vaList, format);
+	int count = xPrintF(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vaList);
+	va_end(vaList);
+	return count;
 }
 
 // ################################### Destination = HANDLE ########################################
 
 int	xPrintToHandle(xpc_t * psXPC, int cChr) {
-	char cChar = cChr ;
-	int size = write(psXPC->fd, &cChar, sizeof(cChar)) ;
-	return size == 1 ? cChr : size ;
+	char cChar = cChr;
+	int size = write(psXPC->fd, &cChar, sizeof(cChar));
+	return size == 1 ? cChr : size;
 }
 
 int	vdprintfx(int fd, const char * format, va_list vaList) {
-	return xPrintF(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vaList) ;
+	return xPrintF(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vaList);
 }
 
 int	dprintfx(int fd, const char * format, ...) {
-	va_list	vaList ;
-	va_start(vaList, format) ;
-	int count = xPrintF(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vaList) ;
-	va_end(vaList) ;
-	return count ;
+	va_list	vaList;
+	va_start(vaList, format);
+	int count = xPrintF(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, format, vaList);
+	va_end(vaList);
+	return count;
 }
 
 /* ################################## Destination = UART/TELNET ####################################
  * Output directly to the [possibly redirected] stdout/UART channel
  */
 
-int	xPrintToConsole(xpc_t * psXPC, int cChr) { return putcharRT(cChr) ; }
+int	xPrintToConsole(xpc_t * psXPC, int cChr) { return putcharRT(cChr); }
 
 int vcprintfx(const char * format, va_list vaList) {
 	printfx_lock();
@@ -1499,29 +1500,29 @@ int vcprintfx(const char * format, va_list vaList) {
 }
 
 int cprintfx(const char * format, ...) {
-	va_list vaList ;
-	va_start(vaList, format) ;
+	va_list vaList;
+	va_start(vaList, format);
 //	printfx_lock();
-	int iRV = xPrintF(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vaList) ;
+	int iRV = xPrintF(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vaList);
 //	printfx_unlock();
-	va_end(vaList) ;
-	return iRV ;
+	va_end(vaList);
+	return iRV;
 }
 
 // ################################### Destination = DEVICE ########################################
 
-int	xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr) ; }
+int	xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr); }
 
 int vdevprintfx(int (* Hdlr)(int ), const char * format, va_list vaList) {
-	return xPrintF(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, format, vaList) ;
+	return xPrintF(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, format, vaList);
 }
 
 int devprintfx(int (* Hdlr)(int ), const char * format, ...) {
-	va_list vaList ;
-	va_start(vaList, format) ;
-	int iRV = xPrintF(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, format, vaList) ;
-	va_end(vaList) ;
-	return iRV ;
+	va_list vaList;
+	va_start(vaList, format);
+	int iRV = xPrintF(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, format, vaList);
+	va_end(vaList);
+	return iRV;
 }
 
 /* #################################### Destination : SOCKET #######################################
@@ -1529,46 +1530,46 @@ int devprintfx(int (* Hdlr)(int ), const char * format, ...) {
  * TCP sockets, UDP support officially in LwIP 2.6 but has not been included into ESP-IDF yet. */
 
 int	xPrintToSocket(xpc_t * psXPC, int cChr) {
-	u8_t cBuf = cChr ;
+	u8_t cBuf = cChr;
 	int iRV = xNetSend(psXPC->psSock, &cBuf, sizeof(cBuf));
 	if (iRV != sizeof(cBuf))
 		return iRV;
-	return cChr ;
+	return cChr;
 }
 
 int vsocprintfx(netx_t * psSock, const char * format, va_list vaList) {
 	int	Fsav = psSock->flags;
-	psSock->flags |= MSG_MORE ;
-	int iRV = xPrintF(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vaList) ;
-	psSock->flags = Fsav ;
-	return (psSock->error == 0) ? iRV : erFAILURE ;
+	psSock->flags |= MSG_MORE;
+	int iRV = xPrintF(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vaList);
+	psSock->flags = Fsav;
+	return (psSock->error == 0) ? iRV : erFAILURE;
 }
 
 int socprintfx(netx_t * psSock, const char * format, ...) {
 	int	Fsav = psSock->flags;
-	psSock->flags |= MSG_MORE ;
-	va_list vaList ;
-	va_start(vaList, format) ;
-	int iRV = xPrintF(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vaList) ;
-	va_end(vaList) ;
-	psSock->flags = Fsav ;
-	return (psSock->error == 0) ? iRV : erFAILURE ;
+	psSock->flags |= MSG_MORE;
+	va_list vaList;
+	va_start(vaList, format);
+	int iRV = xPrintF(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vaList);
+	va_end(vaList);
+	psSock->flags = Fsav;
+	return (psSock->error == 0) ? iRV : erFAILURE;
 }
 
 // #################################### Destination : UBUF #########################################
 
-int	xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr) ; }
+int	xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr); }
 
 int	vuprintfx(ubuf_t * psUBuf, const char * format, va_list vaList) {
-	return xPrintF(xPrintToUBuf, psUBuf, xUBufSpace(psUBuf), format, vaList) ;
+	return xPrintF(xPrintToUBuf, psUBuf, xUBufSpace(psUBuf), format, vaList);
 }
 
 int	uprintfx(ubuf_t * psUBuf, const char * format, ...) {
-	va_list	vaList ;
-	va_start(vaList, format) ;
-	int count = vuprintfx(psUBuf, format, vaList) ;
-	va_end(vaList) ;
-	return count ;
+	va_list	vaList;
+	va_start(vaList, format);
+	int count = vuprintfx(psUBuf, format, vaList);
+	va_end(vaList);
+	return count;
 }
 
 // #################################### Destination : CRC32 ########################################
@@ -1609,39 +1610,39 @@ int	crcprintfx(u32_t * pU32, const char * format, ...) {
  */
 
 #if (xpfSUPPORT_ALIASES == 1)
-	int	printf(const char * format, ...) __attribute__((alias("printfx"), unused)) ;
-	int	printf_r(const char * format, ...) __attribute__((alias("printfx"), unused)) ;
+	int	printf(const char * format, ...) __attribute__((alias("printfx"), unused));
+	int	printf_r(const char * format, ...) __attribute__((alias("printfx"), unused));
 
-	int	vprintf(const char * format, va_list vaList) __attribute__((alias("vprintfx"), unused)) ;
-	int	vprintf_r(const char * format, va_list vaList) __attribute__((alias("vprintfx"), unused)) ;
+	int	vprintf(const char * format, va_list vaList) __attribute__((alias("vprintfx"), unused));
+	int	vprintf_r(const char * format, va_list vaList) __attribute__((alias("vprintfx"), unused));
 
-	int	sprintf(char * pBuf, const char * format, ...) __attribute__((alias("sprintfx"), unused)) ;
-	int	sprintf_r(char * pBuf, const char * format, ...) __attribute__((alias("sprintfx"), unused)) ;
+	int	sprintf(char * pBuf, const char * format, ...) __attribute__((alias("sprintfx"), unused));
+	int	sprintf_r(char * pBuf, const char * format, ...) __attribute__((alias("sprintfx"), unused));
 
-	int	vsprintf(char * pBuf, const char * format, va_list vaList) __attribute__((alias("vsprintfx"), unused)) ;
-	int	vsprintf_r(char * pBuf, const char * format, va_list vaList) __attribute__((alias("vsprintfx"), unused)) ;
+	int	vsprintf(char * pBuf, const char * format, va_list vaList) __attribute__((alias("vsprintfx"), unused));
+	int	vsprintf_r(char * pBuf, const char * format, va_list vaList) __attribute__((alias("vsprintfx"), unused));
 
-	int snprintf(char * pBuf, size_t BufSize, const char * format, ...) __attribute__((alias("snprintfx"), unused)) ;
-	int snprintf_r(char * pBuf, size_t BufSize, const char * format, ...) __attribute__((alias("snprintfx"), unused)) ;
+	int snprintf(char * pBuf, size_t BufSize, const char * format, ...) __attribute__((alias("snprintfx"), unused));
+	int snprintf_r(char * pBuf, size_t BufSize, const char * format, ...) __attribute__((alias("snprintfx"), unused));
 
-	int vsnprintf(char * pBuf, size_t BufSize, const char * format, va_list vaList) __attribute__((alias("vsnprintfx"), unused)) ;
-	int vsnprintf_r(char * pBuf, size_t BufSize, const char * format, va_list vaList) __attribute__((alias("vsnprintfx"), unused)) ;
+	int vsnprintf(char * pBuf, size_t BufSize, const char * format, va_list vaList) __attribute__((alias("vsnprintfx"), unused));
+	int vsnprintf_r(char * pBuf, size_t BufSize, const char * format, va_list vaList) __attribute__((alias("vsnprintfx"), unused));
 
-	int fprintf(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
-	int fprintf_r(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
+	int fprintf(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused));
+	int fprintf_r(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused));
 
-	int vfprintf(FILE * stream, const char * format, va_list vaList) __attribute__((alias("vfprintfx"), unused)) ;
-	int vfprintf_r(FILE * stream, const char * format, va_list vaList) __attribute__((alias("vfprintfx"), unused)) ;
+	int vfprintf(FILE * stream, const char * format, va_list vaList) __attribute__((alias("vfprintfx"), unused));
+	int vfprintf_r(FILE * stream, const char * format, va_list vaList) __attribute__((alias("vfprintfx"), unused));
 
-	int dprintf(int fd, const char * format, ...) __attribute__((alias("dprintfx"), unused)) ;
-	int dprintf_r(int fd, const char * format, ...) __attribute__((alias("dprintfx"), unused)) ;
+	int dprintf(int fd, const char * format, ...) __attribute__((alias("dprintfx"), unused));
+	int dprintf_r(int fd, const char * format, ...) __attribute__((alias("dprintfx"), unused));
 
-	int vdprintf(int fd, const char * format, va_list vaList) __attribute__((alias("vdprintfx"), unused)) ;
-	int vdprintf_r(int fd, const char * format, va_list vaList) __attribute__((alias("vdprintfx"), unused)) ;
+	int vdprintf(int fd, const char * format, va_list vaList) __attribute__((alias("vdprintfx"), unused));
+	int vdprintf_r(int fd, const char * format, va_list vaList) __attribute__((alias("vdprintfx"), unused));
 
-	int fiprintf(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
-	int fiprintf_r(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused)) ;
+	int fiprintf(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused));
+	int fiprintf_r(FILE * stream, const char * format, ...) __attribute__((alias("fprintfx"), unused));
 
-	int vfiprintf(FILE * stream, const char * format, va_list vaList) __attribute__((alias("vfprintfx"), unused)) ;
-	int vfiprintf_r(FILE * stream, const char * format, va_list vaList) __attribute__((alias("vfprintfx"), unused)) ;
+	int vfiprintf(FILE * stream, const char * format, va_list vaList) __attribute__((alias("vfprintfx"), unused));
+	int vfiprintf_r(FILE * stream, const char * format, va_list vaList) __attribute__((alias("vfprintfx"), unused));
 #endif
