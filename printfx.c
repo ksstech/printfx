@@ -196,7 +196,7 @@ void vPrintString(xpc_t * psXPC, char * pStr) {
 	} else {
 		uLen = psXPC->f.precis ? psXPC->f.precis : strlen(pStr);
 	}
-	size_t Lpad = 0, Rpad = 0, Tpad = psXPC->f.minwid > uLen ? psXPC->f.minwid - uLen : 0;
+	size_t Lpad = 0, Rpad = 0, Tpad = (psXPC->f.minwid > uLen) ? (psXPC->f.minwid - uLen) : 0;
 	u8_t Cpad = psXPC->f.pad0 ? CHR_0 : CHR_SPACE;
 	if (Tpad) {
 		if (psXPC->f.alt_form) {
