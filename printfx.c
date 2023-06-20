@@ -1244,6 +1244,8 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				break;
 			#endif
 
+			case CHR_m: pX.pc8 = strerror(errno); goto commonM_S;
+
 			case CHR_n:									// store chars to date at location.
 				pX.piX = va_arg(psXPC->vaList, int *);
 				IF_myASSERT(debugTRACK, halCONFIG_inSRAM(pX.pc8));
@@ -1267,9 +1269,9 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				vPrintPointer(psXPC, pX);
 				break;
 
-			case CHR_m:
-			case CHR_s:
-				pX.pc8 = (cFmt == CHR_s) ? va_arg(psXPC->vaList, char *) : strerror(errno);
+			case CHR_s: pX.pc8 = va_arg(psXPC->vaList, char *);
+
+			commonM_S:
 				// Required to avoid crash when wifi message is intercepted and a string pointer parameter
 				// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
 				pX.pc8 = halCONFIG_inMEM(pX.pc8) ? pX.pc8 : (pX.pc8 == NULL) ? strNULL : strOOR;
