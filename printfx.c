@@ -28,7 +28,7 @@
 	#include "crc-barr.h"						// Barr group CRC
 #endif
 
-#define	debugFLAG					0xE000
+#define	debugFLAG					0xF000
 
 #define	debugTIMING					(debugFLAG_GLOBAL & debugFLAG & 0x1000)
 #define	debugTRACK					(debugFLAG_GLOBAL & debugFLAG & 0x2000)
