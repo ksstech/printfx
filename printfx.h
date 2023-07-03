@@ -264,6 +264,7 @@ int cprintfx(const char *, ...);
 #define wsnPRINTFX_LOCK(a,b) { if wsnPRINTFX_DIRECT(a,b) printfx_lock(); }
 #define wsnPRINTFX_UNLOCK(a,b) { if wsnPRINTFX_DIRECT(a,b) printfx_unlock(); }
 
+int	wvprintfx(report_t * psRprt, const char * pcFormat, va_list vaList);
 int wprintfx(report_t * psRprt, const char * pcFormat, ...);
 
 // ################################### Destination = FILE PTR ######################################
