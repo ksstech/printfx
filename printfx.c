@@ -1434,6 +1434,22 @@ int printfx_nolock(const char * format, ...) {
  * It is the responsibility of the calling function to control (un/lock) access.
  */
 
+int	wvprintfx(report_t * psRprt, const char * pcFormat, va_list vaList) {
+	int iRV;
+	if (psRprt && psRprt->pcBuf && psRprt->Size) {
+		IF_myASSERT(debugPARAM, halCONFIG_inSRAM(psRprt) && halCONFIG_inSRAM(psRprt->pcBuf));
+		iRV = vsnprintfx(psRprt->pcBuf, psRprt->Size, pcFormat, vaList);
+		if (iRV > 0) {
+			IF_myASSERT(debugRESULT, iRV <= psRprt->Size);
+			psRprt->pcBuf += iRV;
+			psRprt->Size -= iRV;
+		}
+	} else {
+		iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, pcFormat, vaList);
+	}
+	return iRV;
+}
+
 int	wprintfx(report_t * psRprt, const char * pcFormat, ...) {
 	va_list vaList;
 	va_start(vaList, pcFormat);
