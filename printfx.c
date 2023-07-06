@@ -921,7 +921,7 @@ void vPrintIpAddress(xpc_t * psXPC, u32_t Val) {
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_IP - 1 - Len));
 }
 
-// ########################### Proprietary extension: SBR attributes ###############################
+// ########################### Proprietary extension: SGR attributes ###############################
 
 /**
  * set starting and ending fore/background colors
