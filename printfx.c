@@ -85,6 +85,10 @@ const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 
 const char hexchars[] = "0123456789ABCDEF";
 
+// ###################################### Global variables #########################################
+
+SemaphoreHandle_t printfxMux = NULL;
+
 // #################################### local only functions #######################################
 
 x64_t x64PrintGetValue(xpc_t * psXPC) {
@@ -1349,8 +1353,6 @@ int sprintfx(char * pBuf, const char * format, ...) {
 }
 
 // ################################### Destination = STDOUT ########################################
-
-SemaphoreHandle_t printfxMux = NULL;
 
 /**
  * Locks the STDOUT semaphore and sets the status/tracking flag
