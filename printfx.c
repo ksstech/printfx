@@ -1309,49 +1309,6 @@ int	xPrintF(int (Hdlr)(xpc_t *, int), void * pVoid, size_t szBuf, const char * f
 	return xPrintFX(&sXPC, fmt);
 }
 
-// ##################################### Destination = STRING ######################################
-
-int	xPrintToString(xpc_t * psXPC, int cChr) {
-	if (psXPC->pStr)
-		*psXPC->pStr++ = cChr;
-	return cChr;
-}
-
-int vsnprintfx(char * pBuf, size_t szBuf, const char * format, va_list vaList) {
-	if (szBuf == 1) {									// any "real" space ?
-		if (pBuf)										// no, buffer supplied?
-			*pBuf = 0;									// yes, terminate
-		return 0; 										// & return
-	}
-	int iRV = xPrintF(xPrintToString, pBuf, szBuf, format, vaList);
-	if (pBuf) {											// buffer specified ?
-		if (iRV == szBuf) 								// yes, but full?
-			--iRV;										// make space for terminator
-		pBuf[iRV] = 0;									// terminate
-	}
-	return iRV;
-}
-
-int snprintfx(char * pBuf, size_t szBuf, const char * format, ...) {
-	va_list vaList;
-	va_start(vaList, format);
-	int iRV = vsnprintfx(pBuf, szBuf, format, vaList);
-	va_end(vaList);
-	return iRV;
-}
-
-int vsprintfx(char * pBuf, const char * format, va_list vaList) {
-	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList);
-}
-
-int sprintfx(char * pBuf, const char * format, ...) {
-	va_list	vaList;
-	va_start(vaList, format);
-	int iRV = vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList);
-	va_end(vaList);
-	return iRV;
-}
-
 // ################################### Destination = STDOUT ########################################
 
 /**
@@ -1422,6 +1379,49 @@ int printfx_nolock(const char * format, ...) {
 	va_list vaList;
 	va_start(vaList, format);
 	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
+	va_end(vaList);
+	return iRV;
+}
+
+// ##################################### Destination = STRING ######################################
+
+int	xPrintToString(xpc_t * psXPC, int cChr) {
+	if (psXPC->pStr)
+		*psXPC->pStr++ = cChr;
+	return cChr;
+}
+
+int vsnprintfx(char * pBuf, size_t szBuf, const char * format, va_list vaList) {
+	if (szBuf == 1) {									// any "real" space ?
+		if (pBuf)										// no, buffer supplied?
+			*pBuf = 0;									// yes, terminate
+		return 0; 										// & return
+	}
+	int iRV = xPrintF(xPrintToString, pBuf, szBuf, format, vaList);
+	if (pBuf) {											// buffer specified ?
+		if (iRV == szBuf) 								// yes, but full?
+			--iRV;										// make space for terminator
+		pBuf[iRV] = 0;									// terminate
+	}
+	return iRV;
+}
+
+int snprintfx(char * pBuf, size_t szBuf, const char * format, ...) {
+	va_list vaList;
+	va_start(vaList, format);
+	int iRV = vsnprintfx(pBuf, szBuf, format, vaList);
+	va_end(vaList);
+	return iRV;
+}
+
+int vsprintfx(char * pBuf, const char * format, va_list vaList) {
+	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList);
+}
+
+int sprintfx(char * pBuf, const char * format, ...) {
+	va_list	vaList;
+	va_start(vaList, format);
+	int iRV = vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, format, vaList);
 	va_end(vaList);
 	return iRV;
 }
