@@ -258,7 +258,7 @@ int	xPrintXxx(xpc_t * psXPC, u64_t u64Val, char * pBuffer, int BufSize) {
 	if (u64Val) {
 		#if	(xpfSUPPORT_SCALING > 0)
 		if (psXPC->f.alt_form) {
-			unsigned int I, F;
+			u32_t I, F;
 			u8_t ScaleChr;
 			if (u64Val >= Q1) {
 				F = (u64Val % Q1) / q1;
@@ -739,7 +739,7 @@ void vPrintDate(xpc_t * psXPC, struct tm * psTM) {
 void vPrintTime(xpc_t * psXPC, struct tm * psTM, u32_t uSecs) {
 	char Buffer[xpfMAX_LEN_TIME];
 	int	Len;
-	psXPC->f.form	= psXPC->f.group ? form3X : form0G;
+	psXPC->f.form = psXPC->f.group ? form3X : form0G;
 	// Part 1: hours
 	if (psTM->tm_hour || psXPC->f.pad0) {
 		Len = xPrintXxx(psXPC, (u64_t) psTM->tm_hour, Buffer, xPrintTimeCalcSize(psXPC, psTM->tm_hour));
@@ -751,8 +751,8 @@ void vPrintTime(xpc_t * psXPC, struct tm * psTM, u32_t uSecs) {
 	// Part 2: minutes
 	if (psTM->tm_min || psXPC->f.pad0) {
 		Len += xPrintXxx(psXPC, (u64_t) psTM->tm_min, Buffer+Len, xPrintTimeCalcSize(psXPC, psTM->tm_min));
-		Buffer[Len++]	= psXPC->f.form == form3X ? CHR_m :  CHR_COLON;
-		psXPC->f.pad0	= 1;
+		Buffer[Len++] = psXPC->f.form == form3X ? CHR_m : CHR_COLON;
+		psXPC->f.pad0 = 1;
 	}
 
 	// Part 3: seconds
@@ -765,16 +765,16 @@ void vPrintTime(xpc_t * psXPC, struct tm * psTM, u32_t uSecs) {
 						  psXPC->f.precis;
 		if (psXPC->f.precis < xpfMAX_TIME_FRAC)
 			uSecs /= u32pow(10, xpfMAX_TIME_FRAC - psXPC->f.precis);
-		psXPC->f.pad0	= 1;						// need leading '0's
-		psXPC->f.signval= 0;
-		psXPC->f.ljust	= 0;						// force R-just
+		psXPC->f.pad0 = 1;								// need leading '0's
+		psXPC->f.signval = 0;
+		psXPC->f.ljust = 0;								// force R-just
 		Len += xPrintXxx(psXPC, uSecs, Buffer+Len, psXPC->f.minwid	= psXPC->f.precis);
 	} else if (psXPC->f.form == form3X) {
 		Buffer[Len++] = CHR_s;
 	}
 
 	Buffer[Len] = 0;
-	psXPC->f.limits	= 0;							// enable full string
+	psXPC->f.limits	= 0;								// enable full string
 	vPrintString(psXPC, Buffer);
 }
 
