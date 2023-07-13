@@ -76,6 +76,7 @@ const u8_t S_bytes[S_XXX] = { sizeof(int), sizeof(char), sizeof(short), sizeof(l
 const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 	'B',							// Binary formatted, prepend "0b" or "0B"
 	'P',							// pointer formatted, 0x00abcdef or 0X00ABCDEF
+	'R',							// Time, absolute/relative, no ZONE info, 64bit/uSec or 32bit/Sec
 	'X',							// hex formatted 'x' or 'X' values, always there
 	#if	(xpfSUPPORT_IEEE754 == 1)
 	'A', 'E', 'F', 'G',				// float hex/exponential/general
@@ -758,11 +759,9 @@ void vPrintTime(xpc_t * psXPC, struct tm * psTM, u32_t uSecs) {
 	// Part 3: seconds
 	Len += xPrintXxx(psXPC, (u64_t) psTM->tm_sec, Buffer+Len, xPrintTimeCalcSize(psXPC, psTM->tm_sec));
 	// Part 4: [.xxxxxx]
-	if (psXPC->f.radix && psXPC->f.alt_form == 0) {
-		Buffer[Len++]	= psXPC->f.form == form3X ? CHR_s : CHR_FULLSTOP;
-		psXPC->f.precis	= (psXPC->f.precis == 0) ? xpfDEF_TIME_FRAC :
-						  (psXPC->f.precis > xpfMAX_TIME_FRAC) ? xpfMAX_TIME_FRAC :
-						  psXPC->f.precis;
+	if (psXPC->f.radix && psXPC->f.alt_form == 0 && uSecs) {
+		Buffer[Len++] = psXPC->f.form == form3X ? CHR_s : CHR_FULLSTOP;
+		psXPC->f.precis = INRANGE(1, psXPC->f.precis, xpfMAX_TIME_FRAC) ? psXPC->f.precis : xpfDEF_TIME_FRAC;
 		if (psXPC->f.precis < xpfMAX_TIME_FRAC)
 			uSecs /= u32pow(10, xpfMAX_TIME_FRAC - psXPC->f.precis);
 		psXPC->f.pad0 = 1;								// need leading '0's
@@ -1127,13 +1126,13 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				}
 				break;
 
-			case CHR_R:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
+			case CHR_r:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
 				IF_myASSERT(debugTRACK, !psXPC->f.plus && !psXPC->f.pad0 && !psXPC->f.group);
-				X64.u64 = va_arg(psXPC->vaList, u64_t);
 				if (psXPC->f.alt_form) {
 					psXPC->f.group = 1;
 					psXPC->f.alt_form = 0;
 				}
+				X64.u64 = psXPC->f.Ucase ? va_arg(psXPC->vaList,u64_t) : va_arg(psXPC->vaList,u32_t) * MICROS_IN_SECOND;
 				X32.u32 = xTimeStampAsSeconds(X64.u64);
 				xTimeGMTime(X32.u32, &sTM, psXPC->f.rel_val);
 				if (psXPC->f.rel_val == 0)

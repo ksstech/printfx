@@ -22,7 +22,8 @@
 	D	date using pointer to tsz_t structure
 	T	time   "      "     "   "       "
 	Z	d+t+z  "      "     "   "       "
-	R	d+t  using U64 (uSec) value, support "%.?R" to enable uSec display, 3 digits (mSec) default.
+	R	d+t  using U64 (uSec) value, support "%.?R" to control uSec display, 3 digits (mSec) default.
+	r	d+t  using U32 (Sec) value.
 	Modifier(s):
 		!	change interpretation of uSec value as absolute->relative time
 		#	select ALTernative (HTTP header style) format output
