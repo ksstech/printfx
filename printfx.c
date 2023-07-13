@@ -1435,15 +1435,15 @@ int sprintfx(char * pBuf, const char * format, ...) {
  * It is the responsibility of the calling function to control (un/lock) access.
  */
 
-int	wvprintfx(report_t * psRprt, const char * pcFormat, va_list vaList) {
+int	wvprintfx(report_t * psR, const char * pcFormat, va_list vaList) {
 	int iRV;
-	if (psRprt && psRprt->pcBuf && psRprt->Size) {
-		IF_myASSERT(debugPARAM, halCONFIG_inSRAM(psRprt) && halCONFIG_inSRAM(psRprt->pcBuf));
-		iRV = vsnprintfx(psRprt->pcBuf, psRprt->Size, pcFormat, vaList);
+	if (psR && psR->pcBuf && psR->Size) {
+		IF_myASSERT(debugPARAM, halCONFIG_inSRAM(psR) && halCONFIG_inSRAM(psR->pcBuf));
+		iRV = vsnprintfx(psR->pcBuf, psR->Size, pcFormat, vaList);
 		if (iRV > 0) {
-			IF_myASSERT(debugRESULT, iRV <= psRprt->Size);
-			psRprt->pcBuf += iRV;
-			psRprt->Size -= iRV;
+			IF_myASSERT(debugRESULT, iRV <= psR->Size);
+			psR->pcBuf += iRV;
+			psR->Size -= iRV;
 		}
 	} else {
 		iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, pcFormat, vaList);
@@ -1451,10 +1451,10 @@ int	wvprintfx(report_t * psRprt, const char * pcFormat, va_list vaList) {
 	return iRV;
 }
 
-int	wprintfx(report_t * psRprt, const char * pcFormat, ...) {
+int	wprintfx(report_t * psR, const char * pcFormat, ...) {
 	va_list vaList;
 	va_start(vaList, pcFormat);
-	int iRV = wvprintfx(psRprt, pcFormat, vaList);
+	int iRV = wvprintfx(psR, pcFormat, vaList);
 	va_end(vaList);
 	return iRV;
 }
