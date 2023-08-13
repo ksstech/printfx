@@ -260,9 +260,10 @@ int printfx(const char *, ...);
 int vcprintfx(const char *, va_list);
 int cprintfx(const char *, ...);
 
-#define wsnPRINTFX_DIRECT(a,b) ((a == NULL || b == NULL || *a == NULL || *b == 0) ? 1 : 0)
-#define wsnPRINTFX_LOCK(a,b) { if wsnPRINTFX_DIRECT(a,b) printfx_lock(); }
-#define wsnPRINTFX_UNLOCK(a,b) { if wsnPRINTFX_DIRECT(a,b) printfx_unlock(); }
+#define WPRINTFX_CHECK(a,b) ((a == NULL || b == NULL || *a == NULL || *b == 0) ? 1 : 0)
+
+#define WPRINTFX_LOCK(a,b) { if WPRINTFX_CHECK(a,b) printfx_lock(); }
+#define WPRINTFX_UNLOCK(a,b) { if WPRINTFX_CHECK(a,b) printfx_unlock(); }
 
 int	wvprintfx(report_t * psRprt, const char * pcFormat, va_list vaList);
 int wprintfx(report_t * psRprt, const char * pcFormat, ...);
