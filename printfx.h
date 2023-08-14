@@ -219,54 +219,39 @@ int xPrintF(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list);
 /* Public function prototypes for extended functionality version of stdio supplied functions
  * These names MUST be used if any of the extended functionality is used in a format string */
 
-// ##################################### Destination = STRING ######################################
-
-int vsnprintfx(char *, size_t, const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 3, 0)));
-//int vsnprintfx(char *, size_t, const char *, va_list);
-
-int vsprintfx(char *, const char *, va_list)			_ATTRIBUTE ((__format__ (__printf__, 2, 0)));
-//int vsprintfx(char *, const char *, va_list);
-
-//int snprintfx(char *, size_t, const char *, ...)		_ATTRIBUTE ((__format__ (__printf__, 3, 4)));
-int snprintfx(char *, size_t, const char *, ...);
-
-int sprintfx(char *, const char *, ...)					_ATTRIBUTE ((__format__ (__printf__, 2, 3)));
-//int sprintfx(char *, const char *, ...);
-
 // ##################################### Destination = STDOUT ######################################
 
 extern SemaphoreHandle_t printfxMux;
-void printfx_lock(void);
-void printfx_unlock(void);
+void printfx_lock(report_t * psR);
+void printfx_unlock(report_t * psR);
 
 int vnprintfx_nolock(size_t count, const char * format, va_list);
 int vprintfx_nolock(const char * format, va_list);
 int printfx_nolock(const char * format, ...);
 
-int vnprintfx(size_t, const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 2, 0)));
-//int vnprintfx(size_t, const char *, va_list);
-
-int vprintfx(const char *, va_list)			_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
-//int vprintfx(const char *, va_list);
-
-int nprintfx(size_t, const char *, ...) 		_ATTRIBUTE ((__format__ (__printf__, 2, 3)));
-//int nprintfx(size_t, const char *, ...);
-
-//int printfx(const char *, ...)					_ATTRIBUTE ((__format__ (__printf__, 1, 2)));
+int vnprintfx(size_t, const char *, va_list) _ATTRIBUTE ((__format__ (__printf__, 2, 0)));
+int vprintfx(const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
+int nprintfx(size_t, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 2, 3)));
+//int printfx(const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 1, 2)));
 int printfx(const char *, ...);
+
+// ##################################### Destination = STRING ######################################
+
+int vsnprintfx(char *, size_t, const char *, va_list) _ATTRIBUTE ((__format__ (__printf__, 3, 0)));
+int vsprintfx(char *, const char *, va_list) _ATTRIBUTE ((__format__ (__printf__, 2, 0)));
+//int snprintfx(char *, size_t, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 3, 4)));
+int snprintfx(char *, size_t, const char *, ...);
+int sprintfx(char *, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 2, 3)));
+
+// ############################## Destination = STDOUT -or- STRING #################################
+
+int	wvprintfx(report_t * psRprt, const char * pcFormat, va_list vaList);
+int wprintfx(report_t * psRprt, const char * pcFormat, ...);
 
 // ############################## LOW LEVEL DIRECT formatted output ################################
 
 int vcprintfx(const char *, va_list);
 int cprintfx(const char *, ...);
-
-#define WPRINTFX_CHECK(a,b) ((a == NULL || b == NULL || *a == NULL || *b == 0) ? 1 : 0)
-
-#define WPRINTFX_LOCK(a,b) { if WPRINTFX_CHECK(a,b) printfx_lock(); }
-#define WPRINTFX_UNLOCK(a,b) { if WPRINTFX_CHECK(a,b) printfx_unlock(); }
-
-int	wvprintfx(report_t * psRprt, const char * pcFormat, va_list vaList);
-int wprintfx(report_t * psRprt, const char * pcFormat, ...);
 
 // ################################### Destination = FILE PTR ######################################
 

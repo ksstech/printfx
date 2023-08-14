@@ -1311,14 +1311,18 @@ int	xPrintF(int (Hdlr)(xpc_t *, int), void * pVoid, size_t szBuf, const char * f
 // ################################### Destination = STDOUT ########################################
 
 /**
- * Locks the STDOUT semaphore and sets the status/tracking flag
+ * Locks the STDOUT semaphore (if required)
  */
-void printfx_lock(void) { xRtosSemaphoreTake(&printfxMux, portMAX_DELAY); }
+void printfx_lock(report_t * psR) {
+	if (!psR || !psR->pcBuf || !psR->Size) xRtosSemaphoreTake(&printfxMux, portMAX_DELAY);
+}
 
 /**
- * Unlock the STDOUT semaphore and clears the status/tracking flag
+ * Unlock the STDOUT semaphore (if required)
  */
-void printfx_unlock(void) { xRtosSemaphoreGive(&printfxMux); }
+void printfx_unlock(report_t * psR) {
+	if (!psR || !psR->pcBuf || !psR->Size) xRtosSemaphoreGive(&printfxMux);
+}
 
 int xPrintStdOut(xpc_t * psXPC, int cChr) {
 #if	defined(ESP_PLATFORM)
@@ -1329,35 +1333,35 @@ int xPrintStdOut(xpc_t * psXPC, int cChr) {
 }
 
 int vnprintfx(size_t szLen, const char * format, va_list vaList) {
-	printfx_lock();
+	printfx_lock(NULL);
 	int iRV = xPrintF(xPrintStdOut, NULL, szLen, format, vaList);
-	printfx_unlock();
+	printfx_unlock(NULL);
 	return iRV;
 }
 
 int nprintfx(size_t szLen, const char * format, ...) {
 	va_list vaList;
 	va_start(vaList, format);
-	printfx_lock();
+	printfx_lock(NULL);
 	int iRV = xPrintF(xPrintStdOut, NULL, szLen, format, vaList);
-	printfx_unlock();
+	printfx_unlock(NULL);
 	va_end(vaList);
 	return iRV;
 }
 
 int vprintfx(const char * format, va_list vaList) {
-	printfx_lock();
+	printfx_lock(NULL);
 	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
-	printfx_unlock();
+	printfx_unlock(NULL);
 	return iRV;
 }
 
 int printfx(const char * format, ...) {
 	va_list vaList;
 	va_start(vaList, format);
-	printfx_lock();
+	printfx_lock(NULL);
 	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
-	printfx_unlock();
+	printfx_unlock(NULL);
 	va_end(vaList);
 	return iRV;
 }
@@ -1502,9 +1506,9 @@ int	dprintfx(int fd, const char * format, ...) {
 int	xPrintToConsole(xpc_t * psXPC, int cChr) { return putcharRT(cChr); }
 
 int vcprintfx(const char * format, va_list vaList) {
-	printfx_lock();
+	printfx_lock(NULL);
 	int iRV = xPrintF(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vaList);
-	printfx_unlock();
+	printfx_unlock(NULL);
 	return iRV;
 }
 
