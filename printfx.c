@@ -1572,7 +1572,7 @@ int socprintfx(netx_t * psSock, const char * format, ...) {
 int	xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr); }
 
 int	vuprintfx(ubuf_t * psUBuf, const char * format, va_list vaList) {
-	return xPrintF(xPrintToUBuf, psUBuf, xUBufSpace(psUBuf), format, vaList);
+	return xPrintF(xPrintToUBuf, psUBuf, xUBufGetSpace(psUBuf), format, vaList);
 }
 
 int	uprintfx(ubuf_t * psUBuf, const char * format, ...) {
