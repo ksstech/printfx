@@ -335,10 +335,10 @@ int	xPrintXxx(xpc_t * psXPC, u64_t u64Val, char * pBuffer, int BufSize) {
 
 	// First check if ANY form of padding required
 	if (psXPC->f.ljust == 0) {							// right justified (ie pad left) ???
-	/* this section ONLY when value is RIGHT justified.
-	 * For ' ' padding format is [       -xxxxx]
-	 * whilst '0' padding it is  [-0000000xxxxx]
-	 */
+		/* this section ONLY when value is RIGHT justified.
+		 * For ' ' padding format is [       -xxxxx]
+		 * whilst '0' padding it is  [-0000000xxxxx]
+		 */
 		Count = (psXPC->f.minwid > Len) ? psXPC->f.minwid - Len : 0;
 		// If we are padding with ' ' and leading '+' or '-' is required, do that first
 		if (psXPC->f.pad0 == 0 && (psXPC->f.negvalue || psXPC->f.plus)) {	// If a sign is required
