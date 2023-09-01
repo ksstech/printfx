@@ -977,6 +977,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.iX <= xpfMINWID_MAXVAL);
 					psXPC->f.minwid = X32.iX;
 					psXPC->f.arg_width = 1;
+					X32.i32 = 0;
 					break;
 				case 4: psXPC->f.plus = 1; break;		// +	force +/-, HEXDUMP add ASCII, TIME add TZ info
 				case 5: psXPC->f.ljust = 1; break;		// -	Left justify, HEXDUMP remove address pointer
@@ -988,8 +989,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			}
 
 			// Optional WIDTH and PRECISION indicators
-			if (*fmt == CHR_FULLSTOP || INRANGE(CHR_0, *fmt, CHR_9)) {
-				X32.i32 = 0;
+			if (*fmt == CHR_FULLSTOP || INRANGE(CHR_1, *fmt, CHR_9)) {
 				while (1) {
 					if (INRANGE(CHR_0, *fmt, CHR_9)) {
 						X32.i32 *= 10;
