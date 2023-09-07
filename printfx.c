@@ -634,21 +634,43 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
  */
 void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 	xpf_t sXPF = psXPC->f;
-	for (int Now = 0; Now < xLen; Now += xpfHEXDUMP_WIDTH) {
+	int iWidth = xpfHEXDUMP_WIDTH;
+	if (psXPC->f.arg_width && INRANGE(8, psXPC->f.minwid, 64)) {
+		iWidth = psXPC->f.minwid;
+	} else {
+		#if (includeTERMINAL_CONTROLS == 1)
+		terminfo_t sTI;
+		vTerminalGetInfo(&sTI);
+		iWidth = sTI.MaxX;
+		if (psXPC->f.ljust && sTI.MaxX <= (32+6)) {
+			psXPC->f.ljust = 0;								// too little space, remove address
+		} else {
+			iWidth -= psXPC->f.ljust ? 0 : 11;				// address required, decrease space
+		}	//	RP("1=%d 2=%d", sTI.MaxX, iWidth);
+		if (psXPC->f.plus && iWidth <= 32) {
+			psXPC->f.plus = 0;								// too little space, disable ASCII
+			iWidth /= 3;									// no ASCII on right = 3 col/char
+		} else {
+			iWidth /= 4;									// ASCII on right = 4 col/char
+		}	//	RP(" 3=%d", iWidth);
+		iWidth -= iWidth % 8;	//	RP(" 4=%d\r\n", iWidth);
+		#else
+		iWidth = xpfHEXDUMP_WIDTH;
+		#endif
+	}
+	for (int Now = 0; Now < xLen; Now += iWidth) {
 		if (psXPC->f.ljust == 0) {						// display absolute or relative address
 			vPrintPointer(psXPC, (px_t) (psXPC->f.rel_val ? (void *) Now : (void *) (pStr + Now)));
 			xPrintChars(psXPC, (char *) ": ");
 			psXPC->f.flags = sXPF.flags;
 		}
 		// then the actual series of values in 8-32 bit groups
-		int Width = (xLen - Now) > xpfHEXDUMP_WIDTH ? xpfHEXDUMP_WIDTH : xLen - Now;
+		int Width = (xLen - Now) > iWidth ? iWidth : xLen - Now;
 		vPrintHexValues(psXPC, Width, pStr + Now);
 		if (psXPC->f.plus) {							// ASCII equivalent requested?
 			int Size = S_bytes[psXPC->f.llong];
-			u32_t Count = (xLen <= xpfHEXDUMP_WIDTH) ? 1 :
-					((xpfHEXDUMP_WIDTH - Width) / Size) * (Size*2 + (psXPC->f.form ? 1 : 0)) + 1;
-			while (Count--)			// handle space padding for ASCII dump to line up
-				xPrintChar(psXPC, CHR_SPACE);
+			u32_t Count = xLen<=iWidth ? 1 : ((iWidth-Width)/Size)*(Size*2+(psXPC->f.form ? 1 : 0))+1;
+			while (Count--) xPrintChar(psXPC, CHR_SPACE);	// handle space padding for ASCII dump to line up
 			for (Count = 0; Count < Width; ++Count) {	// values as ASCII characters
 				int cChr = *(pStr + Now + Count);
 				#if 0				// Device supports characters in range 0x80 to 0xFE
