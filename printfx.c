@@ -673,11 +673,9 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 			while (Count--) xPrintChar(psXPC, CHR_SPACE);	// handle space padding for ASCII dump to line up
 			for (Count = 0; Count < Width; ++Count) {	// values as ASCII characters
 				int cChr = *(pStr + Now + Count);
-				#if 0				// Device supports characters in range 0x80 to 0xFE
-				xPrintChar(psXPC, (cChr < CHR_SPACE || cChr == CHR_DEL || cChr == 0xFF) ? CHR_FULLSTOP : cChr);
-				#else				// Device does NOT support ANY characters > 0x7E
-				xPrintChar(psXPC, (cChr < CHR_SPACE || cChr >= CHR_DEL) ? CHR_FULLSTOP : cChr);
-				#endif
+				bool bFlag = ioB1GET(ioPrintFx);		// 0 = x20 ~ x7E, 1 = x20 ~ xFE
+				bFlag = INRANGE(0x20, cChr, 0x7F) ? 0 : INRANGE(0x80, cChr, 0xFE) && bFlag ? 0 : 1;
+				xPrintChar(psXPC, bFlag ? CHR_FULLSTOP : cChr);
 			}
 			xPrintChar(psXPC, CHR_SPACE);
 		}
