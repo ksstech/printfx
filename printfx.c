@@ -1149,8 +1149,13 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					psXPC->f.group = 1;
 					psXPC->f.alt_form = 0;
 				}
-				X64.u64 = psXPC->f.Ucase ? va_arg(psXPC->vaList,u64_t) : va_arg(psXPC->vaList,u32_t) * MICROS_IN_SECOND;
-				X32.u32 = xTimeStampAsSeconds(X64.u64);
+				if (psXPC->f.Ucase) {
+					X64.u64 = va_arg(psXPC->vaList,u64_t);
+					X32.u32 = (u32_t) (X64.u64 / MICROS_IN_SECOND);
+				} else {
+					X32.u32 = va_arg(psXPC->vaList,u32_t);
+					X64.u64 = (u64_t) X32.u32 * MICROS_IN_SECOND;
+				}
 				xTimeGMTime(X32.u32, &sTM, psXPC->f.rel_val);
 				if (psXPC->f.rel_val == 0)
 					psXPC->f.pad0 = 1;
