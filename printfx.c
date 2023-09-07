@@ -681,8 +681,7 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 			}
 			xPrintChar(psXPC, CHR_SPACE);
 		}
-		if ((Now < xLen) && (xLen > xpfHEXDUMP_WIDTH))
-			xPrintChars(psXPC, strCRLF);
+		if ((Now < xLen) && (xLen > iWidth)) xPrintChars(psXPC, strCRLF);
 	}
 }
 
@@ -959,10 +958,8 @@ void vPrintSetGraphicRendition(xpc_t * psXPC, u32_t Val) {
 	char Buffer[xpfMAX_LEN_SGR];
 	sgr_info_t sSGR;
 	sSGR.u32 = Val;
-	if (pcANSIlocate(Buffer, sSGR.c, sSGR.d) != Buffer)
-		xPrintChars(psXPC, Buffer);
-	if (pcANSIattrib(Buffer, sSGR.a, sSGR.b) != Buffer)
-		xPrintChars(psXPC, Buffer);
+	if (pcANSIlocate(Buffer, sSGR.c, sSGR.d) != Buffer) xPrintChars(psXPC, Buffer);
+	if (pcANSIattrib(Buffer, sSGR.a, sSGR.b) != Buffer) xPrintChars(psXPC, Buffer);
 }
 
 /* ################################# The HEART of the PRINTFX matter ###############################
@@ -981,8 +978,8 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 	// start by expecting format indicator
 		if (*fmt == CHR_PERCENT) {
 			++fmt;
-			if (*fmt == CHR_NUL)		break;
-			if (*fmt == CHR_PERCENT)	goto out_lbl;
+			if (*fmt == CHR_NUL) break;
+			if (*fmt == CHR_PERCENT) goto out_lbl;
 			psXPC->f.flags = 0;							// set ALL flags to default 0
 			psXPC->f.limits	= 0;						// reset field specific limits
 			psXPC->f.nbase = BASE10;					// default number base
