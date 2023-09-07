@@ -147,51 +147,51 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 // #################################### Public structures ##########################################
 
 typedef union {
-	struct __attribute__((packed)) { u8_t a, b, c, d ; } ;
+	struct __attribute__((packed)) { u8_t a, b, c, d; };
 	u8_t u8[sizeof(u32_t)];
 	u32_t u32;
-} sgr_info_t ;
-DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4) ;
+} sgr_info_t;
+DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4);
 
 typedef	struct xpf_t {
 	union {
-		u32_t	lengths ;							// maxlen & curlen ;
+		u32_t	lengths;							// maxlen & curlen;
 		struct __attribute__((packed)) {
-			u32_t	maxlen		: xpfMAXLEN_BITS ;	// max chars to output 0 = unlimited
-			u32_t	curlen		: xpfMAXLEN_BITS ;	// number of chars output so far
-		} ;
-	} ;
-	union {
-		u32_t	limits ;
-		struct __attribute__((packed)) {
-			u32_t	minwid		: xpfMINWID_BITS ;	// min field width
-			u32_t	precis		: xpfPRECIS_BITS ;	// float precision or max string length
-		} ;
-	} ;
-	union {
-		u32_t	flags ;								// rest of flags
-		struct __attribute__((packed)) {
-/*byte 0*/	u8_t	group 		: 1 ;				// 0 = disable, 1 = enable
-			u8_t	alt_form	: 1 ;				// '#'
-			u8_t	ljust		: 1 ;				// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
-			u8_t	Ucase		: 1 ;				// true = 'a' or false = 'A'
-			u8_t	pad0		: 1 ;				// true = pad with leading'0'
-			u8_t	radix		: 1 ;
-			u8_t	signval		: 1 ;				// true = content is signed value
-			u8_t	rel_val		: 1 ;				// relative address / elapsed time
-/*byte 1*/	u32_t	nbase 		: 5 ;				// 2, 8, 10 or 16
-			u8_t	form		: 2 ;				// format specifier FLOAT, DUMP & TIME
-			u8_t	negvalue	: 1 ;				// if value < 0
-/*byte 2*/	u8_t	llong		: 4 ;				// va_arg override
-			u8_t	arg_width	: 1 ;				// minwid specified
-			u8_t	arg_prec	: 1 ;				// precis specified
-			u8_t	plus		: 1 ;				// true = force use of '+' or '-' signed
-			u8_t	dbg			: 1 ;
-/*byte 3*/	u8_t	Pspc		: 1 ;
-			u8_t	spare		: 7 ;				// SPARE !!!
+			u32_t	maxlen		: xpfMAXLEN_BITS;	// max chars to output 0 = unlimited
+			u32_t	curlen		: xpfMAXLEN_BITS;	// number of chars output so far
 		};
 	};
-} xpf_t ;
+	union {
+		u32_t	limits;
+		struct __attribute__((packed)) {
+			u32_t	minwid		: xpfMINWID_BITS;	// min field width
+			u32_t	precis		: xpfPRECIS_BITS;	// float precision or max string length
+		};
+	};
+	union {
+		u32_t	flags;								// rest of flags
+		struct __attribute__((packed)) {
+/*byte 0*/	u8_t	group 		: 1;				// 0 = disable, 1 = enable
+			u8_t	alt_form	: 1;				// '#'
+			u8_t	ljust		: 1;				// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
+			u8_t	Ucase		: 1;				// true = 'a' or false = 'A'
+			u8_t	pad0		: 1;				// true = pad with leading'0'
+			u8_t	radix		: 1;
+			u8_t	signval		: 1;				// true = content is signed value
+			u8_t	rel_val		: 1;				// relative address / elapsed time
+/*byte 1*/	u32_t	nbase 		: 5;				// 2, 8, 10 or 16
+			u8_t	form		: 2;				// format specifier FLOAT, DUMP & TIME
+			u8_t	negvalue	: 1;				// if value < 0
+/*byte 2*/	u8_t	llong		: 4;				// va_arg override
+			u8_t	arg_width	: 1;				// minwid specified
+			u8_t	arg_prec	: 1;				// precis specified
+			u8_t	plus		: 1;				// true = force use of '+' or '-' signed
+			u8_t	dbg			: 1;
+/*byte 3*/	u8_t	Pspc		: 1;
+			u8_t	spare		: 7;				// SPARE !!!
+		};
+	};
+} xpf_t;
 DUMB_STATIC_ASSERT(sizeof(xpf_t) == 12);
 
 typedef	struct xpc_t {
@@ -208,7 +208,7 @@ typedef	struct xpc_t {
 	};
 	xpf_t f;
 	va_list vaList;
-} xpc_t ;
+} xpc_t;
 DUMB_STATIC_ASSERT(sizeof(xpc_t) == (sizeof(int *) + sizeof(void *) + sizeof(xpf_t) + sizeof(va_list)));
 
 // ################################### Public functions ############################################
