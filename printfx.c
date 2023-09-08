@@ -635,25 +635,20 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 	xpf_t sXPF = psXPC->f;
 	int iWidth = xpfHEXDUMP_WIDTH;
-	if (psXPC->f.arg_width && INRANGE(8, psXPC->f.minwid, 64)) {
-		iWidth = psXPC->f.minwid;
-	} else {
+	if (psXPC->f.arg_width && INRANGE(8, psXPC->f.minwid, 64)) iWidth = psXPC->f.minwid;
+	else {
 		#if (includeTERMINAL_CONTROLS == 1)
 		terminfo_t sTI;
 		vTerminalGetInfo(&sTI);
 		iWidth = sTI.MaxX;
-		if (psXPC->f.ljust && sTI.MaxX <= (32+6)) {
-			psXPC->f.ljust = 0;								// too little space, remove address
-		} else {
-			iWidth -= psXPC->f.ljust ? 0 : 11;				// address required, decrease space
-		}	//	RP("1=%d 2=%d", sTI.MaxX, iWidth);
-		if (psXPC->f.plus && iWidth <= 32) {
-			psXPC->f.plus = 0;								// too little space, disable ASCII
-			iWidth /= 3;									// no ASCII on right = 3 col/char
-		} else {
-			iWidth /= 4;									// ASCII on right = 4 col/char
-		}	//	RP(" 3=%d", iWidth);
-		iWidth -= iWidth % 8;	//	RP(" 4=%d\r\n", iWidth);
+		if (psXPC->f.ljust && sTI.MaxX <= (32+6)) psXPC->f.ljust = 0;	// little space, disable addr
+		else iWidth -= psXPC->f.ljust ? 0 : 11;			// addr req, decr rem space
+		if (!psXPC->f.plus || iWidth > 32) iWidth /= 4;	// ASCII on right = 4 col/char
+		else {
+			psXPC->f.plus = 0;							// too little space, disable ASCII
+			iWidth /= 3;								// no ASCII on right = 3 col/char
+		}
+		iWidth -= iWidth % 8;
 		#else
 		iWidth = xpfHEXDUMP_WIDTH;
 		#endif
