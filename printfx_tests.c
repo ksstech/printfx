@@ -3,10 +3,9 @@
  * Copyright (c) 2021-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
-#include <float.h>									// DBL_MIN/MAX
-
-#include "hal_variables.h"
+#include "hal_config.h"
 #include "printfx.h"
+#include <float.h>									// DBL_MIN/MAX
 
 #define	debugFLAG					0xF000
 
