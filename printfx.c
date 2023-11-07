@@ -633,7 +633,7 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
  */
 void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 	xpf_t sXPF = psXPC->f;
-	int iWidth = xpfHEXDUMP_WIDTH;
+	int iWidth;
 	if (psXPC->f.arg_width && INRANGE(8, psXPC->f.minwid, 64)) iWidth = psXPC->f.minwid;
 	else {
 		#if (includeTERMINAL_CONTROLS == 1)
@@ -671,7 +671,6 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 				bFlag = INRANGE(0x20, cChr, 0x7F) ? 0 : INRANGE(0x80, cChr, 0xFE) && bFlag ? 0 : 1;
 				xPrintChar(psXPC, bFlag ? CHR_FULLSTOP : cChr);
 			}
-			xPrintChar(psXPC, CHR_SPACE);
 		}
 		if ((Now < xLen) && (xLen > iWidth)) xPrintChars(psXPC, strCRLF);
 	}
