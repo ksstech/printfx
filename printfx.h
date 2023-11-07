@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2014-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
+ * Copyright (c) 2014-23 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
 #pragma once
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #include "FreeRTOS_Support.h"
 #include "definitions.h"
@@ -68,8 +69,6 @@ extern u64_t RunTime;
 #define	xpfDEF_TIME_FRAC			3
 
 // ################################## C11 Pointer size determination ###############################
-
-#include <stdint.h>
 
 _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determine pointer size");
 
@@ -222,8 +221,9 @@ int xPrintF(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list);
 // ##################################### Destination = STDOUT ######################################
 
 extern SemaphoreHandle_t printfxMux;
-void printfx_lock(report_t * psR);
-void printfx_unlock(report_t * psR);
+struct report_t;
+void printfx_lock(struct report_t * psR);
+void printfx_unlock(struct report_t * psR);
 
 int vnprintfx_nolock(size_t count, const char * format, va_list);
 int vprintfx_nolock(const char * format, va_list);
@@ -245,8 +245,8 @@ int sprintfx(char *, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 2, 
 
 // ############################## Destination = STDOUT -or- STRING #################################
 
-int	wvprintfx(report_t * psRprt, const char * pcFormat, va_list vaList);
-int wprintfx(report_t * psRprt, const char * pcFormat, ...);
+int	wvprintfx(struct report_t * psRprt, const char * pcFormat, va_list vaList);
+int wprintfx(struct report_t * psRprt, const char * pcFormat, ...);
 
 // ############################## LOW LEVEL DIRECT formatted output ################################
 
