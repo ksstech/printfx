@@ -6,20 +6,19 @@
  *
  */
 
-#include <math.h>					// isnan()
-#include <float.h>					// DBL_MIN/MAX
-
-#include "printfx.h"
-
-#include "hal_variables.h"
-#include "struct_union.h"
+#include "hal_config.h"
+#include "hal_options.h"
 #include "hal_usart.h"
+#include "printfx.h"
 #include "socketsX.h"
-#include "x_ubuf.h"
+#include "struct_union.h"
 #include "x_string_general.h"		// xinstring function
 #include "x_errors_events.h"
 #include "x_terminal.h"
 #include "x_utilities.h"
+
+#include <math.h>					// isnan()
+#include <float.h>					// DBL_MIN/MAX
 
 #ifdef ESP_PLATFORM
 	#include "esp_log.h"
