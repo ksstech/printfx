@@ -1,7 +1,5 @@
 /*
- * Copyright 2014-21 AM Maree/KSS Technologies (Pty) Ltd.
- *
- * formprint.h
+ * formprint.h - Copyright 2014-23 Andre M. Maree/KSS Technologies (Pty) Ltd.
  */
 
 #pragma once
@@ -93,11 +91,11 @@ extern "C" {
 
 // ############################### formatted print function prototypes #############################
 
-void		vLogPrePend(uint32_t flag) ;
-void		vLogPostPend(uint32_t flag) ;
-void 		vLogPrintf(uint32_t flag, const char * format, ...) ;
+void vLogPrePend(u32_t flag);
+void vLogPostPend(u32_t flag);
+void vLogPrintf(u32_t flag, const char * format, ...);
 
-int32_t		xI8ArrayPrint(const char * pHeader, uint8_t * pArray, int32_t ArraySize) ;
+i32_t xI8ArrayPrint(const char * pHeader, u8_t * pArray, i32_t ArraySize);
 
 #ifdef __cplusplus
 }
