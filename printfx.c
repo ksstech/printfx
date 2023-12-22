@@ -397,12 +397,12 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 		vPrintString(psXPC, psXPC->f.Ucase ? "INF" : "inf");
 		return;
 	}
-	psXPC->f.negvalue	= F64 < 0.0 ? 1 : 0;			// set negvalue if < 0.0
+	psXPC->f.negvalue = F64 < 0.0 ? 1 : 0;				// set negvalue if < 0.0
 	F64	*= psXPC->f.negvalue ? -1.0 : 1.0;				// convert to positive number
 	xpf_t xpf;
-	xpf.limits	= psXPC->f.limits;						// save original flags
-	xpf.flags	= psXPC->f.flags;
-	x64_t X64 	= { 0 };
+	xpf.limits = psXPC->f.limits;						// save original flags
+	xpf.flags = psXPC->f.flags;
+	x64_t X64  = { 0 };
 
 	int	Exp = 0;										// if exponential format requested, calculate the exponent
 	if (F64 != 0.0) {									// if not 0 and...
@@ -419,21 +419,19 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 		}
 	}
 	u8_t AdjForm = psXPC->f.form!=form0G ? psXPC->f.form : (Exp<-4 || Exp>=psXPC->f.precis) ? form2E : form1F;
-	if (AdjForm == form2E)
-		F64 = X64.f64;									// change to exponent adjusted value
-	if (F64 < (DBL_MAX - round_nums[psXPC->f.precis])) {// if addition of rounding value will NOT cause overflow.
-		F64 += round_nums[psXPC->f.precis];			// round by adding .5LSB to the value
-	}
+	if (AdjForm == form2E) F64 = X64.f64;				// change to exponent adjusted value
+	if (F64 < (DBL_MAX - round_nums[psXPC->f.precis]))	// if addition of rounding value will NOT cause overflow.
+		F64 += round_nums[psXPC->f.precis];				// round by adding .5LSB to the value
 	char Buffer[xpfMAX_LEN_F64];
 	Buffer[xpfMAX_LEN_F64 - 1] = 0;						// building R to L, ensure buffer NULL-term
 
 	int Len = 0;
 	if (AdjForm == form2E) {							// If required, handle the exponent
-		psXPC->f.minwid		= 2;
-		psXPC->f.pad0		= 1;						// MUST left pad with '0'
-		psXPC->f.signval	= 1;
-		psXPC->f.ljust		= 0;
-		psXPC->f.negvalue	= (Exp < 0) ? 1 : 0;
+		psXPC->f.minwid = 2;
+		psXPC->f.pad0 = 1;								// MUST left pad with '0'
+		psXPC->f.signval = 1;
+		psXPC->f.ljust = 0;
+		psXPC->f.negvalue = (Exp < 0) ? 1 : 0;
 		Exp *= psXPC->f.negvalue ? -1LL : 1LL;
 		Len += xPrintXxx(psXPC, Exp, Buffer, xpfMAX_LEN_F64 - 1);
 		Buffer[xpfMAX_LEN_F64-2-Len] = psXPC->f.Ucase ? CHR_E : CHR_e;
@@ -445,7 +443,7 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 	X64.u64	= (u64_t) X64.f64;							// extract integer portion
 
 	if (psXPC->f.arg_prec) {							// explicit minwid specified ?
-		psXPC->f.minwid	= psXPC->f.precis; 			// yes, stick to it.
+		psXPC->f.minwid	= psXPC->f.precis; 				// yes, stick to it.
 	} else if (X64.u64 == 0) {							// process 0 value
 		psXPC->f.minwid	= psXPC->f.radix ? 1 : 0;
 	} else {											// process non 0 value
@@ -458,11 +456,11 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 		}
 	}
 	if (psXPC->f.minwid > 0) {
-		psXPC->f.pad0		= 1;						// MUST left pad with '0'
-		psXPC->f.group		= 0;						// cannot group in fractional
-		psXPC->f.signval	= 0;						// always unsigned value
-		psXPC->f.negvalue	= 0;						// and never negative
-		psXPC->f.plus		= 0;						// no leading +/- before fractional part
+		psXPC->f.pad0 = 1;								// MUST left pad with '0'
+		psXPC->f.group = 0;								// cannot group in fractional
+		psXPC->f.signval = 0;							// always unsigned value
+		psXPC->f.negvalue = 0;							// and never negative
+		psXPC->f.plus = 0;								// no leading +/- before fractional part
 		Len += xPrintXxx(psXPC, X64.u64, Buffer, xpfMAX_LEN_F64-1-Len);
 	}
 	// process the radix = '.'
@@ -472,17 +470,17 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 	}
 
 	X64.u64	= F64;										// extract and convert the whole number portions
-	psXPC->f.limits	= xpf.limits;						// restore original limits & flags
-	psXPC->f.flags	= xpf.flags;
+	psXPC->f.limits = xpf.limits;						// restore original limits & flags
+	psXPC->f.flags = xpf.flags;
 
 	// adjust minwid to do padding (if required) based on string length after adding whole number
 	psXPC->f.minwid	= psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0;
 	Len += xPrintXxx(psXPC, X64.u64, Buffer, xpfMAX_LEN_F64 - 1 - Len);
 
-	psXPC->f.arg_prec	= 1;
-	psXPC->f.precis		= Len;
-	psXPC->f.arg_width	= xpf.arg_width;
-	psXPC->f.minwid		= xpf.minwid;
+	psXPC->f.arg_prec = 1;
+	psXPC->f.precis = Len;
+	psXPC->f.arg_width = xpf.arg_width;
+	psXPC->f.minwid = xpf.minwid;
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64 - 1 - Len));
 }
 
