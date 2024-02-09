@@ -4,14 +4,14 @@ if( ESP_PLATFORM )
 	set( srcs "printfx.c" "printfx_tests.c" )
 	set( include_dirs "." )
 	set( priv_include_dirs )
-	set( requires common )
-	set( priv_requires buffers hal_esp32 rtos-support stringsX socketsX )
-	
+	set( requires "hal_esp32 rtos-support")
+	set( priv_requires "buffers stringsX" )
+
 	idf_component_register(
-		SRCS ${srcs} 
-		INCLUDE_DIRS ${include_dirs} 
-		PRIV_INCLUDE_DIRS ${priv_include_dirs} 
-		REQUIRES ${requires} 
+		SRCS ${srcs}
+		INCLUDE_DIRS ${include_dirs}
+		PRIV_INCLUDE_DIRS ${priv_include_dirs}
+		REQUIRES ${requires}
 		PRIV_REQUIRES ${priv_requires}
 	)
 else( )
