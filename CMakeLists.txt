@@ -4,8 +4,8 @@ if( ESP_PLATFORM )
 	set( srcs "printfx.c" "printfx_tests.c" )
 	set( include_dirs "." )
 	set( priv_include_dirs )
-	set( requires "hal_esp32 rtos-support")
-	set( priv_requires "buffers stringsX" )
+	set( requires "main" )
+	set( priv_requires )
 
 	idf_component_register(
 		SRCS ${srcs}
