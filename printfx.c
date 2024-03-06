@@ -8,7 +8,7 @@
 
 #include "hal_config.h"
 #include "hal_options.h"
-#include "hal_usart.h"
+#include "hal_stdio.h"
 #include "printfx.h"
 #include "socketsX.h"
 #include "struct_union.h"
@@ -1337,13 +1337,7 @@ void printfx_unlock(report_t * psR) {
 	if (!psR || !psR->pcBuf || !psR->Size) xRtosSemaphoreGive(&printfxMux);
 }
 
-int xPrintStdOut(xpc_t * psXPC, int cChr) {
-#if	defined(ESP_PLATFORM)
-	return putcharX(cChr, configSTDIO_UART_CHAN);
-#else
-	return putchar(cChr);
-#endif
-}
+static int xPrintStdOut(xpc_t * psXPC, int cChr) { return putchar(cChr); }
 
 int vnprintfx(size_t szLen, const char * format, va_list vaList) {
 	printfx_lock(NULL);
@@ -1401,9 +1395,8 @@ int printfx_nolock(const char * format, ...) {
 
 // ##################################### Destination = STRING ######################################
 
-int	xPrintToString(xpc_t * psXPC, int cChr) {
-	if (psXPC->pStr)
-		*psXPC->pStr++ = cChr;
+static int xPrintToString(xpc_t * psXPC, int cChr) {
+	if (psXPC->pStr) *psXPC->pStr++ = cChr;
 	return cChr;
 }
 
@@ -1478,7 +1471,7 @@ int	wprintfx(report_t * psR, const char * pcFormat, ...) {
 
 // ################################### Destination = FILE PTR ######################################
 
-int	xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream); }
+static int xPrintToFile(xpc_t * psXPC, int cChr) { return fputc(cChr, psXPC->stream); }
 
 int vfprintfx(FILE * stream, const char * format, va_list vaList) {
 	return xPrintF(xPrintToFile, stream, xpfMAXLEN_MAXVAL, format, vaList);
@@ -1494,7 +1487,7 @@ int fprintfx(FILE * stream, const char * format, ...) {
 
 // ################################### Destination = HANDLE ########################################
 
-int	xPrintToHandle(xpc_t * psXPC, int cChr) {
+static int xPrintToHandle(xpc_t * psXPC, int cChr) {
 	char cChar = cChr;
 	int size = write(psXPC->fd, &cChar, sizeof(cChar));
 	return size == 1 ? cChr : size;
@@ -1516,7 +1509,7 @@ int	dprintfx(int fd, const char * format, ...) {
  * Output directly to the [possibly redirected] stdout/UART channel
  */
 
-int	xPrintToConsole(xpc_t * psXPC, int cChr) { return putcharRT(cChr); }
+static int xPrintToConsole(xpc_t * psXPC, int cChr) { return putchar_direct(cChr); }
 
 int vcprintfx(const char * format, va_list vaList) {
 	printfx_lock(NULL);
@@ -1535,7 +1528,7 @@ int cprintfx(const char * format, ...) {
 
 // ################################### Destination = DEVICE ########################################
 
-int	xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr); }
+static int xPrintToDevice(xpc_t * psXPC, int cChr) { return psXPC->DevPutc(cChr); }
 
 int vdevprintfx(int (* Hdlr)(int ), const char * format, va_list vaList) {
 	return xPrintF(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, format, vaList);
@@ -1553,7 +1546,7 @@ int devprintfx(int (* Hdlr)(int ), const char * format, ...) {
  * SOCKET directed formatted print support. Problem here is that MSG_MORE is primarily supported on
  * TCP sockets, UDP support officially in LwIP 2.6 but has not been included into ESP-IDF yet. */
 
-int	xPrintToSocket(xpc_t * psXPC, int cChr) {
+static int xPrintToSocket(xpc_t * psXPC, int cChr) {
 	u8_t cBuf = cChr;
 	int iRV = xNetSend(psXPC->psSock, &cBuf, sizeof(cBuf));
 	if (iRV != sizeof(cBuf))
@@ -1582,7 +1575,7 @@ int socprintfx(netx_t * psSock, const char * format, ...) {
 
 // #################################### Destination : UBUF #########################################
 
-int	xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr); }
+static int xPrintToUBuf(xpc_t * psXPC, int cChr) { return xUBufPutC(psXPC->psUBuf, cChr); }
 
 int	vuprintfx(ubuf_t * psUBuf, const char * format, va_list vaList) {
 	return xPrintF(xPrintToUBuf, psUBuf, xUBufGetSpace(psUBuf), format, vaList);
@@ -1598,7 +1591,7 @@ int	uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 
 // #################################### Destination : CRC32 ########################################
 
-int xPrintToCRC32(xpc_t * psXPC, int cChr) {
+static int xPrintToCRC32(xpc_t * psXPC, int cChr) {
 	#if defined(ESP_PLATFORM)							// use ROM based CRC lookup table
 	u8_t cBuf = cChr;
 	*psXPC->pU32 = crc32_le(*psXPC->pU32, &cBuf, sizeof(cBuf));
