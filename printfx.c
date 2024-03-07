@@ -1509,7 +1509,13 @@ int	dprintfx(int fd, const char * format, ...) {
  * Output directly to the [possibly redirected] stdout/UART channel
  */
 
-static int xPrintToConsole(xpc_t * psXPC, int cChr) { return putchar_direct(cChr); }
+static int xPrintToConsole(xpc_t * psXPC, int cChr) {
+	#if (buildSTDOUT_LEVEL == 0)
+	return putchar(cChr); 
+	#else
+	return putchar_direct(cChr); 
+	#endif
+}
 
 int vcprintfx(const char * format, va_list vaList) {
 	printfx_lock(NULL);
