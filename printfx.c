@@ -1490,7 +1490,7 @@ int fprintfx(FILE * stream, const char * format, ...) {
 static int xPrintToHandle(xpc_t * psXPC, int cChr) {
 	char cChar = cChr;
 	int size = write(psXPC->fd, &cChar, sizeof(cChar));
-	return size == 1 ? cChr : size;
+	return (size == 1) ? cChr : size;
 }
 
 int	vdprintfx(int fd, const char * format, va_list vaList) {
@@ -1555,8 +1555,7 @@ int devprintfx(int (* Hdlr)(int ), const char * format, ...) {
 static int xPrintToSocket(xpc_t * psXPC, int cChr) {
 	u8_t cBuf = cChr;
 	int iRV = xNetSend(psXPC->psSock, &cBuf, sizeof(cBuf));
-	if (iRV != sizeof(cBuf))
-		return iRV;
+	if (iRV != sizeof(cBuf)) return iRV;
 	return cChr;
 }
 
