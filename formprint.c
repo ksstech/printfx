@@ -1,6 +1,6 @@
 // formprint.c - Copyright (c) 2014-24 Andre M. Maree/KSS Technologies (Pty) Ltd.
 
-#include	"hal_config.h"
+#include	"hal_platform.h"
 #include 	"formprint.h"
 #include	"printfx.h"
 #include	"x_terminal.h"

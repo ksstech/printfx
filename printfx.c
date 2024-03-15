@@ -6,7 +6,7 @@
  *
  */
 
-#include "hal_config.h"
+#include "hal_platform.h"
 #include "hal_options.h"
 #include "hal_stdio.h"
 #include "printfx.h"

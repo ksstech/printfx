@@ -3,7 +3,7 @@
  * Copyright (c) 2021-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
-#include "hal_config.h"
+#include "hal_platform.h"
 #include "printfx.h"
 #include <float.h>									// DBL_MIN/MAX
 
