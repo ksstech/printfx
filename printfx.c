@@ -1511,7 +1511,7 @@ int	dprintfx(int fd, const char * format, ...) {
 
 static int xPrintToConsole(xpc_t * psXPC, int cChr) {
 	#if (buildSTDOUT_LEVEL == 0)
-	return putchar(cChr); 
+	return esp_rom_printf("%c", cChr);
 	#else
 	return putchar_direct(cChr); 
 	#endif
