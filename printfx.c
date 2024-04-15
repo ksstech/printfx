@@ -224,11 +224,11 @@ void vPrintString(xpc_t * psXPC, char * pStr) {
  * 			pBuffer - pointer to buffer for converted string storage
  * 			BufSize - available (remaining) space in buffer
  * @return	number of actual characters output (incl leading '-' and/or ' ' and/or '0' as possibly added)
- * @comment		Honour & interpret the following modifier flags
- * 				'	Group digits in 3 digits groups to left of decimal '.'
- * 				-	Left align the individual numbers between the '.'
- * 				+	Force a '+' or '-' sign on the left
- * 				0	Zero pad to the left of the value to fill the field
+ * @comment	Honour & interpret the following modifier flags
+ * 			'	Group digits in 3 digits groups to left of decimal '.'
+ * 			-	Left align the individual numbers between the '.'
+ * 			+	Force a '+' or '-' sign on the left
+ * 			0	Zero pad to the left of the value to fill the field
  * Protection against buffer overflow based on correct sized buffer being allocated in calling function
  *
  *	(1)		(2)		(0)
@@ -399,9 +399,9 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 	}
 	psXPC->f.negvalue = F64 < 0.0 ? 1 : 0;				// set negvalue if < 0.0
 	F64	*= psXPC->f.negvalue ? -1.0 : 1.0;				// convert to positive number
-	xpf_t xpf;
-	xpf.limits = psXPC->f.limits;						// save original flags
-	xpf.flags = psXPC->f.flags;
+	xpf_t sXPF;
+	sXPF.limits = psXPC->f.limits;						// save original flags
+	sXPF.flags = psXPC->f.flags;
 	x64_t X64  = { 0 };
 
 	int	Exp = 0;										// if exponential format requested, calculate the exponent
@@ -470,8 +470,8 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 	}
 
 	X64.u64	= F64;										// extract and convert the whole number portions
-	psXPC->f.limits = xpf.limits;						// restore original limits & flags
-	psXPC->f.flags = xpf.flags;
+	psXPC->f.limits = sXPF.limits;						// restore original limits & flags
+	psXPC->f.flags = sXPF.flags;
 
 	// adjust minwid to do padding (if required) based on string length after adding whole number
 	psXPC->f.minwid	= psXPC->f.minwid > Len ? psXPC->f.minwid - Len : 0;
@@ -479,8 +479,8 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 
 	psXPC->f.arg_prec = 1;
 	psXPC->f.precis = Len;
-	psXPC->f.arg_width = xpf.arg_width;
-	psXPC->f.minwid = xpf.minwid;
+	psXPC->f.arg_width = sXPF.arg_width;
+	psXPC->f.minwid = sXPF.minwid;
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64 - 1 - Len));
 }
 
@@ -654,7 +654,7 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 		if (psXPC->f.ljust == 0) {						// display absolute or relative address
 			vPrintPointer(psXPC, (px_t) (psXPC->f.rel_val ? (void *) Now : (void *) (pStr + Now)));
 			xPrintChars(psXPC, (char *) ": ");
-			psXPC->f.flags = sXPF.flags;
+			psXPC->f = sXPF;
 		}
 		// then the actual series of values in 8-32 bit groups
 		int Width = (xLen - Now) > iWidth ? iWidth : xLen - Now;
@@ -1124,14 +1124,9 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					X32.u32 += psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
 				xTimeGMTime(X32.u32, &sTM, psXPC->f.rel_val);
 				psXPC->f.plus = 0;
-				if (cFmt == CHR_D || cFmt == CHR_Z)
-					vPrintDate(psXPC, &sTM);
-				if (cFmt == CHR_T || cFmt == CHR_Z)
-					vPrintTime(psXPC, &sTM, (u32_t)(psTSZ->usecs % MICROS_IN_SECOND));
-				if (cFmt == CHR_Z) {
-					psXPC->f.plus = sXPF.plus;
-					vPrintZone(psXPC, psTSZ);
-				}
+				if (cFmt == CHR_D || cFmt == CHR_Z) vPrintDate(psXPC, &sTM);
+				if (cFmt == CHR_T || cFmt == CHR_Z) vPrintTime(psXPC, &sTM, (u32_t)(psTSZ->usecs % MICROS_IN_SECOND));
+				if (cFmt == CHR_Z) { psXPC->f.plus = sXPF.plus; vPrintZone(psXPC, psTSZ); }
 				break;
 
 			case CHR_r:				// U64 epoch (yr+mth+day) OR relative (days) + TIME
@@ -1148,16 +1143,14 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 					X64.u64 = (u64_t) X32.u32 * MICROS_IN_SECOND;
 				}
 				xTimeGMTime(X32.u32, &sTM, psXPC->f.rel_val);
-				if (psXPC->f.rel_val == 0)
-					psXPC->f.pad0 = 1;
+				if (psXPC->f.rel_val == 0) psXPC->f.pad0 = 1;
 				if (psXPC->f.rel_val == 0 || sTM.tm_mday) {
 					u32_t limits = psXPC->f.limits;
 					vPrintDate(psXPC, &sTM);
 					psXPC->f.limits = limits;
 				}
 				vPrintTime(psXPC, &sTM, (u32_t) (X64.u64 % MICROS_IN_SECOND));
-				if (psXPC->f.rel_val == 0)
-					xPrintChar(psXPC, CHR_Z);
+				if (psXPC->f.rel_val == 0) xPrintChar(psXPC, CHR_Z);
 				break;
 			#endif
 
@@ -1273,11 +1266,14 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			case CHR_x: psXPC->f.group = 0;				// hex as in "789abcd" UC/LC, disable grouping
 				/* FALLTHRU */ /* no break */
 			case CHR_u:									// unsigned decimal "ddddd"
-				psXPC->f.nbase = (cFmt == CHR_x) ? BASE16 : (cFmt == CHR_u) ? BASE10 : BASE08;
+				psXPC->f.nbase = (cFmt == CHR_x) ? BASE16 : 
+								 (cFmt == CHR_u) ? BASE10 : BASE08;
 				X64 = x64PrintGetValue(psXPC);
 				// Ensure sign-extended bits removed
-				int Wid = psXPC->f.llong==S_hh ? 7 : psXPC->f.llong==S_h ? 15 : psXPC->f.llong==S_l ? 31 : 63;
-				X64.u64 &= BIT_MASK64(0, Wid);
+				int Width = (psXPC->f.llong == S_hh) ? 7 :
+							(psXPC->f.llong == S_h) ? 15 :
+							(psXPC->f.llong == S_l) ? 31 : 63;
+				X64.u64 &= BIT_MASK64(0, Width);
 				vPrintX64(psXPC, X64.u64);
 				break;
 
@@ -1402,14 +1398,12 @@ static int xPrintToString(xpc_t * psXPC, int cChr) {
 
 int vsnprintfx(char * pBuf, size_t szBuf, const char * format, va_list vaList) {
 	if (szBuf == 1) {									// any "real" space ?
-		if (pBuf)										// no, buffer supplied?
-			*pBuf = 0;									// yes, terminate
+		if (pBuf) *pBuf = 0;							// no, buffer supplied so terminate
 		return 0; 										// & return
 	}
 	int iRV = xPrintF(xPrintToString, pBuf, szBuf, format, vaList);
 	if (pBuf) {											// buffer specified ?
-		if (iRV == szBuf) 								// yes, but full?
-			--iRV;										// make space for terminator
+		if (iRV == szBuf) --iRV;						// yes, if full make space for terminator
 		pBuf[iRV] = 0;									// terminate
 	}
 	return iRV;
