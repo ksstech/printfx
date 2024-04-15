@@ -73,20 +73,20 @@ void vPrintfUnitTest(void) {
 	TESTP("%d %s(s) with %%\n", 0, "message") ;
 
 	// test walking string builder
-	slen = 0 ;
-	slen += sprintfx(buf+slen, "padding (neg): zero=[%04d], ", -3) ;
-	slen += sprintfx(buf+slen, "left=[%-4d], ", -3) ;
-	slen += sprintfx(buf+slen, "right=[%4d]\n", -3) ;
-	TESTP("[%d] %s", slen, buf) ;
+	slen = 0;
+	slen += snprintfx(buf + slen, sizeof(buf) - slen, "padding (neg): zero=[%04d], ", -3);
+	slen += snprintfx(buf + slen, sizeof(buf) - slen, "left=[%-4d], ", -3);
+	slen += snprintfx(buf + slen, sizeof(buf) - slen, "right=[%4d]\n", -3);
+	TESTP("[%d] %s", slen, buf);
 	// left & right justification
-	slen = sprintfx(buf, "justify: left=\"%-10s\", right=\"%10s\"\n", "left", "right") ;
+	slen = snprintfx(buf, sizeof(buf), "justify: left=\"%-10s\", right=\"%10s\"\n", "left", "right");
 	TESTP("[len=%d] %s", slen, buf);
 
 	count = 80 ;
 	snprintfx(buf, count, "Only %d buffered bytes should be displayed from this very long string of at least 90 characters", count) ;
 	TESTP("%s\n", buf) ;
 	// multiple chars
-	sprintfx(buf, "multiple chars: %c %c %c %c\n", 'a', 'b', 'c', 'd') ;
+	snprintfx(buf, xpfMAXLEN_MAXVAL, "multiple chars: %c %c %c %c\n", 'a', 'b', 'c', 'd');
 	TESTP("%s", buf);
 	#endif
 
