@@ -137,6 +137,8 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 
 #define	xpfSGR(a,b,c,d)				(((u8_t) d << 24) + ((u8_t) c << 16) + ((u8_t) b << 8) + (u8_t) a)
 
+#define	xpfBITS_REPORT				8
+
 // ####################################### enumerations ############################################
 
 
@@ -279,6 +281,10 @@ typedef	struct xpf_t {
 	union {
 		u32_t flags;									// rest of flags
 		struct __attribute__((packed)) {
+			u32_t	flg1 : (32-xpfBITS_REPORT);			// flags to be reset
+			u32_t	flg2 : xpfBITS_REPORT;				// flags to be retained
+		};
+		struct __attribute__((packed)) {
 /*byte 0*/	u8_t	group 		: 1;				// 0 = disable, 1 = enable
 			u8_t	alt_form	: 1;				// '#'
 			u8_t	ljust		: 1;				// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
@@ -294,9 +300,9 @@ typedef	struct xpf_t {
 			u8_t	arg_width	: 1;				// minwid specified
 			u8_t	arg_prec	: 1;				// precis specified
 			u8_t	plus		: 1;				// true = force use of '+' or '-' signed
-			u8_t	dbg			: 1;
-/*byte 3*/	u8_t	Pspc		: 1;
-			u8_t	spare		: 7;				// SPARE !!!
+			u8_t	Pspc		: 1;
+/*byte 3*/	u8_t	sga			: 2;				// check to align with report_t size struct
+			u8_t	spare		: 6;				// SPARE !!!
 		};
 	};
 } xpf_t;
