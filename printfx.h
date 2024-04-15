@@ -1,13 +1,10 @@
-/*
- * printfx.h - Copyright (c) 2014-24 Andre M. Maree / KSS Technologies (Pty) Ltd.
- */
+// printfx.h
 
 #pragma once
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
-
 #include "FreeRTOS_Support.h"
 #include "definitions.h"
 
@@ -266,21 +263,21 @@ DUMB_STATIC_ASSERT(sizeof(report_t) == (sizeof(void *) + sizeof(fm_t) + sizeof(u
 
 typedef	struct xpf_t {
 	union {
-		u32_t	lengths;							// maxlen & curlen;
+		u32_t lengths;									// maxlen & curlen;
 		struct __attribute__((packed)) {
 			u32_t	maxlen		: xpfMAXLEN_BITS;	// max chars to output 0 = unlimited
 			u32_t	curlen		: xpfMAXLEN_BITS;	// number of chars output so far
 		};
 	};
 	union {
-		u32_t	limits;
+		u32_t limits;
 		struct __attribute__((packed)) {
 			u32_t	minwid		: xpfMINWID_BITS;	// min field width
 			u32_t	precis		: xpfPRECIS_BITS;	// float precision or max string length
 		};
 	};
 	union {
-		u32_t	flags;								// rest of flags
+		u32_t flags;									// rest of flags
 		struct __attribute__((packed)) {
 /*byte 0*/	u8_t	group 		: 1;				// 0 = disable, 1 = enable
 			u8_t	alt_form	: 1;				// '#'
