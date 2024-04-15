@@ -1583,7 +1583,7 @@ int	vuprintfx(ubuf_t * psUBuf, const char * format, va_list vaList) {
 int	uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 	va_list	vaList;
 	va_start(vaList, format);
-	int count = vuprintfx(psUBuf, format, vaList);
+	int count = xPrintF(xPrintToUBuf, psUBuf, xUBufGetSpace(psUBuf), format, vaList);
 	va_end(vaList);
 	return count;
 }
