@@ -944,11 +944,12 @@ void vPrintIpAddress(xpc_t * psXPC, u32_t Val) {
  * the ESC sequences if the output is going to a socket, one way or another.
  */
 void vPrintSetGraphicRendition(xpc_t * psXPC, u32_t Val) {
-	char Buffer[xpfMAX_LEN_SGR];
-	sgr_info_t sSGR;
-	sSGR.u32 = Val;
-	if (pcANSIlocate(Buffer, sSGR.c, sSGR.d) != Buffer) xPrintChars(psXPC, Buffer);
-	if (pcANSIattrib(Buffer, sSGR.a, sSGR.b) != Buffer) xPrintChars(psXPC, Buffer);
+	if (psXPC->f.sga == 0) {
+		char Buffer[xpfMAX_LEN_SGR];
+		sgr_info_t sSGR = { .u32 = Val };
+		if (pcANSIlocate(Buffer, sSGR.c, sSGR.d) != Buffer) xPrintChars(psXPC, Buffer);
+		if (pcANSIattrib(Buffer, sSGR.a, sSGR.b) != Buffer) xPrintChars(psXPC, Buffer);
+	}
 }
 
 /* ################################# The HEART of the PRINTFX matter ###############################
@@ -969,7 +970,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			++fmt;
 			if (*fmt == CHR_NUL) break;
 			if (*fmt == CHR_PERCENT) goto out_lbl;
-			psXPC->f.flags = 0;							// set ALL flags to default 0
+			psXPC->f.flg1 = 0;							// set some flags to default
 			psXPC->f.limits	= 0;						// reset field specific limits
 			psXPC->f.nbase = BASE10;					// default number base
 			int	cFmt;
@@ -1309,11 +1310,13 @@ out_lbl:
 
 int	xPrintF(int (Hdlr)(xpc_t *, int), void * pVoid, size_t szBuf, const char * fmt, va_list vaList) {
 	xpc_t sXPC;
-	sXPC.handler	= Hdlr;
-	sXPC.pVoid		= pVoid;
-	sXPC.f.maxlen	= (szBuf > xpfMAXLEN_MAXVAL) ? xpfMAXLEN_MAXVAL : szBuf;
-	sXPC.f.curlen	= 0;
-	sXPC.vaList		= vaList;
+	sXPC.handler = Hdlr;
+	sXPC.pVoid = pVoid;
+	sXPC.f.flg2 = szBuf >> (32 - xpfBITS_REPORT);
+	szBuf &= BIT_MASK32(0, (31 - xpfBITS_REPORT));
+	sXPC.f.maxlen = (szBuf > xpfMAXLEN_MAXVAL) ? xpfMAXLEN_MAXVAL : szBuf;
+	sXPC.f.curlen = 0;
+	sXPC.vaList = vaList;
 	return xPrintFX(&sXPC, fmt);
 }
 
