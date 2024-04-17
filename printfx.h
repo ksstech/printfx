@@ -188,7 +188,7 @@ typedef	union {
 	};
 	struct __attribute__((packed)) {// 8:24 General printing
 		u32_t	aCount:24;			// Counter
-		u32_t	aColor:1;			// Use colour
+		u32_t	aSpare:1;
 		u32_t	aPrioX:1;			// Priorities
 		u32_t	aState:1;			// Task state RBPS
 		u32_t	aStack:1;			// Low Stack value
@@ -199,7 +199,7 @@ typedef	union {
 	};
 	struct __attribute__((packed)) {// 8:24 (fs) filesystem
 		u32_t	fsCount:24;			// Counter
-		u32_t	fsColor:1;			// Use colour
+		u32_t	fsSpare:1;
 		u32_t	fsContent:1;		// File content
 		u32_t	fsDetail:1;			// File details 
 		u32_t	fsS2:1;				// 
@@ -211,7 +211,7 @@ typedef	union {
 	struct __attribute__((packed)) {// 9:23 Printing tasks
 		u32_t	uCount:23;			// Task # mask
 		u32_t	bTskNum:1;			// Task #
-		u32_t	bColor:1;
+		u32_t	bSpare:1;
 		u32_t	bPrioX:1;			// Priorities
 		u32_t	bState:1;			// Task state RBPS
 		u32_t	bStack:1;			// Low Stack value
@@ -223,7 +223,7 @@ typedef	union {
 	struct __attribute__((packed)) {// 9:23 Memory reporting
 		u32_t	rmCAPS:23;
 		u32_t	rmDetail:1;			// individual block details
-		u32_t	rmColor:1;
+		u32_t	rmSpare:1;
 		u32_t	rmCompact:1;
 		u32_t	rwF:1;
 		u32_t	rmE:1;
@@ -236,7 +236,7 @@ typedef	union {
 		u32_t	senFree:22;
 		u32_t	senTlog:1;
 		u32_t	senTsen:1;
-		u32_t	senColor:1;
+		u32_t	senSpare:1;
 		u32_t 	senDev:1;
 		u32_t 	senAvg:1;
 		u32_t 	senSum:1;
