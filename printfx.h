@@ -139,9 +139,21 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 
 #define	xpfBITS_REPORT				8
 
+#define	makeMASK08x24(A,B,C,D,E,F,G,H,I)	\
+	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|(I&0x00FFFFFF)))
+#define	makeMASK09x23(A,B,C,D,E,F,G,H,I,J)	\
+	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|(J&0x007FFFFF)))
+#define	makeMASK10x22(A,B,C,D,E,F,G,H,I,J,K) \
+	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|(K&0x03FFFFF)))
+#define	makeMASK11x21(A,B,C,D,E,F,G,H,I,J,K,L) \
+	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|K<<21|(L&0x01FFFFF)))
+#define	makeMASK12x20(A,B,C,D,E,F,G,H,I,J,K,L,M) \
+	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|K<<21|L<<20|(M&0x00FFFFF)))
+
+#define reportSIZE(force,flags,echo,sgr,size)	\
+	((force&1)<<31 | (flags&1)<<30 | (echo&1)<<29 | (sgr&3)<<24 | (size&0xFFFF))
+
 // ####################################### enumerations ############################################
-
-
 // #################################### Public structures ##########################################
 
 typedef union {
