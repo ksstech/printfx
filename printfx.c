@@ -944,7 +944,7 @@ void vPrintIpAddress(xpc_t * psXPC, u32_t Val) {
  * the ESC sequences if the output is going to a socket, one way or another.
  */
 void vPrintSetGraphicRendition(xpc_t * psXPC, u32_t Val) {
-	if (psXPC->f.sga == 0) {
+	if (psXPC->f.sgr == 1) {
 		char Buffer[xpfMAX_LEN_SGR];
 		sgr_info_t sSGR = { .u32 = Val };
 		if (pcANSIlocate(Buffer, sSGR.c, sSGR.d) != Buffer) xPrintChars(psXPC, Buffer);
@@ -1308,15 +1308,19 @@ out_lbl:
 	return psXPC->f.curlen;
 }
 
-int	xPrintF(int (Hdlr)(xpc_t *, int), void * pVoid, size_t szBuf, const char * fmt, va_list vaList) {
+int	xPrintF(int (Hdlr)(xpc_t *, int), void * pVoid, size_t Size, const char * fmt, va_list vaList) {
 	xpc_t sXPC;
 	sXPC.handler = Hdlr;
 	sXPC.pVoid = pVoid;
-	sXPC.f.flg2 = szBuf >> (32 - xpfBITS_REPORT);
-	szBuf &= BIT_MASK32(0, (31 - xpfBITS_REPORT));
-	sXPC.f.maxlen = (szBuf > xpfMAXLEN_MAXVAL) ? xpfMAXLEN_MAXVAL : szBuf;
-	sXPC.f.curlen = 0;
 	sXPC.vaList = vaList;
+	// [v]wprintfx() ONLY!! 
+	// Move flags mapped onto MSByte of Size into xpc_t structure MSByte
+	if (Size > xpfMAXLEN_MAXVAL) {
+		sXPC.f.flg2 = Size >> (32 - xpfBITS_REPORT);
+		Size &= BIT_MASK32(0, (31 - xpfBITS_REPORT));
+	}
+	sXPC.f.maxlen = Size;
+	sXPC.f.curlen = 0;
 	return xPrintFX(&sXPC, fmt);
 }
 
@@ -1444,16 +1448,18 @@ int sprintfx(char * pBuf, const char * format, ...) {
 
 int	wvprintfx(report_t * psR, const char * pcFormat, va_list vaList) {
 	int iRV;
-	if (psR && psR->pcBuf && psR->Size) {
+	if (psR && psR->pcBuf && psR->size) {
 		IF_myASSERT(debugPARAM, halCONFIG_inSRAM(psR) && halCONFIG_inSRAM(psR->pcBuf));
 		iRV = vsnprintfx(psR->pcBuf, psR->Size, pcFormat, vaList);
 		if (iRV > 0) {
-			IF_myASSERT(debugRESULT, iRV <= psR->Size);
+			IF_myASSERT(debugRESULT, iRV <= psR->size);
 			psR->pcBuf += iRV;
-			psR->Size -= iRV;
+			psR->size -= iRV;
 		}
 	} else {
-		iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, pcFormat, vaList);
+		size_t Size = xpfMAXLEN_MAXVAL;
+		if (psR && psR->flags) Size |= psR->flags << (32-xpfBITS_REPORT);
+		iRV = xPrintF(xPrintStdOut, NULL, Size, pcFormat, vaList);
 	}
 	return iRV;
 }

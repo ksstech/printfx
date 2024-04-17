@@ -253,15 +253,23 @@ typedef struct report_t {
 	char * pcBuf;
 	union {
 		u32_t Size;
-		struct {
+		struct __attribute__((packed)) {
 			u32_t size : (32 - xpfBITS_REPORT);
-			u32_t sga : 2;
-			u32_t spare : 6;
+			union __attribute__((packed)) {
+				u32_t flags : xpfBITS_REPORT;
+				struct __attribute__((packed)) {
+					u32_t sgr : 2;
+					u32_t spare : 3;
+					u32_t fEcho : 1;		// enable command character(s) echo
+					u32_t fFlags : 1;		// Force checking of flag changes
+					u32_t fForce : 1;		// Force display of flags
+				};
+			};
 		};
 	};
 	fm_t sFM;
 } report_t;
-DUMB_STATIC_ASSERT(sizeof(report_t) == (sizeof(void *) + sizeof(fm_t) + sizeof(u32_t)));
+DUMB_STATIC_ASSERT(sizeof(report_t) == (sizeof(char *) + 8));
 
 typedef	struct xpf_t {
 	union {
@@ -301,7 +309,7 @@ typedef	struct xpf_t {
 			u8_t	arg_prec	: 1;				// precis specified
 			u8_t	plus		: 1;				// true = force use of '+' or '-' signed
 			u8_t	Pspc		: 1;
-/*byte 3*/	u8_t	sga			: 2;				// check to align with report_t size struct
+/*byte 3*/	u8_t	sgr			: 2;				// check to align with report_t size struct
 			u8_t	spare		: 6;				// SPARE !!!
 		};
 	};
@@ -336,9 +344,8 @@ int xPrintF(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list);
 // ##################################### Destination = STDOUT ######################################
 
 extern SemaphoreHandle_t printfxMux;
-struct report_t;
-void printfx_lock(struct report_t * psR);
-void printfx_unlock(struct report_t * psR);
+void printfx_lock(report_t * psR);
+void printfx_unlock(report_t * psR);
 
 int vnprintfx_nolock(size_t count, const char * format, va_list);
 int vprintfx_nolock(const char * format, va_list);
@@ -360,8 +367,8 @@ int sprintfx(char *, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 2, 
 
 // ############################## Destination = STDOUT -or- STRING #################################
 
-int	wvprintfx(struct report_t * psRprt, const char * pcFormat, va_list vaList);
-int wprintfx(struct report_t * psRprt, const char * pcFormat, ...);
+int	wvprintfx(report_t * psRprt, const char * pcFormat, va_list vaList);
+int wprintfx(report_t * psRprt, const char * pcFormat, ...);
 
 // ############################## LOW LEVEL DIRECT formatted output ################################
 
