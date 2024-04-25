@@ -1373,6 +1373,7 @@ int printfx(const char * format, ...) {
 	return iRV;
 }
 
+#if 0
 /*
  * [v[n]]printfx_nolock() - print to stdout without any semaphore locking.
  * 					securing the channel must be done manually
@@ -1392,6 +1393,7 @@ int printfx_nolock(const char * format, ...) {
 	va_end(vaList);
 	return iRV;
 }
+#endif
 
 // ##################################### Destination = STRING ######################################
 
