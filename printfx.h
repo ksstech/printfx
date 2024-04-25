@@ -104,7 +104,9 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define	xpfMAX_LEN_IP				sizeof("123.456.789.012")
 #define	xpfMAX_LEN_MAC				sizeof("01:23:45:67:89:ab")
 
-#define	xpfMAX_LEN_SGR				sizeof("\033[???;???;???;???m\000")
+#define	xpfLEN_SGR_ANSI				"\e[xxx;xxx?\000"
+#define	xpfLEN_SGR_LVGL_COL			"#?????? "
+#define	xpfMAX_LEN_SGR				(sizeof(xpfLEN_SGR_ANSI) + 1)
 
 #define	xpfNULL_STRING				"'null'"
 
@@ -134,8 +136,11 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 /* https://en.wikipedia.org/wiki/ANSI_escape_code#Escape_sequences
  * http://www.termsys.demon.co.uk/vtansi.htm#colors
  */
-
-#define	xpfSGR(a,b,c,d)				(((u8_t) d << 24) + ((u8_t) c << 16) + ((u8_t) b << 8) + (u8_t) a)
+#define _xpfSGR(p,v)				((v & 0xFF) << (p * 8))
+#define	xpfSGR(r,c,a1,a2)			(_xpfSGR(3,r) | _xpfSGR(2,c) | _xpfSGR(1,a1) | _xpfSGR(0,a2))
+// Used to convert LVGL 16bit colour code to 2x 8bit values
+#define xpfSGR_LVGL_Ha(val)			(val >> 8)
+#define xpfSGR_LVGL_Lb(val)			(val &0xFF)
 
 #define	xpfBITS_REPORT				8
 
@@ -154,10 +159,13 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 	((force&1)<<31 | (flags&1)<<30 | (echo&1)<<29 | (sgr&3)<<24 | (size&0xFFFF))
 
 // ####################################### enumerations ############################################
+
+enum { sgrNONE, sgrANSI, sgrLVGL, sgrOTHER };
+
 // #################################### Public structures ##########################################
 
 typedef union {
-	struct __attribute__((packed)) { u8_t a, b, c, d; };
+	struct __attribute__((packed)) { u8_t a2, a1, c, r; };
 	u8_t u8[sizeof(u32_t)];
 	u32_t u32;
 } sgr_info_t;
@@ -268,13 +276,15 @@ typedef struct report_t {
 		struct __attribute__((packed)) {
 			u32_t size : (32 - xpfBITS_REPORT);
 			union __attribute__((packed)) {
-				u32_t flags : xpfBITS_REPORT;
+				u8_t flags : xpfBITS_REPORT;
 				struct __attribute__((packed)) {
-					u32_t sgr : 2;
-					u32_t spare : 3;
-					u32_t fEcho : 1;		// enable command character(s) echo
-					u32_t fFlags : 1;		// Force checking of flag changes
-					u32_t fForce : 1;		// Force display of flags
+					u8_t sgr : 2;
+					u8_t spare : 1;
+					u8_t fUnlock : 1;		// Unlock at exit
+					u8_t fLock : 1;			// Lock at entry
+					u8_t fEcho : 1;			// enable command character(s) echo
+					u8_t fFlags : 1;		// Force checking of flag changes
+					u8_t fForce : 1;		// Force display of flags
 				};
 			};
 		};
@@ -321,6 +331,7 @@ typedef	struct xpf_t {
 			u8_t	arg_prec	: 1;				// precis specified
 			u8_t	plus		: 1;				// true = force use of '+' or '-' signed
 			u8_t	Pspc		: 1;
+			// end flg1. start flg2
 /*byte 3*/	u8_t	sgr			: 2;				// check to align with report_t size struct
 			u8_t	spare		: 6;				// SPARE !!!
 		};

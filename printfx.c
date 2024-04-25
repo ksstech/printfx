@@ -937,18 +937,26 @@ void vPrintIpAddress(xpc_t * psXPC, u32_t Val) {
  * @param psXPC
  * @param Val	U32 value treated as 4x U8 being SGR color/attribute codes
  *
- * XXX: Since we are using the same command handler to process (UART, HTTP & TNET)
- * requests, and we are embedding colour ESC sequences into the formatted output,
- * and the colour ESC sequences (handled by UART & TNET) are not understood by
- * the HTTP protocol, we must try to filter out the possible output produced by
- * the ESC sequences if the output is going to a socket, one way or another.
+ * LVGL https://docs.lvgl.io/8.4/widgets/core/label.html?highlight=printf%20text%20color
  */
 void vPrintSetGraphicRendition(xpc_t * psXPC, u32_t Val) {
-	if (psXPC->f.sgr == 1) {
-		char Buffer[xpfMAX_LEN_SGR];
-		sgr_info_t sSGR = { .u32 = Val };
-		if (pcANSIlocate(Buffer, sSGR.c, sSGR.d) != Buffer) xPrintChars(psXPC, Buffer);
-		if (pcANSIattrib(Buffer, sSGR.a, sSGR.b) != Buffer) xPrintChars(psXPC, Buffer);
+	char Buffer[xpfMAX_LEN_SGR];
+	sgr_info_t sSGR = { .u32 = Val };
+	switch (psXPC->f.sgr) {
+	case sgrANSI:
+		#if (halUSE_CURSOR == 1)						// Optional terminal support
+		if (pcTermLocate(Buffer, sSGR.r, sSGR.c) != Buffer) {
+			xPrintChars(psXPC, Buffer);					// cursor location, 1 relative, row & column
+		}
+		#endif
+		if (pcTermAttrib(Buffer, sSGR.a1, sSGR.a2) != Buffer) {
+			xPrintChars(psXPC, Buffer);					// attribute[s]
+		}
+		break;
+//	case sgrNONE:
+//	case sgrLVGL:
+//	case sgrOTHER:
+	default:
 	}
 }
 
@@ -1459,6 +1467,8 @@ int	wvprintfx(report_t * psR, const char * pcFormat, va_list vaList) {
 	} else {
 		size_t Size = xpfMAXLEN_MAXVAL;
 		if (psR && psR->flags) Size |= psR->flags << (32-xpfBITS_REPORT);
+			if (psR->flags)
+				Size |= psR->flags << (32-xpfBITS_REPORT);
 		iRV = xPrintF(xPrintStdOut, NULL, Size, pcFormat, vaList);
 	}
 	return iRV;
