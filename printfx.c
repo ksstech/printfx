@@ -1338,52 +1338,37 @@ int	xPrintF(int (Hdlr)(xpc_t *, int), void * pVoid, size_t Size, const char * fm
 
 // ################################### Destination = STDOUT ########################################
 
-/**
- * Locks the STDOUT semaphore (if required)
- */
-void printfx_lock(report_t * psR) {
-	if (!psR || !psR->pcBuf || !psR->Size) xRtosSemaphoreTake(&printfxMux, portMAX_DELAY);
-}
-
-/**
- * Unlock the STDOUT semaphore (if required)
- */
-void printfx_unlock(report_t * psR) {
-	if (!psR || !psR->pcBuf || !psR->Size) xRtosSemaphoreGive(&printfxMux);
-}
-
 static int xPrintStdOut(xpc_t * psXPC, int cChr) { return putchar(cChr); }
 
 int vnprintfx(size_t szLen, const char * format, va_list vaList) {
-	printfx_lock(NULL);
+	xRtosSemaphoreTake(&shUARTmux, portMAX_DELAY);
 	int iRV = xPrintF(xPrintStdOut, NULL, szLen, format, vaList);
-	printfx_unlock(NULL);
+	xRtosSemaphoreGive(&shUARTmux);
 	return iRV;
 }
 
 int nprintfx(size_t szLen, const char * format, ...) {
 	va_list vaList;
 	va_start(vaList, format);
-	printfx_lock(NULL);
+	xRtosSemaphoreTake(&shUARTmux, portMAX_DELAY);
 	int iRV = xPrintF(xPrintStdOut, NULL, szLen, format, vaList);
-	printfx_unlock(NULL);
+	xRtosSemaphoreGive(&shUARTmux);
 	va_end(vaList);
 	return iRV;
 }
 
 int vprintfx(const char * format, va_list vaList) {
-	printfx_lock(NULL);
 	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
-	printfx_unlock(NULL);
+	xRtosSemaphoreGive(&shUARTmux);
 	return iRV;
 }
 
 int printfx(const char * format, ...) {
 	va_list vaList;
 	va_start(vaList, format);
-	printfx_lock(NULL);
+	xRtosSemaphoreTake(&shUARTmux, portMAX_DELAY);
 	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
-	printfx_unlock(NULL);
+	xRtosSemaphoreGive(&shUARTmux);
 	va_end(vaList);
 	return iRV;
 }
@@ -1535,9 +1520,9 @@ static int xPrintToConsole(xpc_t * psXPC, int cChr) {
 }
 
 int vcprintfx(const char * format, va_list vaList) {
-	printfx_lock(NULL);
+	xRtosSemaphoreTake(&shUARTmux, portMAX_DELAY);
 	int iRV = xPrintF(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vaList);
-	printfx_unlock(NULL);
+	xRtosSemaphoreGive(&shUARTmux);
 	return iRV;
 }
 
