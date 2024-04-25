@@ -1340,7 +1340,7 @@ int	xPrintF(int (Hdlr)(xpc_t *, int), void * pVoid, size_t Size, const char * fm
 static int xPrintStdOut(xpc_t * psXPC, int cChr) { return putchar(cChr); }
 
 int vnprintfx(size_t szLen, const char * format, va_list vaList) {
-	xRtosSemaphoreTake(&shUARTmux, portMAX_DELAY);
+	xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
 	int iRV = xPrintF(xPrintStdOut, NULL, szLen, format, vaList);
 	xRtosSemaphoreGive(&shUARTmux);
 	return iRV;
@@ -1349,7 +1349,7 @@ int vnprintfx(size_t szLen, const char * format, va_list vaList) {
 int nprintfx(size_t szLen, const char * format, ...) {
 	va_list vaList;
 	va_start(vaList, format);
-	xRtosSemaphoreTake(&shUARTmux, portMAX_DELAY);
+	xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
 	int iRV = xPrintF(xPrintStdOut, NULL, szLen, format, vaList);
 	xRtosSemaphoreGive(&shUARTmux);
 	va_end(vaList);
@@ -1357,6 +1357,7 @@ int nprintfx(size_t szLen, const char * format, ...) {
 }
 
 int vprintfx(const char * format, va_list vaList) {
+	xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
 	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
 	xRtosSemaphoreGive(&shUARTmux);
 	return iRV;
@@ -1365,7 +1366,7 @@ int vprintfx(const char * format, va_list vaList) {
 int printfx(const char * format, ...) {
 	va_list vaList;
 	va_start(vaList, format);
-	xRtosSemaphoreTake(&shUARTmux, portMAX_DELAY);
+	xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
 	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
 	xRtosSemaphoreGive(&shUARTmux);
 	va_end(vaList);
@@ -1538,7 +1539,7 @@ static int xPrintToConsole(xpc_t * psXPC, int cChr) {
 }
 
 int vcprintfx(const char * format, va_list vaList) {
-	xRtosSemaphoreTake(&shUARTmux, portMAX_DELAY);
+	xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
 	int iRV = xPrintF(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vaList);
 	xRtosSemaphoreGive(&shUARTmux);
 	return iRV;
@@ -1547,7 +1548,9 @@ int vcprintfx(const char * format, va_list vaList) {
 int cprintfx(const char * format, ...) {
 	va_list vaList;
 	va_start(vaList, format);
+	xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
 	int iRV = xPrintF(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, format, vaList);
+	xRtosSemaphoreGive(&shUARTmux);
 	va_end(vaList);
 	return iRV;
 }
