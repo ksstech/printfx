@@ -27,8 +27,9 @@
 	#include "crc-barr.h"						// Barr group CRC
 #endif
 
-#define	debugFLAG					0xF000
+// ########################################### Macros ##############################################
 
+#define	debugFLAG					0xF000
 #define	debugTIMING					(debugFLAG_GLOBAL & debugFLAG & 0x1000)
 #define	debugTRACK					(debugFLAG_GLOBAL & debugFLAG & 0x2000)
 #define	debugPARAM					(debugFLAG_GLOBAL & debugFLAG & 0x4000)
@@ -44,9 +45,7 @@
 #define	xpfSUPPORT_SCALING			1					// scale number down by 10^[3/6/9/12/15/18]
 #define	xpfSUPPORT_SGR				1					// Set Graphics Rendition FG & BG colors only
 #define	xpfSUPPORT_URL				1					// URL encoding
-
 #define	xpfSUPPORT_ALIASES			1
-
 #define	xpfSUPPORT_FILTER_NUL		1
 
 // ###################################### Scaling factors ##########################################
@@ -89,7 +88,7 @@ const char hexchars[] = "0123456789ABCDEF";
 
 SemaphoreHandle_t printfxMux = NULL;
 
-// #################################### local only functions #######################################
+// ##################################### Private functions #########################################
 
 x64_t x64PrintGetValue(xpc_t * psXPC) {
 	x64_t X64;
@@ -638,10 +637,14 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 		terminfo_t sTI;
 		vTerminalGetInfo(&sTI);
 		iWidth = sTI.MaxX;
-		if (psXPC->f.ljust && sTI.MaxX <= (32+6)) psXPC->f.ljust = 0;	// little space, disable addr
-		else iWidth -= psXPC->f.ljust ? 0 : 11;			// addr req, decr rem space
-		if (!psXPC->f.plus || iWidth > 32) iWidth /= 4;	// ASCII on right = 4 col/char
-		else {
+		if (psXPC->f.ljust && sTI.MaxX <= (32+6)) {
+			psXPC->f.ljust = 0;							// little space, disable addr
+		} else { 
+			iWidth -= psXPC->f.ljust ? 0 : 11;			// addr req, decr rem space
+		}
+		if (!psXPC->f.plus || iWidth > 32) {
+			iWidth /= 4;								// ASCII on right = 4 col/char
+		} else {
 			psXPC->f.plus = 0;							// too little space, disable ASCII
 			iWidth /= 3;								// no ASCII on right = 3 col/char
 		}
@@ -670,7 +673,8 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 				xPrintChar(psXPC, bFlag ? CHR_FULLSTOP : cChr);
 			}
 		}
-		if ((Now < xLen) && (xLen > iWidth)) xPrintChars(psXPC, strCRLF);
+		if ((Now < xLen) && (xLen > iWidth))
+			xPrintChars(psXPC, strCRLF);
 	}
 }
 
