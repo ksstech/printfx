@@ -157,6 +157,11 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 
 #define reportSIZE(force,flags,echo,sgr,size)	\
 	((force&1)<<31 | (flags&1)<<30 | (echo&1)<<29 | (sgr&3)<<24 | (size&0xFFFF))
+#define WPFX_TIMEOUT			pdMS_TO_TICKS(1000)
+#define WPFX_LOCK(psR)			{ if (psR != NULL) psR->fLock = 1; }
+#define WPFX_UNLOCK(psR)		{ if (psR != NULL) psR->fUnlock = 1; }
+#define WPFX_LOCK_UNLOCK(psR)	{ if (psR != NULL) psR->fLock = psR->fUnlock = 1; }
+
 
 // ####################################### enumerations ############################################
 
