@@ -207,13 +207,13 @@ typedef	union {
 		u32_t	h:1, g:1, f:1, e:1, d:1, c:1, b:1, a:1;
 	};
 	struct __attribute__((packed)) {// 8:24 General printing
-		u32_t	aCount:24;			// Counter
-		u32_t	aSpare:1;
-		u32_t	aPrioX:1;			// Priorities
-		u32_t	aState:1;			// Task state RBPS
-		u32_t	aStack:1;			// Low Stack value
-		u32_t	aCore:1;			// MCU 01X
-		u32_t	aXtras:1;
+		u32_t	aSpare8:24;
+		u32_t	aSpare7:1;
+		u32_t	aSpare6:1;
+		u32_t	aSpare5:1;
+		u32_t	aSpare4:1;
+		u32_t	aSpare3:1;
+		u32_t	aSpare2:1;
 		u32_t	aNL:1;
 		u32_t	aRT:1;
 	};
@@ -252,11 +252,10 @@ typedef	union {
 		u32_t	rmNL:1;
 		u32_t	rmRT:1;
 	};
-	struct __attribute__((packed)) {// 10:22 Sensors reporting
-		u32_t	senFree:22;
+	struct __attribute__((packed)) {// 9:23 Sensors reporting
+		u32_t	senFree:23;
 		u32_t	senTlog:1;
 		u32_t	senTsen:1;
-		u32_t	senSpare:1;
 		u32_t 	senDev:1;
 		u32_t 	senAvg:1;
 		u32_t 	senSum:1;
