@@ -17,9 +17,9 @@ extern "C" {
 // "format" used by ALL tracking macros.
 extern u64_t RunTime;
 
-#define	_L_(f)						" [%s:%d] " f "", __FUNCTION__, __LINE__
-#define	_T_(f)						" [%!.R] " f "", RunTime
-#define	_TL_(f)						" [%!.R:%s:%d] " f "", RunTime, __FUNCTION__, __LINE__
+#define	_L_(f)						" [%s:%d] " f, __FUNCTION__, __LINE__
+#define	_T_(f)						" [%!.R] " f, RunTime
+#define	_TL_(f)						" [%!.R:%s:%d] " f, RunTime, __FUNCTION__, __LINE__
 
 #define	P(f, ...)					printfx(f, ##__VA_ARGS__)
 #define	PX(f, ...)					printfx(f, ##__VA_ARGS__)
@@ -345,6 +345,7 @@ typedef	struct xpc_t {
 } xpc_t;
 DUMB_STATIC_ASSERT(sizeof(xpc_t) == (sizeof(int *) + sizeof(void *) + sizeof(xpf_t) + sizeof(va_list)));
 
+// ################################### Public variables ############################################
 // ################################### Public functions ############################################
 
 int xPrintFX(xpc_t * psXPC, const char * format);
@@ -355,13 +356,9 @@ int xPrintF(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list);
 
 // ##################################### Destination = STDOUT ######################################
 
-extern SemaphoreHandle_t printfxMux;
-void printfx_lock(report_t * psR);
-void printfx_unlock(report_t * psR);
-
-int vnprintfx_nolock(size_t count, const char * format, va_list);
-int vprintfx_nolock(const char * format, va_list);
-int printfx_nolock(const char * format, ...);
+//int vnprintfx_nolock(size_t count, const char * format, va_list);
+//int vprintfx_nolock(const char * format, va_list);
+//int printfx_nolock(const char * format, ...);
 
 int vnprintfx(size_t, const char *, va_list) _ATTRIBUTE ((__format__ (__printf__, 2, 0)));
 int vprintfx(const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
