@@ -1530,10 +1530,10 @@ int	dprintfx(int fd, const char * format, ...) {
  */
 
 static int xPrintToConsole(xpc_t * psXPC, int cChr) {
-	#if (buildSTDOUT_LEVEL == 0)
-	return esp_rom_printf("%c", cChr);
+	#if (buildSTDOUT_LEVEL > 0)
+	return putchar_cursor(cChr, 0);
 	#else
-	return putchar_direct(cChr); 
+	return esp_rom_printf("%c", cChr);
 	#endif
 }
 
