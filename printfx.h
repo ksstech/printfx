@@ -155,13 +155,13 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define	makeMASK12x20(A,B,C,D,E,F,G,H,I,J,K,L,M) \
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|K<<21|L<<20|(M&0x00FFFFF)))
 
-#define reportSIZE(force,flags,echo,sgr,size)	\
-	((force&1)<<31 | (flags&1)<<30 | (echo&1)<<29 | (sgr&3)<<24 | (size&0xFFFF))
 #define WPFX_TIMEOUT			pdMS_TO_TICKS(1000)
 #define WPFX_LOCK(psR)			{ if (psR != NULL) psR->fLock = 1; }
 #define WPFX_UNLOCK(psR)		{ if (psR != NULL) psR->fUnlock = 1; }
 #define WPFX_LOCK_UNLOCK(psR)	{ if (psR != NULL) psR->fLock = psR->fUnlock = 1; }
 
+#define reportSIZE(a,b,c,ml,mu,sga,size) \
+	((a&1)<<31 | (b&1)<<30 | (c&1)<<29 | (ml&1)<<28 | (mu&1)<<27 | (sga&3)<<24 | (size&0xFFFF))
 
 // ####################################### enumerations ############################################
 
