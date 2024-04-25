@@ -84,10 +84,7 @@ const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 
 const char hexchars[] = "0123456789ABCDEF";
 
-// ###################################### Global variables #########################################
-
-SemaphoreHandle_t printfxMux = NULL;
-
+// ###################################### Public variables #########################################
 // ##################################### Private functions #########################################
 
 x64_t x64PrintGetValue(xpc_t * psXPC) {
@@ -1446,7 +1443,7 @@ int sprintfx(char * pBuf, const char * format, ...) {
  */
 
 int	wvprintfx(report_t * psR, const char * pcFormat, va_list vaList) {
-	int iRV;
+	int iRV = 0;
 	if (psR && psR->pcBuf && psR->size) {
 		IF_myASSERT(debugPARAM, halCONFIG_inSRAM(psR) && halCONFIG_inSRAM(psR->pcBuf));
 		iRV = vsnprintfx(psR->pcBuf, psR->Size, pcFormat, vaList);
@@ -1456,12 +1453,31 @@ int	wvprintfx(report_t * psR, const char * pcFormat, va_list vaList) {
 			psR->size -= iRV;
 		}
 	} else {
+		BaseType_t btRV = pdTRUE;
 		size_t Size = xpfMAXLEN_MAXVAL;
 		if (psR && psR->flags) Size |= psR->flags << (32-xpfBITS_REPORT);
 			if (psR->flags)
 				Size |= psR->flags << (32-xpfBITS_REPORT);
+			if (psR->fLock) {
+				btRV = xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
+				psR->fLock = 0;
+			}
+		} else {
+			btRV = xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
+		}
+		if (btRV == pdFALSE)		// semaphore not obtained, return....
+			goto exit;
 		iRV = xPrintF(xPrintStdOut, NULL, Size, pcFormat, vaList);
+		if (psR) {
+			if (psR->fUnlock) {
+				btRV = xRtosSemaphoreGive(&shUARTmux);
+				psR->fUnlock = 0;
+			}
+		} else {
+			btRV = xRtosSemaphoreGive(&shUARTmux);
+		}
 	}
+exit:
 	return iRV;
 }
 
