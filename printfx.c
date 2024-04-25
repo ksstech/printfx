@@ -632,7 +632,7 @@ void vPrintHexDump(xpc_t * psXPC, int xLen, char * pStr) {
 	else {
 		#if (includeTERMINAL_CONTROLS == 1)
 		terminfo_t sTI;
-		vTerminalGetInfo(&sTI);
+		vTermGetInfo(&sTI);
 		iWidth = sTI.MaxX;
 		if (psXPC->f.ljust && sTI.MaxX <= (32+6)) {
 			psXPC->f.ljust = 0;							// little space, disable addr
