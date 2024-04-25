@@ -1455,7 +1455,7 @@ int	wvprintfx(report_t * psR, const char * pcFormat, va_list vaList) {
 	} else {
 		BaseType_t btRV = pdTRUE;
 		size_t Size = xpfMAXLEN_MAXVAL;
-		if (psR && psR->flags) Size |= psR->flags << (32-xpfBITS_REPORT);
+		if (psR) {
 			if (psR->flags)
 				Size |= psR->flags << (32-xpfBITS_REPORT);
 			if (psR->fLock) {
