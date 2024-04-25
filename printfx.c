@@ -975,7 +975,8 @@ void vPrintSetGraphicRendition(xpc_t * psXPC, u32_t Val) {
  */
 
 int	xPrintFX(xpc_t * psXPC, const char * fmt) {
-	fmt = (fmt == NULL) ? "nullPTR" : (*fmt == 0) ? "nullFMT" : fmt;
+	if (fmt == NULL || *fmt == CHR_NUL)
+		goto exit;
 	for (; *fmt != 0; ++fmt) {
 	// start by expecting format indicator
 		if (*fmt == CHR_PERCENT) {
@@ -1317,6 +1318,7 @@ out_lbl:
 			xPrintChar(psXPC, *fmt);
 		}
 	}
+exit:
 	return psXPC->f.curlen;
 }
 
