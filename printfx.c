@@ -86,16 +86,16 @@ x64_t x64PrintGetValue(xpc_t * psXPC) {
 	case S_hh:
 	case S_h:
 		if (psXPC->f.signval == 1) {
-			X64.i64 = (i64_t) va_arg(psXPC->vaList, int);
+			X64.i64 = va_arg(psXPC->vaList, int);
 		} else {
-			X64.u64 = (u64_t) va_arg(psXPC->vaList, unsigned int);
+			X64.u64 = va_arg(psXPC->vaList, unsigned int);
 		}
 		break;
 	case S_l:
 		if (psXPC->f.signval == 1) {
-			X64.i64 = (i64_t) va_arg(psXPC->vaList, i32_t);
+			X64.i64 = va_arg(psXPC->vaList, i32_t);
 		} else {
-			X64.u64 = (u64_t) va_arg(psXPC->vaList, u32_t);
+			X64.u64 = va_arg(psXPC->vaList, u32_t);
 		}
 		break;
 	case S_ll:
@@ -107,9 +107,9 @@ x64_t x64PrintGetValue(xpc_t * psXPC) {
 		break;
 	case S_z:
 		if (psXPC->f.signval) {
-			X64.i64 = (i64_t) va_arg(psXPC->vaList, size_t);
+			X64.i64 = va_arg(psXPC->vaList, ssize_t);
 		} else {
-			X64.u64 = (u64_t) va_arg(psXPC->vaList, size_t);
+			X64.u64 = va_arg(psXPC->vaList, size_t);
 		}
 		break;
 	default:
@@ -407,7 +407,8 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 		}
 	}
 	u8_t AdjForm = psXPC->f.form!=form0G ? psXPC->f.form : (Exp<-4 || Exp>=psXPC->f.precis) ? form2E : form1F;
-	if (AdjForm == form2E) F64 = X64.f64;				// change to exponent adjusted value
+	if (AdjForm == form2E)
+		F64 = X64.f64;									// change to exponent adjusted value
 	if (F64 < (DBL_MAX - round_nums[psXPC->f.precis]))	// if addition of rounding value will NOT cause overflow.
 		F64 += round_nums[psXPC->f.precis];				// round by adding .5LSB to the value
 	char Buffer[xpfMAX_LEN_F64];
@@ -556,7 +557,6 @@ void vPrintHexValues(xpc_t * psXPC, int Num, char * pStr) {
 	int Size = S_bytes[psXPC->f.llong];
 	if (psXPC->f.alt_form)								// invert order ?
 		pStr += Num - Size;								// working backwards so point to last
-
 	x64_t x64Val;
 	int	Idx	= 0;
 	while (Idx < Num) {
@@ -964,15 +964,16 @@ void vPrintSetGraphicRendition(xpc_t * psXPC, u32_t Val) {
  */
 
 int	xPrintFX(xpc_t * psXPC, const char * fmt) {
-	if (fmt == NULL || *fmt == CHR_NUL)
+	if (fmt == NULL)
 		goto exit;
-	for (; *fmt != 0; ++fmt) {
-	// start by expecting format indicator
-		if (*fmt == CHR_PERCENT) {
+	for (; *fmt != CHR_NUL; ++fmt) {
+		if (*fmt == CHR_PERCENT) {						// start by expecting format indicator
 			++fmt;
-			if (*fmt == CHR_NUL) break;
-			if (*fmt == CHR_PERCENT) goto out_lbl;
-			psXPC->f.flg1 = 0;							// set some flags to default
+			if (*fmt == CHR_NUL)
+				break;
+			if (*fmt == CHR_PERCENT)
+				goto out_lbl;
+			psXPC->f.flg1 = 0;							// reset internal/dynamic flags
 			psXPC->f.limits	= 0;						// reset field specific limits
 			psXPC->f.nbase = BASE10;					// default number base
 			int	cFmt;
@@ -1073,6 +1074,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				}
 			}
 			IF_myASSERT(debugTRACK, psXPC->f.llong < S_XXX);	// rest not yet supported
+			
 			// Check if format character where UC/lc same character control the case of the output
 			cFmt = *fmt;
 			if (strchr_i(vPrintStr1, cFmt) != erFAILURE) {
@@ -1080,7 +1082,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				psXPC->f.Ucase = 1;						// indicate as UPPER case requested
 			}
 
-			x64_t X64;								// default x64 variable
+			x64_t X64;									// default x64 variable
 			px_t pX;
 			#if	(xpfSUPPORT_DATETIME == 1)
 			tsz_t * psTSZ;
@@ -1200,8 +1202,7 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			 * '#'	change prepended "0b" to "0B"
 			 * '''	Group digits using '|' (bytes) and '-' (nibbles)
 			 */
-			case CHR_b:
-				{
+			case CHR_b: {
 					X64 = x64PrintGetValue(psXPC);
 					psXPC->f.group = 0;
 					X32.iX = S_bytes[psXPC->f.llong] * BITS_IN_BYTE;
@@ -1215,9 +1216,9 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 						mask >>= 1;
 						// handle the complex grouping separator(s) boundary 8 use '|' or 4 use '-'
 						if (--X32.iX && psXPC->f.form && (X32.iX % 4) == 0) {
-							xPrintChar(psXPC, X32.iX % 32 == 0 ? CHR_VERT_BAR :		// word boundary
-											  X32.iX % 16 == 0 ? CHR_COLON :			// short boundary
-										  	  X32.iX % 8 == 0 ? CHR_SPACE : CHR_MINUS);// byte boundary or nibble
+							xPrintChar(psXPC, X32.iX % 32 == 0 ? CHR_VERT_BAR :			// word
+											  X32.iX % 16 == 0 ? CHR_COLON :			// short
+										  	  X32.iX % 8 == 0 ? CHR_SPACE : CHR_MINUS);	// byte or nibble
 						}
 					}
 				}
