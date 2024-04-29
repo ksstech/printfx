@@ -1320,7 +1320,7 @@ int	xPrintF(int (Hdlr)(xpc_t *, int), void * pVoid, size_t Size, const char * fm
 	// Move flags mapped onto MSByte of Size into xpc_t structure MSByte
 	if (Size > xpfMAXLEN_MAXVAL) {
 		sXPC.f.flg2 = Size >> (32 - xpfBITS_REPORT);
-		Size &= BIT_MASK32(0, (31 - xpfBITS_REPORT));
+		Size &= BIT_MASK32(0, xpfMAXLEN_BITS - 1);
 	}
 	sXPC.f.maxlen = Size;
 	sXPC.f.curlen = 0;
@@ -1451,8 +1451,8 @@ int	wvprintfx(report_t * psR, const char * pcFormat, va_list vaList) {
 		BaseType_t btRV = pdTRUE;
 		size_t Size = xpfMAXLEN_MAXVAL;
 		if (psR) {
-			if (psR->flags)
-				Size |= psR->flags << (32-xpfBITS_REPORT);
+			if (psR->sgr)
+				Size |= (psR->sgr << 30);
 			if (psR->fLock) {
 				btRV = xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
 				psR->fLock = 0;

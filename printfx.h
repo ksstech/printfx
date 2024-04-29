@@ -142,7 +142,7 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define xpfSGR_LVGL_Ha(val)			(val >> 8)
 #define xpfSGR_LVGL_Lb(val)			(val &0xFF)
 
-#define	xpfBITS_REPORT				8
+#define	xpfBITS_REPORT				2
 
 #define	makeMASK08x24(A,B,C,D,E,F,G,H,I)	\
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|(I&0x00FFFFFF)))
@@ -321,9 +321,6 @@ typedef	struct xpf_t {
 			u32_t	flg2 : xpfBITS_REPORT;				// flags to be retained
 		};
 		struct __attribute__((packed)) {
-			// end flg1. start flg2
-/*byte 3*/	u8_t	sgr			: 2;				// check to align with report_t size struct
-			u8_t	spare		: 6;				// SPARE !!!
 /*byte 0*/	bool	group 		: 1;					// 0 = disable, 1 = enable
 			bool	alt_form	: 1;					// '#'
 			bool	ljust		: 1;					// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
@@ -342,6 +339,9 @@ typedef	struct xpf_t {
 			bool	Pspc		: 1;
 /*byte 3*/	bool	bArray		: 1;
 			bool	bFloat		: 1;
+			u8_t	spare		: 4;					// SPARE !!!
+			// end flg1. start flg2, sum of bit widths below = xpfBITS_REPORT
+			u8_t	sgr			: 2;					// check to align with report_t size struct
 		};
 	};
 } xpf_t;
