@@ -356,13 +356,6 @@ int	xPrintXxx(xpc_t * psXPC, u64_t u64Val, char * pBuffer, int BufSize) {
 	return Len;
 }
 
-void vPrintX64(xpc_t * psXPC, u64_t Value) {
-	char Buffer[xpfMAX_LEN_X64];
-	Buffer[xpfMAX_LEN_X64 - 1] = 0;				// terminate the buffer, single value built R to L
-	int Len = xPrintXxx(psXPC, Value, Buffer, xpfMAX_LEN_X64 - 1);
-	vPrintString(psXPC, Buffer + (xpfMAX_LEN_X64 - 1 - Len));
-}
-
 /**
  * @brief	convert double value based on flags supplied and output via control structure
  * @param	psXPC - pointer to control structure
@@ -471,6 +464,43 @@ void vPrintF64(xpc_t * psXPC, double F64) {
 	psXPC->f.arg_width = sXPF.arg_width;
 	psXPC->f.minwid = sXPF.minwid;
 	vPrintString(psXPC, Buffer + (xpfMAX_LEN_F64 - 1 - Len));
+}
+
+void vPrintX64(xpc_t * psXPC, u64_t Value) {
+	char Buffer[xpfMAX_LEN_X64];
+	Buffer[xpfMAX_LEN_X64 - 1] = 0;				// terminate the buffer, single value built R to L
+	int Len = xPrintXxx(psXPC, Value, Buffer, xpfMAX_LEN_X64 - 1);
+	vPrintString(psXPC, Buffer + (xpfMAX_LEN_X64 - 1 - Len));
+}
+
+void vPrintX64array(xpc_t * psXPC) {
+	vs_e eVS = (psXPC->f.llong == S_hh) ? vs08B :
+				(psXPC->f.llong == S_h) ? vs16B :
+				(psXPC->f.llong == S_l) ? vs32B :
+				(psXPC->f.llong == S_ll) ? vs64B : vs32B;
+	vf_e eVF = psXPC->f.bFloat ? vfFXX : psXPC->f.signval ? vfIXX : vfUXX;
+	cvi_e cvI = xFormSize2Index(eVF, eVS);
+	x32_t X32; X32.iX = va_arg(psXPC->vaList, int);	// array size
+	px_t pX; pX.pv = va_arg(psXPC->vaList, void *);	// pointer to 1st element of array
+	u32_t savLimits = psXPC->f.limits;
+	u32_t savFlags = psXPC->f.flags;
+	while (X32.iX) {
+		x64_t X64 = x64ValueFetch(pX, cvI);
+		if (eVF == vfIXX && X64.i64 < 0LL) {
+			psXPC->f.negvalue = 1;
+			X64.i64 *= -1; 	// convert the value to unsigned
+		}
+		if (psXPC->f.bFloat) {
+			vPrintF64(psXPC, X64.f64);
+		} else {
+			vPrintX64(psXPC, X64.u64);
+		}
+		psXPC->f.flags = savFlags;
+		psXPC->f.limits = savLimits;
+		if (--X32.iX)
+			xPrintChar(psXPC, CHR_COMMA);
+		pX = pxAddrNextWithIndex(pX, cvI);
+	}
 }
 
 void vPrintPointer(xpc_t * psXPC, px_t pX) {
@@ -979,22 +1009,23 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			int	cFmt;
 			x32_t X32 = { 0 };
 			// Optional FLAGS must be in correct sequence of interpretation
-			while ((cFmt = strchr_i("!#'*+- 0", *fmt)) != erFAILURE) {
+			while ((cFmt = strchr_i("!#&'*+- 0", *fmt)) != erFAILURE) {
 				switch (cFmt) {
 				case 0:	psXPC->f.rel_val = 1; break;	// !	HEXDUMP/DTZ abs->rel address/time, MAC use ':' separator
 				case 1:	psXPC->f.alt_form = 1; break;	// #	DTZ=GMT format, HEXDUMP/IP swop endian, STRING centre
-				case 2: psXPC->f.group = 1; break;		// '	"diu" add 3 digit grouping, DTZ, MAC, DUMP select separator set
-				case 3:									// *	indicate argument will supply field width
+				case 2: psXPC->f.bArray = 1; break;		// &	Array size & address provided
+				case 3: psXPC->f.group = 1; break;		// '	"diu" add 3 digit grouping, DTZ, MAC, DUMP select separator set
+				case 4:									// *	indicate argument will supply field width
 					X32.iX	= va_arg(psXPC->vaList, int);
 					IF_myASSERT(debugTRACK, psXPC->f.arg_width == 0 && X32.iX <= xpfMINWID_MAXVAL);
 					psXPC->f.minwid = X32.iX;
 					psXPC->f.arg_width = 1;
 					X32.i32 = 0;
 					break;
-				case 4: psXPC->f.plus = 1; break;		// +	force +/-, HEXDUMP add ASCII, TIME add TZ info
-				case 5: psXPC->f.ljust = 1; break;		// -	Left justify, HEXDUMP remove address pointer
-				case 6:	psXPC->f.Pspc = 1; break;		//  	' ' instead of '+'
-				case 7:	psXPC->f.pad0 = 1; break;		// 0	force leading '0's
+				case 5: psXPC->f.plus = 1; break;		// +	force +/-, HEXDUMP add ASCII, TIME add TZ info
+				case 6: psXPC->f.ljust = 1; break;		// -	Left justify, HEXDUMP remove address pointer
+				case 7:	psXPC->f.Pspc = 1; break;		//  	' ' instead of '+'
+				case 8:	psXPC->f.pad0 = 1; break;		// 0	force leading '0's
 				default: assert(0);
 				}
 				++fmt;
@@ -1229,12 +1260,16 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			case CHR_d:									// signed decimal "[-]ddddd"
 			case CHR_i:									// signed integer (same as decimal ?)
 				psXPC->f.signval = 1;
-				X64 = x64PrintGetValue(psXPC);
-				if (X64.i64 < 0LL) {
-					psXPC->f.negvalue = 1;
-					X64.i64 *= -1; 					// convert the value to unsigned
+				if (psXPC->f.bArray) {
+					vPrintX64array(psXPC);
+				} else {
+					X64 = x64PrintGetValue(psXPC);
+					if (X64.i64 < 0LL) {
+						psXPC->f.negvalue = 1;
+						X64.i64 *= -1; 					// convert the value to unsigned
+					}
+					vPrintX64(psXPC, X64.u64);
 				}
-				vPrintX64(psXPC, X64.u64);
 				break;
 
 			#if	(xpfSUPPORT_IEEE754 == 1)
@@ -1254,7 +1289,12 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 				} else {
 					psXPC->f.precis	= xpfDEFAULT_DECIMALS;
 				}
-				vPrintF64(psXPC, va_arg(psXPC->vaList, f64_t));
+				if (psXPC->f.bArray) {
+					psXPC->f.bFloat = 1;
+					vPrintX64array(psXPC);
+				} else {
+					vPrintF64(psXPC, va_arg(psXPC->vaList, f64_t));
+				}
 				break;
 			#endif
 
@@ -1270,15 +1310,21 @@ int	xPrintFX(xpc_t * psXPC, const char * fmt) {
 			case CHR_x: psXPC->f.group = 0;				// hex as in "789abcd" UC/LC, disable grouping
 				/* FALLTHRU */ /* no break */
 			case CHR_u:									// unsigned decimal "ddddd"
+				psXPC->f.signval = 0;
 				psXPC->f.nbase = (cFmt == CHR_x) ? BASE16 : 
 								 (cFmt == CHR_u) ? BASE10 : BASE08;
-				X64 = x64PrintGetValue(psXPC);
-				// Ensure sign-extended bits removed
-				int Width = (psXPC->f.llong == S_hh) ? 7 :
-							(psXPC->f.llong == S_h) ? 15 :
-							(psXPC->f.llong == S_l) ? 31 : 63;
-				X64.u64 &= BIT_MASK64(0, Width);
-				vPrintX64(psXPC, X64.u64);
+ 				if (psXPC->f.bArray) {
+					vPrintX64array(psXPC);
+				} else {
+					// Ensure sign-extended bits removed
+					int Width = (psXPC->f.llong == S_hh) ? 7 :
+								(psXPC->f.llong == S_h) ? 15 :
+								(psXPC->f.llong == S_l) ? 31 :
+								(psXPC->f.llong == S_ll) ? 63 : (BITS_IN_BYTE * sizeof(int)) - 1;
+					X64 = x64PrintGetValue(psXPC);
+					X64.u64 &= BIT_MASK64(0, Width);
+					vPrintX64(psXPC, X64.u64);
+				}
 				break;
 
 			case CHR_p:
