@@ -296,15 +296,15 @@ typedef	struct xpf_t {
 	union {
 		u32_t lengths;									// maxlen & curlen;
 		struct __attribute__((packed)) {
-			u32_t	maxlen		: xpfMAXLEN_BITS;	// max chars to output 0 = unlimited
-			u32_t	curlen		: xpfMAXLEN_BITS;	// number of chars output so far
+			u32_t	maxlen		: xpfMAXLEN_BITS;		// max chars to output 0 = unlimited
+			u32_t	curlen		: xpfMAXLEN_BITS;		// number of chars output so far
 		};
 	};
 	union {
 		u32_t limits;
 		struct __attribute__((packed)) {
-			u32_t	minwid		: xpfMINWID_BITS;	// min field width
-			u32_t	precis		: xpfPRECIS_BITS;	// float precision or max string length
+			u32_t	minwid		: xpfMINWID_BITS;		// min field width
+			u32_t	precis		: xpfPRECIS_BITS;		// float precision or max string length
 		};
 	};
 	union {
