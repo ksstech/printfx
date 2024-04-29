@@ -278,19 +278,14 @@ typedef struct report_t {
 	union {
 		u32_t Size;
 		struct __attribute__((packed)) {
-			u32_t size : (32 - xpfBITS_REPORT);
-			union __attribute__((packed)) {
-				u8_t flags : xpfBITS_REPORT;
-				struct __attribute__((packed)) {
-					u8_t sgr : 2;
-					u8_t spare : 1;
-					u8_t fUnlock : 1;		// Unlock at exit
-					u8_t fLock : 1;			// Lock at entry
-					u8_t fEcho : 1;			// enable command character(s) echo
-					u8_t fFlags : 1;		// Force checking of flag changes
-					u8_t fForce : 1;		// Force display of flags
-				};
-			};
+			u32_t size : xpfMAXLEN_BITS;
+			bool fUnlock : 1;		// Unlock at exit
+			bool fLock : 1;			// Lock at entry
+			bool fEcho : 1;			// enable command character(s) echo
+			bool fFlags : 1;		// Force checking of flag changes
+			bool fForce : 1;		// Force display of flags
+			u16_t spare : 9;
+			u32_t sgr : 2;
 		};
 	};
 	fm_t sFM;
