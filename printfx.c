@@ -58,14 +58,6 @@
 #define	Q1		1000000000000000000ULL
 
 // ####################################### Enumerations ############################################
-
-//FLOAT "Gg"	"Ff"	"Ee"	None
-//Dump	None	':'		'-'		Complex
-//Other			'!'				'''
-enum { form0G, form1F, form2E, form3X };
-
-enum { S_none, S_hh, S_h, S_l, S_ll, S_j, S_z, S_t, S_L, S_XXX };
-
 // ######################## Character and value translation & rounding tables ######################
 
 const u8_t S_bytes[S_XXX] = { sizeof(int), sizeof(char), sizeof(short), sizeof(long), sizeof(long long),

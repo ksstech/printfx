@@ -165,6 +165,13 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 
 // ####################################### enumerations ############################################
 
+//FLOAT "Gg"	"Ff"	"Ee"	None
+//Dump	None	':'		'-'		Complex
+//Other			'!'				'''
+enum { form0G, form1F, form2E, form3X };
+
+enum { S_none, S_hh, S_h, S_l, S_ll, S_j, S_z, S_t, S_L, S_XXX };
+
 enum { sgrNONE, sgrANSI, sgrLVGL, sgrOTHER };
 
 // #################################### Public structures ##########################################
