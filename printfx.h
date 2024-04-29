@@ -319,25 +319,27 @@ typedef	struct xpf_t {
 			u32_t	flg2 : xpfBITS_REPORT;				// flags to be retained
 		};
 		struct __attribute__((packed)) {
-/*byte 0*/	u8_t	group 		: 1;				// 0 = disable, 1 = enable
-			u8_t	alt_form	: 1;				// '#'
-			u8_t	ljust		: 1;				// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
-			u8_t	Ucase		: 1;				// true = 'a' or false = 'A'
-			u8_t	pad0		: 1;				// true = pad with leading'0'
-			u8_t	radix		: 1;
-			u8_t	signval		: 1;				// true = content is signed value
-			u8_t	rel_val		: 1;				// relative address / elapsed time
-/*byte 1*/	u32_t	nbase 		: 5;				// 2, 8, 10 or 16
-			u8_t	form		: 2;				// format specifier FLOAT, DUMP & TIME
-			u8_t	negvalue	: 1;				// if value < 0
-/*byte 2*/	u8_t	llong		: 4;				// va_arg override
-			u8_t	arg_width	: 1;				// minwid specified
-			u8_t	arg_prec	: 1;				// precis specified
-			u8_t	plus		: 1;				// true = force use of '+' or '-' signed
-			u8_t	Pspc		: 1;
 			// end flg1. start flg2
 /*byte 3*/	u8_t	sgr			: 2;				// check to align with report_t size struct
 			u8_t	spare		: 6;				// SPARE !!!
+/*byte 0*/	bool	group 		: 1;					// 0 = disable, 1 = enable
+			bool	alt_form	: 1;					// '#'
+			bool	ljust		: 1;					// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
+			bool	Ucase		: 1;					// true = 'a' or false = 'A'
+			bool	pad0		: 1;					// true = pad with leading'0'
+			bool	radix		: 1;
+			bool	signval		: 1;					// true = content is signed value
+			bool	rel_val		: 1;					// relative address / elapsed time
+/*byte 1*/	u32_t	nbase 		: 5;					// 2, 8, 10 or 16
+			u8_t	form		: 2;					// format specifier FLOAT, DUMP & TIME
+			bool	negvalue	: 1;					// if value < 0
+/*byte 2*/	u8_t	llong		: 4;					// va_arg override
+			bool	arg_width	: 1;					// minwid specified
+			bool	arg_prec	: 1;					// precis specified
+			bool	plus		: 1;					// true = force use of '+' or '-' signed
+			bool	Pspc		: 1;
+/*byte 3*/	bool	bArray		: 1;
+			bool	bFloat		: 1;
 		};
 	};
 } xpf_t;
