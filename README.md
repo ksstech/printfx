@@ -8,66 +8,66 @@
 	Size can be scaled down by excluding support for various formats at compile time.
 
 # Extensions:
-	Numeric output scaling, only with d, i, u, eE, fF, gG format specifiers
-	Modifier(s):
-		#	Alt format scale value in SI steps with SI indicator based on thresholds
-		'	If used with # selects 12?34 as opposed to 12.34? scaling format
-			10^3=K  10^6=M  10^9=G  10^12=T  10^15=q  10^18=Q
-		&	Print array of comma separated values "defgioux"
-			PLEASE NOTE:
-				Requires 2 parameters being array SIZE and ADDRESS
-				Must use hh, h, l or ll to specify 8/16/32/64 values
+  diueEfFgG format specifiers get output scaling
+  ## Modifier(s):
+	#	Alt format scale value in SI steps with SI indicator based on thresholds
+	'	If used with # selects 12?34 as opposed to 12.34? scaling format
+		10^3=K  10^6=M  10^9=G  10^12=T  10^15=q  10^18=Q
+	&	Print array of comma separated values "defgioux"
+		PLEASE NOTE:
+			Requires 2 parameters being array SIZE and ADDRESS
+			Must use hh, h, l or ll to specify 8/16/32/64 values
 
+  Text center justify
+  ## Modifier(s):
+	#	center string within field
 
-  ## Text center justify
-	Modifier(s):
-		#	center string within field
-
-	Date and/or time output in POSIX or other formats.
+  Date and/or time output in POSIX or other formats.
 	D	date using pointer to tsz_t structure
 	T	time   "      "     "   "       "
 	Z	d+t+z  "      "     "   "       "
-	R	d+t  using U64 (uSec) value, support "%.?R" to control uSec display, 3 digits (mSec) default.
-	r	d+t  using U32 (Sec) value.
-	Modifier(s):
-		!	change interpretation of uSec value as absolute->relative time
-		#	select ALTernative (HTTP header style) format output
-		+	enable TZ information
+	R	d+t need U64(uSec) value, "%.?R" specify uSec digits, 3 digits (mSec) default.
+	r	d+t need U32 (Sec) value.
+  ## Modifier(s):
+	!	change interpretation of uSec value as absolute->relative time
+	#	absolute values - select ALTernative (HTTP header style) format output
+		relative '!' values - centre time string in field
+	+	enable TZ information
 
-	Hexdump (debug style) in byte, short, word or double word formats
+  Hexdump (debug style) in byte, short, word or double word formats
 	Y	format specifier
-	Modifier(s):
-		!	absolute -> relative address preceding each line of hexdump output.
-		-	disable address preceding each line of output
-		'	enable seperators between values using '|: -' on 32/16/8/4 bit boundaries
-		+	enable display of ASCII characters at end of each line.
+  ## Modifier(s):
+	!	absolute -> relative address preceding each line of hexdump output.
+	-	disable address preceding each line of output
+	'	enable seperators between values using '|: -' on 32/16/8/4 bit boundaries
+	+	enable display of ASCII characters at end of each line.
     	PLEASE NOTE:
 			Requires 2 parameters being LENGTH and POINTER
 			Must use hh, h, l or ll to specify 8/16/32/64 values
 
-	IP address output:
+  IP address output:
 	I	format specifier
-	Modifier(s):
-		# 	alt format for big/little endian inversion.
-		-	left alignment
-		0	leading zero output
+  ## Modifier(s):
+	# 	alt format for big/little endian inversion.
+	-	left alignment
+	0	leading zero output
 		Leading padding, none, space or zero through field width specifiers
 
-	MAC address output with optional UPPER/reverse/separator
+  MAC address output with optional UPPER/reverse/separator
 	M	format specifier.
-	Modifier(s):
-		# 	alt format for sequence inversion.
-		'	enable seperator character  ':' between bytes
+  ## Modifier(s):
+	# 	alt format for sequence inversion.
+	'	enable seperator character  ':' between bytes
 
-	BINARY format output
+  BINARY format output
 	J	format specifier taking U32 or U64 value as input
-	Modifier(s):
-		'	enable '|: -' seperator character for 32/16/8/4 bit boundaries
+  ## Modifier(s):
+	'	enable '|: -' seperator character for 32/16/8/4 bit boundaries
 
-	ANSI Set Graphics Rendition (SGR) support
+  ANSI Set Graphics Rendition (SGR) support
 	C	format specifier, takes U32 as 4x U8 values
 
-	URL encoding format
+  URL encoding format
 	U	format specifier
 
 # Flags

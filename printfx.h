@@ -110,7 +110,7 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 
 #define	xpfNULL_STRING				"'null'"
 
-#define	xpfFLAGS_NONE				((xpf_t) 0ULL)
+#define	xpfFLAGS_NONE				((xpc_t) 0ULL)
 
 // Used in hexdump to determine size of each value conversion
 #define	xpfSIZING_BYTE				0			// 8 bit byte
@@ -185,7 +185,7 @@ DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4);
 /**
  * structures used with xprintfx() and wvprintfx() functions used to facilitate 
  * the transparent transfer of selected flags from the report_t structure into 
- * the flags member of the xpf_t structure.
+ * the flags member of the xpc_t structure.
 */
 typedef	union {
 	struct __attribute__((packed)) {// 8:24 Generic
@@ -298,19 +298,19 @@ typedef struct report_t {
 } report_t;
 DUMB_STATIC_ASSERT(sizeof(report_t) == (sizeof(char *) + 8));
 
-typedef	struct xpf_t {
+typedef	struct xpc_t {
 	union {
 		u32_t lengths;									// maxlen & curlen;
 		struct __attribute__((packed)) {
-			u32_t	maxlen		: xpfMAXLEN_BITS;		// max chars to output 0 = unlimited
-			u32_t	curlen		: xpfMAXLEN_BITS;		// number of chars output so far
+			u32_t	maxlen : xpfMAXLEN_BITS;			// max chars to output 0 = unlimited
+			u32_t	curlen : xpfMAXLEN_BITS;			// number of chars output so far
 		};
 	};
 	union {
 		u32_t limits;
 		struct __attribute__((packed)) {
-			u32_t	minwid		: xpfMINWID_BITS;		// min field width
-			u32_t	precis		: xpfPRECIS_BITS;		// float precision or max string length
+			u32_t	MinWid : xpfMINWID_BITS;			// min field width
+			u32_t	Precis : xpfPRECIS_BITS;			// float precision or max string length
 		};
 	};
 	union {
@@ -320,34 +320,34 @@ typedef	struct xpf_t {
 			u32_t	flg2 : xpfBITS_REPORT;				// flags to be retained
 		};
 		struct __attribute__((packed)) {
-/*byte 0*/	bool	group 		: 1;					// 0 = disable, 1 = enable
-			bool	alt_form	: 1;					// '#'
-			bool	ljust		: 1;					// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
-			bool	Ucase		: 1;					// true = 'a' or false = 'A'
-			bool	pad0		: 1;					// true = pad with leading'0'
-			bool	radix		: 1;
-			bool	signval		: 1;					// true = content is signed value
-			bool	rel_val		: 1;					// relative address / elapsed time
-/*byte 1*/	u32_t	nbase 		: 5;					// 2, 8, 10 or 16
-			u8_t	form		: 2;					// format specifier FLOAT, DUMP & TIME
-			bool	negvalue	: 1;					// if value < 0
-/*byte 2*/	u8_t	llong		: 4;					// va_arg override
-			bool	arg_width	: 1;					// minwid specified
-			bool	arg_prec	: 1;					// precis specified
-			bool	plus		: 1;					// true = force use of '+' or '-' signed
-			bool	Pspc		: 1;
+/*byte 0*/	bool	bAltF		: 1;					// # alternative form
+			bool	bLeft		: 1;					// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
+			bool	bCase		: 1;					// true = 'a' or false = 'A'
+			bool	bPlus		: 1;					// true = force use of '+' or '-' signed
+			bool	bSigned		: 1;					// true = content is signed value
+			bool	bNegVal		: 1;					// if value < 0
+			bool	bRelVal		: 1;					// relative address / elapsed time
+			bool	bRadix		: 1;					// '.' specified
+/*byte 1*/	u32_t	uBase 		: 5;					// 2, 8, 10 or 16
+			u8_t	uForm		: 2;					// format specifier FLOAT, MAC & HEXDUMP
+			bool	bGroup 		: 1;					// ' SI group digits or select separator
+/*byte 2*/	u8_t	uSize		: 4;					// size override
+			bool	bMinWid		: 1;					// MinWid specified
+			bool	bPrecis		: 1;					// Precis specified
+			bool	bPad0		: 1;					// true = pad with leading'0'
+			bool	bPadSp		: 1;
 /*byte 3*/	bool	bArray		: 1;
 			bool	bFloat		: 1;
-			u8_t	spare		: 4;					// SPARE !!!
+			u8_t	uSpare		: 4;					// SPARE !!!
 			// end flg1. start flg2, sum of bit widths below = xpfBITS_REPORT
 			u8_t	sgr			: 2;					// check to align with report_t size struct
 		};
 	};
-} xpf_t;
-DUMB_STATIC_ASSERT(sizeof(xpf_t) == 12);
+} xpc_t;
+DUMB_STATIC_ASSERT(sizeof(xpc_t) == 12);
 
-typedef	struct xpc_t {
-	int (*handler)(struct xpc_t *, int);
+typedef	struct xp_t {
+	int (*handler)(struct xp_t *, int);
 	union {
 		void * pVoid;
 		char * pStr;				// string buffer
@@ -358,16 +358,16 @@ typedef	struct xpc_t {
 		int (*DevPutc)(int);		// custom device driver
 		unsigned int * pU32;		// Address of running CRC32 value
 	};
-	xpf_t f;
+	xpc_t ctl;
 	va_list vaList;
-} xpc_t;
-DUMB_STATIC_ASSERT(sizeof(xpc_t) == (sizeof(int *) + sizeof(void *) + sizeof(xpf_t) + sizeof(va_list)));
+} xp_t;
+DUMB_STATIC_ASSERT(sizeof(xp_t) == (sizeof(int *) + sizeof(void *) + sizeof(xpc_t) + sizeof(va_list)));
 
 // ################################### Public variables ############################################
 // ################################### Public functions ############################################
 
-int xPrintFX(xpc_t * psXPC, const char * format);
-int xPrintF(int (handler)(xpc_t *, int), void *, size_t, const char *, va_list);
+int xPrintFX(xp_t * psXPC, const char * format);
+int xPrintF(int (handler)(xp_t *, int), void *, size_t, const char *, va_list);
 
 /* Public function prototypes for extended functionality version of stdio supplied functions
  * These names MUST be used if any of the extended functionality is used in a format string */
