@@ -139,19 +139,21 @@ char cPrintNibbleToChar(xp_t * psXP, u8_t Value) {
  * 			before output verify against specified width
  * 			adjust character count (if required) & remaining width
  * @param	psXP - pointer to control structure to be referenced/updated
- * 			c - char to be output
+ * 			cChr - char to be output
+ * @note	Changes CurLen
  * @return	1 or 0 based on whether char was '\000'
  */
-static int xPrintChar(xp_t * psXP, char cChr) {
+int xPrintChar(xp_t * psXP, char cChr) {
 	int iRV = cChr;
-	#if (xpfSUPPORT_FILTER_NUL == 1)
-	if (cChr == 0)
+#if (xpfSUPPORT_FILTER_NUL == 1)
+	if (cChr == 0) {
 		return iRV;
-	#endif
-	if ((psXP->ctl.maxlen == 0) || (psXP->ctl.curlen < psXP->ctl.maxlen)) {
+	}
+#endif
+	if ((psXP->MaxLen == 0) || (psXP->CurLen < psXP->MaxLen)) {
 		iRV = psXP->handler(psXP, cChr);
 		if (iRV == cChr) {
-			psXP->ctl.curlen++;							// adjust count
+			psXP->CurLen++;							// adjust count
 		}
 	}
 	return iRV;
@@ -161,15 +163,17 @@ static int xPrintChar(xp_t * psXP, char cChr) {
  * @brief	perform a RAW string output to the selected "stream"
  * @brief	Does not perform ANY padding, justification or length checking
  * @param	psXP - pointer to structure controlling the operation
- * 			string - pointer to the string to be output
+ * 			pStr - pointer to the string to be output
+ * @note	Changes CurLen indirectly through xPrintChar()
  * @return	number of ACTUAL characters output.
  */
-static int xPrintChars(xp_t * psXP, char * pStr) {
+int vPrintString(xp_t * psXP, char * pStr) {
 	int iRV = 0, cChr;
 	while (*pStr) {
 		cChr = xPrintChar(psXP, *pStr);
-		if (cChr != *pStr++)
+		if (cChr != *pStr++) {
 			return cChr;
+		}
 		++iRV;
 	}
 	return iRV;
@@ -178,11 +182,12 @@ static int xPrintChars(xp_t * psXP, char * pStr) {
 /**
  * @brief	perform formatted output of a string to the preselected device/string/buffer/file
  * @param	psXP - pointer to structure controlling the operation
- * 			string - pointer to the string to be output
+ * 			pStr - pointer to the string to be output
+ * @note	Uses bPrecis Precis bMinWid MinWid bPad0 bAltF bLeft
+ * 			Changes CurLen indirectly through xPrintChar()
  * @return	number of ACTUAL characters output.
- * @note	
  */
-void vPrintString(xp_t * psXP, char * pStr) {
+void vPrintStringJustified(xp_t * psXP, char * pStr) {
 	// determine natural or limited length of string
 	size_t uLen;
 	if (psXP->ctl.bPrecis && psXP->ctl.bMinWid && (psXP->ctl.Precis < psXP->ctl.MinWid)) {
@@ -190,34 +195,41 @@ void vPrintString(xp_t * psXP, char * pStr) {
 	} else {
 		uLen = psXP->ctl.Precis ? psXP->ctl.Precis : strlen(pStr);
 	}
-	size_t Lpad = 0, Rpad = 0, Tpad = (psXP->ctl.MinWid > uLen) ? (psXP->ctl.MinWid - uLen) : 0;
-	u8_t Cpad = psXP->ctl.bPad0 ? CHR_0 : CHR_SPACE;
+	// Determine total padding required.
+	size_t Tpad = (psXP->ctl.MinWid > uLen) ? (psXP->ctl.MinWid - uLen) : 0;
+	// Split total padding between left & right sides
+	size_t Lpad = 0, Rpad = 0;
 	if (Tpad) {
 		if (psXP->ctl.bAltF) {
-			Rpad = Tpad >> 1; Lpad = Tpad - Rpad;
+			Lpad = Tpad >> 1;		// possibly smaller windows on left
+			Rpad = Tpad - Lpad;		// possibly larger window on right
 		} else if (psXP->ctl.bLeft) {
 			Rpad = Tpad;
 		} else {
 			Lpad = Tpad;
 		}
 	}
+	u8_t Cpad = psXP->ctl.bPad0 ? CHR_0 : CHR_SPACE;
 	for (;Lpad--; xPrintChar(psXP, Cpad));
 	for (;uLen-- && *pStr; xPrintChar(psXP, *pStr++));
 	for (;Rpad--; xPrintChar(psXP, Cpad));
 }
 
 /**
- * xPrintXxx() convert u64_t value to a formatted string (build right to left)
+ * @brief	Convert u64_t value to a formatted string (build right to left)
  * @param	psXP - pointer to control structure
- * 			ullVal - u64_t value to convert & output
+ * 			u64Val - u64_t value to convert & output
  * 			pBuffer - pointer to buffer for converted string storage
  * 			BufSize - available (remaining) space in buffer
- * @return	number of actual characters output (incl leading '-' and/or ' ' and/or '0' as possibly added)
  * @note	Honour & interpret the following modifier flags
  * 			'	Group digits in 3 digits groups to left of decimal '.'
  * 			-	Left align the individual numbers between the '.'
  * 			+	Force a '+' or '-' sign on the left
  * 			0	Zero pad to the left of the value to fill the field
+ * 			Uses bAltF bGroup uBase bLeft MinWid bPad0 bNegVal bPlus
+ *			Changes CurLen indirectly through xPrintChar()
+ * @return	number of actual characters output (incl leading '-' and/or ' ' and/or '0' as possibly added)
+ * 
  * Protection against buffer overflow based on correct sized buffer being allocated in calling function
  *
  *	(1)		(2)		(0)
@@ -336,8 +348,10 @@ int	xPrintXxx(xp_t * psXP, u64_t u64Val, char * pBuffer, int BufSize) {
 
 /**
  * @brief	convert double value based on flags supplied and output via control structure
- * @param	psXP - pointer to control structure
- * @param	dbl - double value to be converted
+ * @param	psXP pointer to control structure
+ * @param	F64 double value to be converted
+ * @note	Uses bCase bNegVal uForm Precis
+ * 			Changes bPrecis Precis
  * @return	none
  *
  * References:
@@ -349,17 +363,15 @@ void vPrintF64(xp_t * psXP, double F64) {
 		0.0000000005, 0.00000000005, 0.000000000005, 0.0000000000005, 0.00000000000005,
 		0.000000000000005, 0.0000000000000005 };
 	if (isnan(F64)) {
-		vPrintString(psXP, psXP->ctl.bCase ? "NAN" : "nan");
+		vPrintStringJustified(psXP, psXP->ctl.bCase ? "NAN" : "nan");
 		return;
 	} else if (isinf(F64)) {
-		vPrintString(psXP, psXP->ctl.bCase ? "INF" : "inf");
+		vPrintStringJustified(psXP, psXP->ctl.bCase ? "INF" : "inf");
 		return;
 	}
 	psXP->ctl.bNegVal = F64 < 0.0 ? 1 : 0;				// set bNegVal if < 0.0
 	F64 *= psXP->ctl.bNegVal ? -1.0 : 1.0;				// convert to positive number
-	xpc_t sXPC;
-	sXPC.limits = psXP->ctl.limits;						// save original flags
-	sXPC.flags = psXP->ctl.flags;
+	SAVE_XPC();
 	x64_t X64  = { 0 };
 
 	int	Exp = 0;										// if exponential format requested, calculate the exponent
@@ -377,18 +389,18 @@ void vPrintF64(xp_t * psXP, double F64) {
 		}
 	}
 	u8_t AdjForm = psXP->ctl.uForm != form0G ? psXP->ctl.uForm :
-		(Exp <- 4 || Exp >= psXP->ctl.Precis) ? form2E : form1F;
+					(Exp <- 4 || Exp >= psXP->ctl.Precis) ? form2E : form1F;
 	if (AdjForm == form2E)
 		F64 = X64.f64;									// change to exponent adjusted value
 	if (F64 < (DBL_MAX - round_nums[psXP->ctl.Precis]))	// if addition of rounding value will NOT cause overflow.
-		F64 += round_nums[psXP->ctl.Precis];				// round by adding .5LSB to the value
+		F64 += round_nums[psXP->ctl.Precis];			// round by adding .5LSB to the value
 	char Buffer[xpfMAX_LEN_F64];
 	Buffer[xpfMAX_LEN_F64 - 1] = 0;						// building R to L, ensure buffer NULL-term
 
 	int Len = 0;
 	if (AdjForm == form2E) {							// If required, handle the exponent
 		psXP->ctl.MinWid = 2;
-		psXP->ctl.bPad0 = 1;								// MUST left pad with '0'
+		psXP->ctl.bPad0 = 1;							// MUST left pad with '0'
 		psXP->ctl.bSigned = 1;
 		psXP->ctl.bLeft = 0;
 		psXP->ctl.bNegVal = (Exp < 0) ? 1 : 0;
@@ -402,7 +414,7 @@ void vPrintF64(xp_t * psXP, double F64) {
 	X64.f64	= X64.f64 * (double) u64pow(10, psXP->ctl.Precis);	// fraction to integer
 	X64.u64	= (u64_t) X64.f64;							// extract integer portion
 
-	if (psXP->ctl.bPrecis) {								// explicit MinWid specified ?
+	if (psXP->ctl.bPrecis) {							// explicit MinWid specified ?
 		psXP->ctl.MinWid = psXP->ctl.Precis; 				// yes, stick to it.
 	} else if (X64.u64 == 0) {							// process 0 value
 		psXP->ctl.MinWid = psXP->ctl.bRadix ? 1 : 0;
@@ -416,11 +428,11 @@ void vPrintF64(xp_t * psXP, double F64) {
 		}
 	}
 	if (psXP->ctl.MinWid > 0) {
-		psXP->ctl.bPad0 = 1;								// MUST left pad with '0'
-		psXP->ctl.bGroup = 0;								// cannot group in fractional
+		psXP->ctl.bPad0 = 1;							// MUST left pad with '0'
+		psXP->ctl.bGroup = 0;							// cannot group in fractional
 		psXP->ctl.bSigned = 0;							// always unsigned value
 		psXP->ctl.bNegVal = 0;							// and never negative
-		psXP->ctl.bPlus = 0;								// no leading +/- before fractional part
+		psXP->ctl.bPlus = 0;							// no leading +/- before fractional part
 		Len += xPrintXxx(psXP, X64.u64, Buffer, xpfMAX_LEN_F64-1-Len);
 	}
 	// process the bRadix = '.'
@@ -430,27 +442,36 @@ void vPrintF64(xp_t * psXP, double F64) {
 	}
 
 	X64.u64	= F64;										// extract and convert the whole number portions
-	psXP->ctl.limits = sXPC.limits;						// restore original limits & flags
-	psXP->ctl.flags = sXPC.flags;
-
 	// adjust MinWid to do padding (if required) based on string length after adding whole number
+	REST_XPC();											// restore original limits & flags
 	psXP->ctl.MinWid = psXP->ctl.MinWid > Len ? psXP->ctl.MinWid - Len : 0;
 	Len += xPrintXxx(psXP, X64.u64, Buffer, xpfMAX_LEN_F64 - 1 - Len);
-
+	REST_XPC();											// restore original limits & flags
 	psXP->ctl.bPrecis = 1;
 	psXP->ctl.Precis = Len;
-	psXP->ctl.bMinWid = sXPC.bMinWid;
-	psXP->ctl.MinWid = sXPC.MinWid;
-	vPrintString(psXP, Buffer + (xpfMAX_LEN_F64 - 1 - Len));
+	vPrintStringJustified(psXP, Buffer + (xpfMAX_LEN_F64 - 1 - Len));
 }
 
+/**
+ * @brief
+ * @param	psXP
+ * @param	Value
+ * @note
+*/
 void vPrintX64(xp_t * psXP, u64_t Value) {
 	char Buffer[xpfMAX_LEN_X64];
 	Buffer[xpfMAX_LEN_X64 - 1] = 0;				// terminate the buffer, single value built R to L
 	int Len = xPrintXxx(psXP, Value, Buffer, xpfMAX_LEN_X64 - 1);
-	vPrintString(psXP, Buffer + (xpfMAX_LEN_X64 - 1 - Len));
+	vPrintStringJustified(psXP, Buffer + (xpfMAX_LEN_X64 - 1 - Len));
 }
 
+/**
+ * @brief	Generate array of values separated by ','
+ * @param	psXP
+ * @note	Handles 8/16/32/64 bit values, un/signed/float
+ * 			Uses uSize bFloat bSigned 
+ * 			Changes CurLen indirectly through xPrintXxx() and vPrintStringJustified()
+*/
 void vPrintX64array(xp_t * psXP) {
 	vs_e eVS = (psXP->ctl.uSize == S_hh) ? vs08B :
 				(psXP->ctl.uSize == S_h) ? vs16B :
@@ -460,8 +481,7 @@ void vPrintX64array(xp_t * psXP) {
 	cvi_e cvI = xFormSize2Index(eVF, eVS);
 	x32_t X32; X32.iX = va_arg(psXP->vaList, int);	// array size
 	px_t pX; pX.pv = va_arg(psXP->vaList, void *);	// pointer to 1st element of array
-	u32_t savLimits = psXP->ctl.limits;
-	u32_t savFlags = psXP->ctl.flags;
+	SAVE_XPC();
 	while (X32.iX) {
 		x64_t X64 = x64ValueFetch(pX, cvI);
 		if (eVF == vfIXX && X64.i64 < 0LL) {
@@ -473,37 +493,45 @@ void vPrintX64array(xp_t * psXP) {
 		} else {
 			vPrintX64(psXP, X64.u64);
 		}
-		psXP->ctl.flags = savFlags;
-		psXP->ctl.limits = savLimits;
+		REST_XPC();
 		if (--X32.iX)
 			xPrintChar(psXP, CHR_COMMA);
 		pX = pxAddrNextWithIndex(pX, cvI);
 	}
 }
 
+/**
+ * @brief
+ * @param
+ * @note	Uses
+ * 			Changes
+ * @return
+*/
 void vPrintPointer(xp_t * psXP, px_t pX) {
 	char caBuf[xpfMAX_LEN_PNTR];
 	caBuf[xpfMAX_LEN_PNTR-1] = CHR_NUL;
+	SAVE_XPC();
 	psXP->ctl.uBase = BASE16;
 	psXP->ctl.bNegVal = 0;
-	psXP->ctl.bPlus = 0;									// no leading '+'
-	psXP->ctl.bAltF = 0;									// disable scaling
+	psXP->ctl.bPlus = 0;								// no leading '+'
+	psXP->ctl.bAltF = 0;								// disable scaling
 	psXP->ctl.bGroup = 0;								// disable 3-digit grouping
 	psXP->ctl.bPad0 = 1;
 	x64_t X64;
 	#if (xpfSIZE_POINTER == 2)
-	psXP->ctl.MinWid = 4;
-	X64.u64 = (u16_t) pX.pv;
+		psXP->ctl.MinWid = 4;
+		X64.u64 = (u16_t) pX.pv;
 	#elif (xpfSIZE_POINTER == 4)
-	psXP->ctl.MinWid = 8;
-	X64.u64 = (u32_t) pX.pv;
+		psXP->ctl.MinWid = 8;
+		X64.u64 = (u32_t) pX.pv;
 	#elif (xpfSIZE_POINTER == 8)
-	psXP->ctl.MinWid = 16;
-	X64.u64 = pX.pv;
+		psXP->ctl.MinWid = 16;
+		X64.u64 = pX.pv;
 	#endif
 	int Len = xPrintXxx(psXP, X64.u64, caBuf, xpfMAX_LEN_PNTR - 1);
 	memcpy(&caBuf[xpfMAX_LEN_PNTR - 3 - Len], "0x", 2);
-	vPrintString(psXP, &caBuf[xpfMAX_LEN_PNTR - 3 - Len]);
+	REST_XPC();
+	vPrintStringJustified(psXP, &caBuf[xpfMAX_LEN_PNTR - 3 - Len]);
 }
 
 // ############################# Proprietary extension: hexdump ####################################
@@ -512,7 +540,7 @@ void vPrintPointer(xp_t * psXP, px_t pX) {
  * @brief	write char value as 2 hex chars to the buffer, always NULL terminated
  * @param	psXP - pointer to control structure
  * @param	Value - unsigned byte to convert
- * return	none
+ * @return	none
  */
 void vPrintHexU8(xp_t * psXP, u8_t Value) {
 	xPrintChar(psXP, cPrintNibbleToChar(psXP, Value >> 4));
@@ -523,7 +551,7 @@ void vPrintHexU8(xp_t * psXP, u8_t Value) {
  * @brief	write u16_t value as 4 hex chars to the buffer, always NULL terminated
  * @param	psXP - pointer to control structure
  * @param	Value - unsigned short to convert
- * return	none
+ * @return	none
  */
 void vPrintHexU16(xp_t * psXP, u16_t Value) {
 	vPrintHexU8(psXP, (Value >> 8) & 0x000000FF);
@@ -534,7 +562,7 @@ void vPrintHexU16(xp_t * psXP, u16_t Value) {
  * @brief	write u32_t value as 8 hex chars to the buffer, always NULL terminated
  * @param	psXP - pointer to control structure
  * @param	Value - unsigned word to convert
- * return	none
+ * @return	none
  */
 void vPrintHexU32(xp_t * psXP, u32_t Value) {
 	vPrintHexU16(psXP, (Value >> 16) & 0x0000FFFF);
@@ -555,11 +583,12 @@ void vPrintHexU64(xp_t * psXP, u64_t Value) {
 /**
  * @brief	write series of char values as hex chars to the buffer, always NULL terminated
  * @param 	psXP
- * @param 	Num - number of bytes to print
- * @param 	pStr - pointer to bytes to print
+ * @param 	Num number of bytes to print
+ * @param 	pStr pointer to bytes to print
  * @note	Use the following modifier flags
  *			' select grouping separators ":- |" (byte/half/word/dword)
  *			# select reverse order (little/big endian)
+ *			Uses uSize bAltF bGroup uForm
  */
 void vPrintHexValues(xp_t * psXP, int Num, char * pStr) {
 	int Size = S_bytes[psXP->ctl.uSize];
@@ -608,27 +637,27 @@ void vPrintHexValues(xp_t * psXP, int Num, char * pStr) {
 }
 
 /**
- * vPrintHexDump()
  * @brief		Dumps a block of memory in debug style format. depending on options output can be
  * 				formatted as 8/16/32 or 64 bit variables, optionally with no, absolute or relative address
  * @param[in]	psXP - pointer to print control structure
  * @param[in]	pStr - pointer to memory starting address
  * @param[in]	Len - Length/size of memory buffer to display
  * @param[out]	none
- * @return		none
  * @note		Use the following modifier flags
  *				'	Grouping of values using ' ' '-' or '|' as separators
  * 				!	Use relative address format
  * 				#	Use absolute address format
  *					Relative/absolute address prefixed using format '0x12345678:'
  * 				+	Add the ASCII char equivalents to the right of the hex output
+ * @return		none
  */
 void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 	xpc_t sXPC = psXP->ctl;
 	int iWidth;
-	if (psXP->ctl.bMinWid && INRANGE(8, psXP->ctl.MinWid, 64)) iWidth = psXP->ctl.MinWid;
-	else {
-		#if (includeTERMINAL_CONTROLS == 1)
+	if (psXP->ctl.bMinWid && INRANGE(8, psXP->ctl.MinWid, 64)) {
+		iWidth = psXP->ctl.MinWid;
+	} else {
+	#if (includeTERMINAL_CONTROLS == 1)
 		terminfo_t sTI;
 		vTermGetInfo(&sTI);
 		iWidth = sTI.MaxX;
@@ -637,21 +666,21 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 		} else { 
 			iWidth -= psXP->ctl.bLeft ? 0 : 11;			// addr req, decr rem space
 		}
-		if (!psXP->ctl.bPlus || iWidth > 32) {
+		if (psXP->ctl.bPlus == 0 || iWidth > 32) {
 			iWidth /= 4;								// ASCII on right = 4 col/char
 		} else {
-			psXP->ctl.bPlus = 0;							// too little space, disable ASCII
+			psXP->ctl.bPlus = 0;						// too little space, disable ASCII
 			iWidth /= 3;								// no ASCII on right = 3 col/char
 		}
 		iWidth -= iWidth % 8;
-		#else
+	#else
 		iWidth = xpfHEXDUMP_WIDTH;
-		#endif
+	#endif
 	}
 	for (int Now = 0; Now < xLen; Now += iWidth) {
 		if (psXP->ctl.bLeft == 0) {						// display address (absolute/relative)
 			vPrintPointer(psXP, (px_t) (psXP->ctl.bRelVal ? (void *) Now : (void *) (pStr + Now)));
-			xPrintChars(psXP, (char *) ": ");
+			vPrintString(psXP, (char *) ": ");
 			psXP->ctl = sXPC;
 		}
 		// then the actual series of values in 8-32 bit groups
@@ -672,53 +701,84 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 			}
 		}
 		if ((Now < xLen) && (xLen > iWidth))
-			xPrintChars(psXP, strCRLF);
+			vPrintString(psXP, strCRLF);
 	}
 }
 
 // ############################# Proprietary extensions: date & time ###############################
 
+/**
+ * @brief	Calculate # of local time seconds (uses TSZ info if available)
+ * @note	Uses bPlus bAltF bRelVal
+ * 			Changes nothing
+ * 			If psTM supplied will populate structure accordingly
+ * @return	seconds (epoch or relative)
+ */
 seconds_t xPrintCalcSeconds(xp_t * psXP, tsz_t * psTSZ, struct tm * psTM) {
-	seconds_t	Seconds;
+	seconds_t Seconds;
 	// Get seconds value to use... (adjust for TZ if required/allowed)
 	if (psTSZ->pTZ &&									// TZ info available
 		psXP->ctl.bPlus == 1 &&							// TZ info requested
-		psXP->ctl.bAltF == 0 &&						// NOT bAltF (always GMT/UTC)
+		psXP->ctl.bAltF == 0 &&							// NOT bAltF (ALT form always GMT/UTC)
 		psXP->ctl.bRelVal == 0) {						// NOT relative time (has no TZ info)
 		Seconds = xTimeCalcLocalTimeSeconds(psTSZ);
-	} else
+	} else {
 		Seconds = xTimeStampAsSeconds(psTSZ->usecs);
-
+	}
 	if (psTM)											// convert seconds into components
 		xTimeGMTime(Seconds, psTM, psXP->ctl.bRelVal);
 	return Seconds;
 }
 
-int	xPrintTimeCalcSize(xp_t * psXP, int i32Val) {
-	if (!psXP->ctl.bRelVal || psXP->ctl.bPad0 || i32Val > 9)
+/**
+ * @brief	Calulate buffer space required to format print a value
+ * @note	Uses bRelVal bPad0 bGroup
+ * 			Changes MinWid
+ * @return	Number of digits if value formatted print
+ */
+int	xPrintTimeCalcSize(xp_t * psXP, int i32Val) {		// REVIEW to make generic for any value...
+	if (psXP->ctl.bRelVal == 0 || psXP->ctl.bPad0 == 1 || i32Val > 9)
 		return psXP->ctl.MinWid = 2;
 	psXP->ctl.MinWid = 1;
 	return xDigitsInI32(i32Val, psXP->ctl.bGroup);
 }
 
+/**
+ * @brief	Formats YEAR value into buffer
+ * @note	Uses bAltF bGroup
+ * 			Changes MinWid
+ * @return	Number of characters stored ie length of generated output
+ */
 int	xPrintDate_Year(xp_t * psXP, struct tm * psTM, char * pBuffer) {
-	psXP->ctl.MinWid	= 0;
+	psXP->ctl.MinWid = 0;
 	int Len = xPrintXxx(psXP, (u64_t) (psTM->tm_year + YEAR_BASE_MIN), pBuffer, 4);
 	if (psXP->ctl.bAltF == 0)
 		pBuffer[Len++] = psXP->ctl.bGroup ? CHR_FWDSLASH : CHR_MINUS;
 	return Len;
 }
 
+/**
+ * @brief	Formats MONTH value into buffer
+ * @note	Uses bAltF bGroup
+ * 			Changes MinWid
+ * @return	Number of characters stored ie length of generated output
+ */
 int	xPrintDate_Month(xp_t * psXP, struct tm * psTM, char * pBuffer) {
 	int Len = xPrintXxx(psXP, (u64_t) (psTM->tm_mon + 1), pBuffer, psXP->ctl.MinWid = 2);
 	pBuffer[Len++] = psXP->ctl.bAltF ? CHR_SPACE : psXP->ctl.bGroup ? CHR_FWDSLASH : CHR_MINUS;
 	return Len;
 }
 
+/**
+ * @brief	Formats DAY value into buffer
+ * @note	Uses bAltF bGroup bRelVal 
+ * 			Changes bPad0
+ * @return	Number of characters stored ie length of generated output
+ */
 int	xPrintDate_Day(xp_t * psXP, struct tm * psTM, char * pBuffer) {
 	int Len = xPrintXxx(psXP, (u64_t) psTM->tm_mday, pBuffer, xPrintTimeCalcSize(psXP, psTM->tm_mday));
 	pBuffer[Len++] = psXP->ctl.bAltF ? CHR_SPACE :
-					(psXP->ctl.bGroup && psXP->ctl.bRelVal) ? CHR_d :
+					(psXP->ctl.bRelVal && psXP->ctl.bGroup) ? CHR_d :
 					psXP->ctl.bGroup ? CHR_SPACE : CHR_T;
 	psXP->ctl.bPad0 = 1;
 	return Len;
@@ -745,16 +805,13 @@ void vPrintDate(xp_t * psXP, struct tm * psTM) {
 	}
 	Buffer[Len] = 0;									// converted L to R, so terminate
 	psXP->ctl.limits	= 0;								// enable full string
-	vPrintString(psXP, Buffer);
+	vPrintStringJustified(psXP, Buffer);
 }
 
 void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	char Buffer[xpfMAX_LEN_TIME];
 	int	Len;
-	xpc_t sXPC; memcpy(&sXPC, &psXP->ctl, sizeof(xpc_t));	// save current flags
-	psXP->ctl.bAltF = 0;			// disable
-	psXP->ctl.bGroup = 0;				// disable
-	psXP->ctl.bLeft = 1;				// disable padding (space or 1)
+	SAVE_XPC();
 	// Part 1: hours
 	if (psTM->tm_hour || psXP->ctl.bPad0) {
 		Len = xPrintXxx(psXP, (u64_t) psTM->tm_hour, Buffer, xPrintTimeCalcSize(psXP, psTM->tm_hour));
@@ -763,33 +820,43 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	} else {
 		Len = 0;
 	}
+//	if (psXP->ctl.bRelVal && psTM->tm_mday && psTM->tm_hour) PX("[%.*s", Len, Buffer);
+
 	// Part 2: minutes
 	if (psTM->tm_min || psXP->ctl.bPad0) {
 		Len += xPrintXxx(psXP, (u64_t) psTM->tm_min, Buffer+Len, xPrintTimeCalcSize(psXP, psTM->tm_min));
 		Buffer[Len++] = sXPC.bGroup ? CHR_m : CHR_COLON;
 		psXP->ctl.bPad0 = 1;
 	}
+//	if (psXP->ctl.bRelVal && psTM->tm_mday && psTM->tm_hour) PX(" %.*s", Len, Buffer);
+
 	// Part 3: seconds
 	Len += xPrintXxx(psXP, (u64_t) psTM->tm_sec, Buffer+Len, xPrintTimeCalcSize(psXP, psTM->tm_sec));
+//	if (psXP->ctl.bRelVal && psTM->tm_mday && psTM->tm_hour) PX(" %.*s", Len, Buffer);
+
 	// Part 4: [.xxxxxx]
 	if (psXP->ctl.bRadix && uSecs) {
-		Buffer[Len++] = sXPC.bGroup ? CHR_s : CHR_FULLSTOP;
+		Buffer[Len++] = CHR_FULLSTOP;
 		psXP->ctl.Precis = INRANGE(1, psXP->ctl.Precis, xpfMAX_TIME_FRAC) ? psXP->ctl.Precis : xpfDEF_TIME_FRAC;
 		if (psXP->ctl.Precis < xpfMAX_TIME_FRAC)
 			uSecs /= u32pow(10, xpfMAX_TIME_FRAC - psXP->ctl.Precis);
-		psXP->ctl.bPad0 = 1;								// need leading '0's
+		psXP->ctl.bPad0 = 1;							// need leading '0's
 		psXP->ctl.bSigned = 0;
-		psXP->ctl.bLeft = 0;								// force R-just
+		psXP->ctl.bLeft = 0;							// force R-just
+		psXP->ctl.bGroup = 0;
 		Len += xPrintXxx(psXP, uSecs, Buffer+Len, psXP->ctl.MinWid = psXP->ctl.Precis);
-	} else if (sXPC.bGroup) {
+	}
+	if (sXPC.bGroup) {
 		Buffer[Len++] = CHR_s;
 	}
+//	if (psXP->ctl.bRelVal && psTM->tm_mday && psTM->tm_hour) PX(" %.*s] ", Len, Buffer);
+
 	Buffer[Len] = 0;
-	memcpy(&psXP->ctl, &sXPC, sizeof(xpc_t));			// restore all flags
+	REST_XPC();
 	psXP->ctl.Precis = 0;								// was only used for uSec resolution
 	if (psXP->ctl.bMinWid && psXP->ctl.MinWid < Len)
 		psXP->ctl.MinWid = Len;							// enable full string if longer
-	vPrintString(psXP, Buffer);
+	vPrintStringJustified(psXP, Buffer);
 }
 
 void vPrintZone(xp_t * psXP, tsz_t * psTSZ) {
@@ -835,7 +902,7 @@ void vPrintZone(xp_t * psXP, tsz_t * psTSZ) {
 
 		#elif (timexTZTYPE_SELECTED == timexTZTYPE_FOURCHARS)
 		psXP->ctl.bSigned = 1;							// TZ hours offset is a signed value
-		psXP->ctl.bPlus = 1;								// force display of sign
+		psXP->ctl.bPlus = 1;							// force display of sign
 		Len = xPrintXxx(psXP, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXP->ctl.MinWid = 3);
 		Buffer[Len++] = psXP->ctl.bGroup ? CHR_h : CHR_COLON;
 		psXP->ctl.bSigned = 0;							// TZ offset minutes unsigned
@@ -859,15 +926,15 @@ void vPrintZone(xp_t * psXP, tsz_t * psTSZ) {
 	}
 	Buffer[Len] = 0;									// converted L to R, so add terminating NUL
 	psXP->ctl.limits = 0;								// enable full string
-	vPrintString(psXP, Buffer);
+	vPrintStringJustified(psXP, Buffer);
 }
 
 // ################################# Proprietary extension: URLs ###################################
 
 /**
- * vPrintURL() -
- * @param psXP
- * @param pString
+ * @brief	generate URL 
+ * @param	psXP
+ * @param	pString
  */
 void vPrintURL(xp_t * psXP, char * pStr) {
 	if (halCONFIG_inMEM(pStr)) {
@@ -885,7 +952,7 @@ void vPrintURL(xp_t * psXP, char * pStr) {
 			}
 		}
 	} else {
-		vPrintString(psXP, pStr);						// "null" or "pOOR"
+		vPrintStringJustified(psXP, pStr);						// "null" or "pOOR"
 	}
 }
 
@@ -932,7 +999,7 @@ void vPrintIpAddress(xp_t * psXP, u32_t Val) {
 	}
 	// then send the formatted output to the correct stream
 	psXP->ctl.limits = 0;
-	vPrintString(psXP, Buffer + (xpfMAX_LEN_IP - 1 - Len));
+	vPrintStringJustified(psXP, Buffer + (xpfMAX_LEN_IP - 1 - Len));
 }
 
 // ########################### Proprietary extension: SGR attributes ###############################
@@ -950,11 +1017,11 @@ void vPrintSetGraphicRendition(xp_t * psXP, u32_t Val) {
 	case sgrANSI:
 		#if (halUSE_CURSOR == 1)						// Optional terminal support
 		if (pcTermLocate(Buffer, sSGR.r, sSGR.c) != Buffer) {
-			xPrintChars(psXP, Buffer);					// cursor location, 1 relative, row & column
+			vPrintString(psXP, Buffer);					// cursor location, 1 relative, row & column
 		}
 		#endif
 		if (pcTermAttrib(Buffer, sSGR.a1, sSGR.a2) != Buffer) {
-			xPrintChars(psXP, Buffer);					// attribute[s]
+			vPrintString(psXP, Buffer);					// attribute[s]
 		}
 		break;
 //	case sgrNONE:
@@ -990,12 +1057,12 @@ int	xPrintFX(xp_t * psXP, const char * fmt) {
 			int	cFmt;
 			x32_t X32 = { 0 };
 			// Optional FLAGS must be in correct sequence of interpretation
-			while ((cFmt = strchr_i("!#&'*+- 0", *fmt)) != erFAILURE) {
+			while ((cFmt = strchr_i("!#&'*+-0", *fmt)) != erFAILURE) {
 				switch (cFmt) {
 				case 0:	psXP->ctl.bRelVal = 1; break;	// !	HEXDUMP/DTZ abs->rel address/time, MAC use ':' separator
-				case 1:	psXP->ctl.bAltF = 1; break;	// #	DTZ=GMT format, HEXDUMP/IP swop endian, STRING centre
-				case 2: psXP->ctl.bArray = 1; break;		// &	Array size & address provided
-				case 3: psXP->ctl.bGroup = 1; break;		// '	"diu" add 3 digit grouping, DTZ, MAC, DUMP select separator set
+				case 1:	psXP->ctl.bAltF = 1; break;		// #	DTZ=GMT format, HEXDUMP/IP swop endian, STRING centre
+				case 2: psXP->ctl.bArray = 1; break;	// &	Array size & address provided
+				case 3: psXP->ctl.bGroup = 1; break;	// '	"diu" add 3 digit grouping, DTZ, MAC, DUMP select separator set
 				case 4:									// *	indicate argument will supply field width
 					X32.iX	= va_arg(psXP->vaList, int);
 					IF_myASSERT(debugTRACK, psXP->ctl.bMinWid == 0 && X32.iX <= xpfMINWID_MAXVAL);
@@ -1005,8 +1072,7 @@ int	xPrintFX(xp_t * psXP, const char * fmt) {
 					break;
 				case 5: psXP->ctl.bPlus = 1; break;		// +	force +/-, HEXDUMP add ASCII, TIME add TZ info
 				case 6: psXP->ctl.bLeft = 1; break;		// -	Left justify, HEXDUMP remove address pointer
-				case 7:	psXP->ctl.bPadSp = 1; break;		//  	' ' instead of '+'
-				case 8:	psXP->ctl.bPad0 = 1; break;		// 0	force leading '0's
+				case 7:	psXP->ctl.bPad0 = 1; break;		// 0	force leading '0's
 				default: assert(0);
 				}
 				++fmt;
@@ -1129,18 +1195,19 @@ int	xPrintFX(xp_t * psXP, const char * fmt) {
 			case CHR_D:				// Local TZ date
 			case CHR_T:				// Local TZ time
 			case CHR_Z: {			// Local TZ DATE+TIME+ZONE
-				IF_myASSERT(debugTRACK, !psXP->ctl.bRelVal && !psXP->ctl.bGroup);
+				IF_myASSERT(debugTRACK, psXP->ctl.bRelVal == 0 && psXP->ctl.bGroup == 0);
 				psTSZ = va_arg(psXP->vaList, tsz_t *);
 				IF_myASSERT(debugTRACK, halCONFIG_inMEM(psTSZ));
+				SAVE_XPC();
 				psXP->ctl.bPad0 = 1;
+				psXP->ctl.bPlus = 0;		// MUST not have for numbers, only for DTZone
+				psXP->ctl.bLeft = 1;		// enable L justify ie R padding 
 				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs);
-				xpc_t sXPC = { 0 };
-				sXPC.flags = psXP->ctl.flags;
+				
 				// If full local time required, add TZ and DST offsets
 				if (psXP->ctl.bPlus && psTSZ->pTZ)
 					X32.u32 += psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
 				xTimeGMTime(X32.u32, &sTM, psXP->ctl.bRelVal);
-				psXP->ctl.bPlus = 0;
 				if (cFmt == CHR_D || cFmt == CHR_Z)
 					vPrintDate(psXP, &sTM);
 				if (cFmt == CHR_T || cFmt == CHR_Z)
@@ -1153,7 +1220,7 @@ int	xPrintFX(xp_t * psXP, const char * fmt) {
 			break;
 
 			case CHR_r: {			// U64 epoch (yr+mth+day) OR relative (days) + TIME
-				IF_myASSERT(debugTRACK, !psXP->ctl.bPlus && !psXP->ctl.bPad0 && !psXP->ctl.bGroup);
+				IF_myASSERT(debugTRACK, psXP->ctl.bPlus == 0 && psXP->ctl.bPad0 == 0);
 				if (psXP->ctl.bCase) {					// 64bit value supplied
 					X64.u64 = va_arg(psXP->vaList,u64_t);
 					X32.u32 = (u32_t) (X64.u64 / MICROS_IN_SECOND);
@@ -1225,7 +1292,7 @@ int	xPrintFX(xp_t * psXP, const char * fmt) {
 					if (psXP->ctl.MinWid)
 						X32.iX = (psXP->ctl.MinWid > X32.iX) ? X32.iX : psXP->ctl.MinWid;
 					u64_t mask = 1ULL << (X32.iX - 1);
-					xPrintChars(psXP, psXP->ctl.bCase ? "0B" : "0b");
+					vPrintString(psXP, psXP->ctl.bCase ? "0B" : "0b");
 					while (mask) {
 						xPrintChar(psXP, (X64.u64 & mask) ? CHR_1 : CHR_0);
 						mask >>= 1;
@@ -1287,7 +1354,7 @@ int	xPrintFX(xp_t * psXP, const char * fmt) {
 			case CHR_n:									// store chars to date at location.
 				pX.piX = va_arg(psXP->vaList, int *);
 				IF_myASSERT(debugTRACK, halCONFIG_inSRAM(pX.pc8));
-				*pX.piX = psXP->ctl.curlen;
+				*pX.piX = psXP->CurLen;
 				break;
 
 			case CHR_o:									// unsigned octal "ddddd"
@@ -1322,7 +1389,7 @@ int	xPrintFX(xp_t * psXP, const char * fmt) {
 				// Required to avoid crash when wifi message is intercepted and a string pointer parameter
 				// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
 				pX.pc8 = halCONFIG_inMEM(pX.pc8) ? pX.pc8 : (pX.pc8 == NULL) ? strNULL : strOOR;
-				vPrintString(psXP, pX.pc8);
+				vPrintStringJustified(psXP, pX.pc8);
 				break;
 
 			default:
@@ -1339,7 +1406,7 @@ out_lbl:
 		}
 	}
 exit:
-	return psXP->ctl.curlen;
+	return psXP->CurLen;
 }
 
 int	xPrintF(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * fmt, va_list vaList) {
@@ -1353,8 +1420,8 @@ int	xPrintF(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * fmt
 		sXP.ctl.flg2 = Size >> (32 - xpfBITS_REPORT);
 		Size &= BIT_MASK32(0, xpfMAXLEN_BITS - 1);
 	}
-	sXP.ctl.maxlen = Size;
-	sXP.ctl.curlen = 0;
+	sXP.MaxLen = Size;
+	sXP.CurLen = 0;
 	return xPrintFX(&sXP, fmt);
 }
 

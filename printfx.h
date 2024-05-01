@@ -300,13 +300,6 @@ DUMB_STATIC_ASSERT(sizeof(report_t) == (sizeof(char *) + 8));
 
 typedef	struct xpc_t {
 	union {
-		u32_t lengths;									// maxlen & curlen;
-		struct __attribute__((packed)) {
-			u32_t	maxlen : xpfMAXLEN_BITS;			// max chars to output 0 = unlimited
-			u32_t	curlen : xpfMAXLEN_BITS;			// number of chars output so far
-		};
-	};
-	union {
 		u32_t limits;
 		struct __attribute__((packed)) {
 			u32_t	MinWid : xpfMINWID_BITS;			// min field width
@@ -335,16 +328,20 @@ typedef	struct xpc_t {
 			bool	bMinWid		: 1;					// MinWid specified
 			bool	bPrecis		: 1;					// Precis specified
 			bool	bPad0		: 1;					// true = pad with leading'0'
-			bool	bPadSp		: 1;
-/*byte 3*/	bool	bArray		: 1;
-			bool	bFloat		: 1;
-			u8_t	uSpare		: 4;					// SPARE !!!
+			bool	bArray		: 1;
+/*byte 3*/	bool	bFloat		: 1;					// Indicate array printing FLOAT values
+			u8_t	uSpare		: 5;					// SPARE !!!
 			// end flg1. start flg2, sum of bit widths below = xpfBITS_REPORT
 			u8_t	sgr			: 2;					// check to align with report_t size struct
 		};
 	};
 } xpc_t;
-DUMB_STATIC_ASSERT(sizeof(xpc_t) == 12);
+DUMB_STATIC_ASSERT(sizeof(xpc_t) == 8);
+
+//#define SAVE_XPC()	xpc_t sXPC; memcpy(&sXPC, &psXP->ctl, sizeof(xpc_t));	// save flags
+//#define REST_XPC()	memcpy(&psXP->ctl, &sXPC, sizeof(xpc_t));				// restore flags
+#define SAVE_XPC()	xpc_t sXPC = psXP->ctl;				// save flags
+#define REST_XPC()	psXP->ctl = sXPC;					// restore flags
 
 typedef	struct xp_t {
 	int (*handler)(struct xp_t *, int);
@@ -358,10 +355,17 @@ typedef	struct xp_t {
 		int (*DevPutc)(int);		// custom device driver
 		unsigned int * pU32;		// Address of running CRC32 value
 	};
+	union {												// keep outside xpt_t not to save/restore
+		u32_t lengths;									// maxlen & curlen;
+		struct __attribute__((packed)) {
+			u32_t	MaxLen : xpfMAXLEN_BITS;			// max chars to output 0 = unlimited
+			u32_t	CurLen : xpfMAXLEN_BITS;			// number of chars output so far
+		};
+	};
 	xpc_t ctl;
 	va_list vaList;
 } xp_t;
-DUMB_STATIC_ASSERT(sizeof(xp_t) == (sizeof(int *) + sizeof(void *) + sizeof(xpc_t) + sizeof(va_list)));
+DUMB_STATIC_ASSERT(sizeof(xp_t) == (sizeof(int *) + sizeof(void *) + sizeof(u32_t) + sizeof(xpc_t) + sizeof(va_list)));
 
 // ################################### Public variables ############################################
 // ################################### Public functions ############################################
