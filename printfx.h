@@ -340,8 +340,8 @@ DUMB_STATIC_ASSERT(sizeof(xpc_t) == 8);
 
 //#define SAVE_XPC()	xpc_t sXPC; memcpy(&sXPC, &psXP->ctl, sizeof(xpc_t));	// save flags
 //#define REST_XPC()	memcpy(&psXP->ctl, &sXPC, sizeof(xpc_t));				// restore flags
-#define SAVE_XPC()	xpc_t sXPC = psXP->ctl;				// save flags
-#define REST_XPC()	psXP->ctl = sXPC;					// restore flags
+#define SAVE_XPC()	xpc_t sXPC = psXP->ctl;				// save ALL flags + limits 
+#define REST_XPC()	psXP->ctl = sXPC;					// restore ALL flags + limits
 
 typedef	struct xp_t {
 	int (*handler)(struct xp_t *, int);
