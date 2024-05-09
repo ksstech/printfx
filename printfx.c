@@ -1028,10 +1028,12 @@ void vPrintIpAddress(xp_t * psXP, u32_t Val) {
  * @note	https://docs.lvgl.io/8.4/widgets/core/label.html?highlight=printf%20text%20color
  */
 void vPrintSetGraphicRendition(xp_t * psXP, u32_t Val) {
-	char Buffer[xpfMAX_LEN_SGR];
-	sgr_info_t sSGR = { .u32 = Val };
-	switch (psXP->ctl.sgr) {
+	switch (psXP->ctl.uSGR) {
+	case sgrNONE:
+		break;
 	case sgrANSI:
+		char Buffer[xpfMAX_LEN_SGR];
+		sgr_info_t sSGR = { .u32 = Val };
 		#if (halUSE_CURSOR == 1)						// Optional terminal support
 		if (pcTermLocate(Buffer, sSGR.r, sSGR.c) != Buffer) {
 			vPrintString(psXP, Buffer);					// cursor location, 1 relative, row & column
