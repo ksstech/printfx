@@ -541,10 +541,10 @@ void vPrintPointer(xp_t * psXP, px_t pX) {
 	int Len = xPrintXxx(psXP, X64.u64, caBuf, xpfMAX_LEN_PNTR - 1);
 	memcpy(&caBuf[xpfMAX_LEN_PNTR - 3 - Len], psXP->ctl.bCase ? "0X" : "0x", 2);	// prepend
 	Len += 2;
-	REST_XPC();
 	psXP->ctl.MinWid += 2;
 	psXP->ctl.Precis += 2;
 	vPrintStringJustified(psXP, &caBuf[xpfMAX_LEN_PNTR - Len - 1]);
+	REST_XPC();
 }
 
 // ############################# Proprietary extension: hexdump ####################################
@@ -1229,6 +1229,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				psXP->ctl.bPlus = 0;		// only for DTZone, need to restore status later..
 				if (cFmt == CHR_D || cFmt == CHR_Z) {
 					vPrintDate(psXP, &sTM);	// bPad0=1, bPlus=0
+					REST_XPC();				// bAltF changed
 				}
 				if (cFmt == CHR_T || cFmt == CHR_Z) {
 					vPrintTime(psXP, &sTM, (u32_t)(psTSZ->usecs % MICROS_IN_SECOND));
