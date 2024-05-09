@@ -191,7 +191,7 @@ int vPrintString(xp_t * psXP, char * pStr) {
 void vPrintStringJustified(xp_t * psXP, char * pStr) {
 	// determine natural or limited length of string
 	size_t uLen;
-	if (psXP->ctl.bPrecis && psXP->ctl.bMinWid && (psXP->ctl.Precis < psXP->ctl.MinWid)) {
+	if (psXP->ctl.bPrecis && psXP->ctl.bMinWid && (psXP->ctl.Precis <= psXP->ctl.MinWid)) {
 		uLen = xstrnlen(pStr, psXP->ctl.Precis);
 	} else {
 		uLen = psXP->ctl.Precis ? psXP->ctl.Precis : strlen(pStr);
