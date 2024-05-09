@@ -1283,7 +1283,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 
 			#if	(xpfSUPPORT_HEXDUMP == 1)
 			case CHR_Y:									// HEXDUMP
-				IF_myASSERT(debugTRACK, !psXP->ctl.bMinWid && !psXP->ctl.bPrecis);
+				IF_myASSERT(debugTRACK, psXP->ctl.bMinWid == 0 && psXP->ctl.bPrecis == 0);
 				/* In order for formatting to work the "*" or "." bRadix specifiers
 				 * should not be used. The requirement for a second parameter is implied and assumed */
 				X32.iX = va_arg(psXP->vaList, int);		// retrieve implied/hidden size parameter
