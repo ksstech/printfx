@@ -281,9 +281,9 @@ typedef	union {
 } fm_t;
 DUMB_STATIC_ASSERT(sizeof(fm_t) == sizeof(u32_t));
 
-typedef struct report_t {
+typedef struct __attribute__((packed)) report_t {
 	char * pcBuf;
-	union {
+	union __attribute__((packed)) {
 		u32_t Size;
 		struct __attribute__((packed)) {
 			u32_t size : xpfMAXLEN_BITS;
@@ -406,13 +406,13 @@ int wprintfx(report_t * psRprt, const char * pcFormat, ...);
 
 // ################################### Destination = FILE PTR ######################################
 
-int vfprintfx(FILE * , const char * , va_list );
-int fprintfx(FILE * , const char * , ...);
+int vfprintfx(FILE *, const char *, va_list );
+int fprintfx(FILE *, const char *, ...);
 
 // ################################### Destination = HANDLE ########################################
 
-int vdprintfx(int , const char *, va_list );
-int dprintfx(int , const char *, ...);
+int vdprintfx(int, const char *, va_list );
+int dprintfx(int, const char *, ...);
 
 // ################################### Destination = DEVICE ########################################
 
@@ -426,13 +426,13 @@ int socprintfx(struct netx_t *, const char *, ...);
 
 // #################################### Destination : UBUF #########################################
 
-int vuprintfx(struct ubuf_t *, const char * , va_list);
-int uprintfx(struct ubuf_t *, const char * , ...);
+int vuprintfx(struct ubuf_t *, const char *, va_list);
+int uprintfx(struct ubuf_t *, const char *, ...);
 
 // #################################### Destination : CRC32 ########################################
 
-int vcrcprintfx(u32_t *, const char * , va_list);
-int crcprintfx(u32_t *, const char * , ...);
+int vcrcprintfx(u32_t *, const char *, va_list);
+int crcprintfx(u32_t *, const char *, ...);
 
 // ##################################### functional tests ##########################################
 
