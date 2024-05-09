@@ -359,6 +359,13 @@ typedef	union __attribute__((packed)) xpc_t {
 } xpc_t;
 DUMB_STATIC_ASSERT(sizeof(xpc_t) == 8);
 
+/**
+ * @brief	Example of bDebug flag usage
+ * IF_PX(psXP->ctl.bDebug, "[%.*s", Len, Buffer);
+ * IF_PX(psXP->ctl.bDebug, " %.*s", Len, Buffer);
+ * IF_PX(psXP->ctl.bDebug, " %.*s]", Len, Buffer);
+ * To set the bDebug flag use reportSIZE(a,b,c,d,e,) 
+*/
 
 typedef	struct xp_t {
 	int (*handler)(struct xp_t *, int);
