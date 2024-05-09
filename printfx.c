@@ -63,10 +63,10 @@
 const u8_t S_bytes[S_XXX] = { sizeof(int), sizeof(char), sizeof(short), sizeof(long), sizeof(long long),
 							sizeof(intmax_t), sizeof(size_t), sizeof(ptrdiff_t), sizeof(long double) };
 const char hexchars[] = "0123456789ABCDEF";
-const char Delim0[2] = { '-', '/' };
-const char Delim1[2] = { 'T', ' ' };
-const char Delim2[2] = { ':', 'h' };
-const char Delim3[2] = { ':', 'm' };
+const char Delim0[2] = { '-', '/' };					// "-/"
+const char Delim1[2] = { 'T', ' ' };					// "T "
+const char Delim2[2] = { ':', 'h' };					// ":h"
+const char Delim3[2] = { ':', 'm' };					// ":m"
 const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 	'B',							// Binary formatted, prepend "0b" or "0B"
 	'P',							// pointer formatted, 0x00abcdef or 0X00ABCDEF
@@ -122,7 +122,7 @@ x64_t x64PrintGetValue(xp_t * psXP) {
 }
 
 /**
- * @brief		returns a pointer to the hexadecimal character representing the value of the low order nibble
+ * @brief		determine the hexadecimal character representing the value of the low order nibble
  * @brief		Based on the Flag, the pointer will be adjusted for UpperCase (if required)
  * @param[in]	Val = value in low order nibble, to be converted
  * @return		pointer to the correct character
@@ -215,43 +215,45 @@ void vPrintStringJustified(xp_t * psXP, char * pStr) {
 	for (;Rpad--; xPrintChar(psXP, Cpad));
 }
 
+/*	bGroup=0	bGRoup=1	No scaling specified
+ *	12.34Q		12Q34		12,345,678,900,000,000,000
+ *	1.234Q		1Q234		1,234,567,890,000,000,000
+ *	123.4q		123q4		123,456,789,000,000,000
+ *	12.34q		12q34		12,345,678,900,000,000
+ *	1.234q		1q234		1,234,567,890,000,000
+ *	123.4T		123T4		123,456,789,000,000
+ *	12.34T		12T34		12,345,678,900,000
+ *	1.234T		1T234		1,234,567,890,000
+ *	123.4B		123B4		123,456,789,000
+ *	12.34B		12B34		12,345,678,900
+ *	1.234B		1B234		1,234,567,890
+ *	123.4M		123M4		123,456,789
+ *	12.34M		12M34		12,345,678
+ *	1.234M		1M234		1,234,567
+ *	123.4K		123K4		123,456
+ *	12.34K		12K34		12,345
+ *	1.234K		1K234		1,234
+ *	123			123			123
+*/
+
 /**
  * @brief	Convert u64_t value to a formatted string (build right to left)
  * @param	psXP - pointer to control structure
  * @param	u64Val - u64_t value to convert & output
  * @param	pBuffer - pointer to buffer for converted string storage
  * @param	BufSize - available (remaining) space in buffer
- * @note	Honour & interpret the following modifier flags
- * @note	'	Group digits in 3 digits groups to left of decimal '.'
- * @note	-	Left align the individual numbers between the '.'
- * @note	+	Force a '+' or '-' sign on the left
- * @note	0	Zero pad to the left of the value to fill the field
- * @note	Uses bAltF bGroup uBase bLeft MinWid bPad0 bNegVal bPlus
- * @note	Changes CurLen indirectly through xPrintChar()
  * @return	number of actual characters output (incl leading '-' and/or ' ' and/or '0' as possibly added)
- * 
- * Protection against buffer overflow based on correct sized buffer being allocated in calling function
- *
- *	(1)		(2)		(0)
- *	12.34Q	12Q34	12,345,678,900,000,000,000
- *	1.234Q	1Q234	1,234,567,890,000,000,000
- *	123.4q	123q4	123,456,789,000,000,000
- *	12.34q	12q34	12,345,678,900,000,000
- *	1.234q	1q234	1,234,567,890,000,000
- *	123.4T	123T4	123,456,789,000,000
- *	12.34T	12T34	12,345,678,900,000
- *	1.234T	1T234	1,234,567,890,000
- *	123.4B	123B4	123,456,789,000
- *	12.34B	12B34	12,345,678,900
- *	1.234B	1B234	1,234,567,890
- *	123.4M	123M4	123,456,789
- *	12.34M	12M34	12,345,678
- *	1.234M	1M234	1,234,567
- *	123,456	123K4	123,456
- *	12,345	12K34	12,345
- *	1,234	1K234	1,234
- *	123		123		123
- */
+ * @note	Honour & interpret the following modifiers
+ * @note	'#' Enable scaling in SI units
+ * @note	''' If scaling select bGroup = 0/1 columns below.
+ * @note		If not scaling group digits in 3's (3rd column below)
+ * @note	'-' Left align the individual numbers between the '.'
+ * @note	'+' Force a '+' or '-' sign on the left
+ * @note	'0' Zero pad to the left of the value to fill the field
+ * @note	Uses bAltF bGroup uBase bLeft bPad0 bNegVal bPlus MinWid
+ * @note	Changes nothing
+ * @note	Buffer overflow if incorrect size allocated in calling function
+*/
 int	xPrintXxx(xp_t * psXP, u64_t u64Val, char * pBuffer, int BufSize) {
 	int	Len = 0;
 	int Count, iTemp;
@@ -789,9 +791,9 @@ int	xPrintDate_Day(xp_t * psXP, struct tm * psTM, char * pBuffer) {
 }
 
 /**
- * @brief
- * @param	psXP
- * @param	psTM
+ * @brief	Converts epoch date component to text format as specified
+ * @param	psXP ponter to control structure
+ * @param	psTM pointer to date & time component structure
  * @note	Uses bAltF bRelVal bPad0
  * @note	Changes bAltF MinWid
 */
@@ -811,14 +813,22 @@ void vPrintDate(xp_t * psXP, struct tm * psTM) {
 			Len += xPrintDate_Year(psXP, psTM, Buffer+Len);
 			Len += xPrintDate_Month(psXP, psTM, Buffer+Len);
 		}
-		if (psTM->tm_mday || psXP->ctl.bPad0)
+		if (psTM->tm_mday || psXP->ctl.bPad0) {
 			Len += xPrintDate_Day(psXP, psTM, Buffer+Len);
+		}
 	}
 	Buffer[Len] = 0;									// converted L to R, so terminate
 	psXP->ctl.MinWid = 0;								// enable full string
 	vPrintStringJustified(psXP, Buffer);
 }
 
+/**
+ * @brief	Converts epoch time component to text format as specified
+ * @param	psXP ponter to control structure
+ * @param	psTM pointer to date & time component structure
+ * @note	Uses bPad0 bGroup bRadix Precis
+ * @note	Changes bPad0 bLeft bGroup
+*/
 void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	char Buffer[xpfMAX_LEN_TIME];
 	int	Len;
@@ -831,7 +841,6 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	} else {
 		Len = 0;
 	}
-//	if (psXP->ctl.bRelVal && psTM->tm_mday && psTM->tm_hour) PX("[%.*s", Len, Buffer);
 
 	// Part 2: minutes
 	if (psTM->tm_min || psXP->ctl.bPad0) {
@@ -839,11 +848,9 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 		Buffer[Len++] = Delim3[sXPC.bGroup];
 		psXP->ctl.bPad0 = 1;
 	}
-//	if (psXP->ctl.bRelVal && psTM->tm_mday && psTM->tm_hour) PX(" %.*s", Len, Buffer);
 
 	// Part 3: seconds
 	Len += xPrintXxx(psXP, (u64_t) psTM->tm_sec, Buffer+Len, xPrintTimeCalcSize(psXP, psTM->tm_sec));
-//	if (psXP->ctl.bRelVal && psTM->tm_mday && psTM->tm_hour) PX(" %.*s", Len, Buffer);
 
 	// Part 4: [.xxxxxx]
 	if (psXP->ctl.bRadix && uSecs) {
@@ -860,7 +867,6 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 		Buffer[Len++] = CHR_s;
 	}
 	Buffer[Len] = 0;
-//	if (psXP->ctl.bRelVal && psTM->tm_mday && psTM->tm_hour) PX(" %.*s] ", Len, Buffer);
 
 	REST_XPC();
 	psXP->ctl.Precis = 0;								// was only used for uSec resolution
@@ -972,7 +978,7 @@ void vPrintURL(xp_t * psXP, char * pStr) {
  * @param[in]	psXP - pointer to output & format control structure
  * @param[in]	Val - IP address value in HOST format !!!
  * @return		none
- * @note		Used the following modifier flags
+ * @note		Used the following modifiers
  * @note		'!'		Invert the LSB normal MSB byte order (Network <> Host related)
  * @note		'-'		Left align the individual numbers between the '.'
  * @note		'0'		Zero pad the individual numbers between the '.'
@@ -1029,9 +1035,6 @@ void vPrintSetGraphicRendition(xp_t * psXP, u32_t Val) {
 			vPrintString(psXP, Buffer);					// attribute[s]
 		}
 		break;
-//	case sgrNONE:
-//	case sgrLVGL:
-//	case sgrOTHER:
 	default:
 	}
 }
@@ -1184,7 +1187,7 @@ int	xPrintFX(xp_t * psXP, const char * fmt) {
 
 			#if	(xpfSUPPORT_DATETIME == 1)
 			/* Prints date and/or time in POSIX format
-			 * Use the following modifier flags
+			 * Use the following modifiers
 			 *	'''		select between 2 different separator sets being
 			 *			'/' or '-' (years)
 			 *			'/' or '-' (months)
@@ -1192,8 +1195,10 @@ int	xPrintFX(xp_t * psXP, const char * fmt) {
 			 *			':' or 'h' (hours)
 			 *			':' or 'm' (minutes)
 			 *			'.' or 's' (seconds)
-			 * 	'!'		Treat time value as elapsed and not epoch [micro] seconds
-			 * 	'.'		append 1 -> 6 digit(s) fractional seconds
+			 * 	'!'		Treat value as relative/elapsed and not epoch
+			 * 	'.'		Append 1 -> 6 digit(s) fractional seconds
+			 *	'+'		Convert to local time, add TZ offset and DSt if available
+			 *	'#'		Select the alternative format
 			 * Norm 1	1970/01/01T00:00:00Z
 			 * Norm 2	1970-01-01 00h00m00s
 			 * Altform	Mon, 01 Jan 1970 00:00:00 GMT
@@ -1209,8 +1214,8 @@ int	xPrintFX(xp_t * psXP, const char * fmt) {
 				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs);
 				if (psXP->ctl.bPlus && psTSZ->pTZ)
 					X32.u32 += psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
+				// Convert to component values
 				xTimeGMTime(X32.u32, &sTM, psXP->ctl.bRelVal);
-
 				// setup flags for date & time portions
 				psXP->ctl.bPad0 = 1;		// Need 0 on date & time, want to restore same
 				SAVE_XPC();
@@ -1262,7 +1267,7 @@ int	xPrintFX(xp_t * psXP, const char * fmt) {
 			#if	(xpfSUPPORT_MAC_ADDR == 1)
 			/* Formats 6 byte string (0x00 is valid) as a series of hex characters.
 			 * default format uses no separators eg. '0123456789AB'
-			 * Support the following modifier flags:
+			 * Support the following modifiers:
 			 *  '#' select upper case alternative form
 			 *  '!'	select ':' separator between digits
 			 */
@@ -1489,7 +1494,8 @@ int printfx_nolock(const char * format, ...) {
 // ##################################### Destination = STRING ######################################
 
 static int xPrintToString(xp_t * psXP, int cChr) {
-	if (psXP->pStr) *psXP->pStr++ = cChr;
+	if (psXP->pStr)
+		*psXP->pStr++ = cChr;
 	return cChr;
 }
 
@@ -1500,7 +1506,8 @@ int vsnprintfx(char * pBuf, size_t szBuf, const char * format, va_list vaList) {
 	}
 	int iRV = xPrintF(xPrintToString, pBuf, szBuf, format, vaList);
 	if (pBuf) {											// buffer specified ?
-		if (iRV == szBuf) --iRV;						// yes, if full make space for terminator
+		if (iRV == size)								// yes, if full ...
+			--iRV;										// make space for terminator
 		pBuf[iRV] = 0;									// terminate
 	}
 	return iRV;
@@ -1541,10 +1548,10 @@ int	wvprintfx(report_t * psR, const char * pcFormat, va_list vaList) {
 	if (psR && psR->pcBuf && psR->size) {
 		IF_myASSERT(debugPARAM, halCONFIG_inSRAM(psR) && halCONFIG_inSRAM(psR->pcBuf));
 		iRV = vsnprintfx(psR->pcBuf, psR->Size, pcFormat, vaList);
-		if (iRV > 0) {
+		if (iRV > 0) {									// if anything written
 			IF_myASSERT(debugRESULT, iRV <= psR->size);
-			psR->pcBuf += iRV;
-			psR->size -= iRV;
+			psR->pcBuf += iRV;							// update buffer pointer
+			psR->size -= iRV;							// available size
 		}
 	} else {
 		BaseType_t btRV = pdTRUE;
@@ -1676,10 +1683,10 @@ static int xPrintToSocket(xp_t * psXP, int cChr) {
 }
 
 int vsocprintfx(netx_t * psSock, const char * format, va_list vaList) {
-	int	Fsav = psSock->flags;
+	int	Fsav = psSock->flags;		// save the current socket flags
 	psSock->flags |= MSG_MORE;
 	int iRV = xPrintF(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, format, vaList);
-	psSock->flags = Fsav;
+	psSock->flags = Fsav;			// restore socket flags
 	return (psSock->error == 0) ? iRV : erFAILURE;
 }
 
@@ -1713,12 +1720,12 @@ int	uprintfx(ubuf_t * psUBuf, const char * format, ...) {
 // #################################### Destination : CRC32 ########################################
 
 static int xPrintToCRC32(xp_t * psXP, int cChr) {
-	#if defined(ESP_PLATFORM)							// use ROM based CRC lookup table
+#if defined(ESP_PLATFORM)							// use ROM based CRC lookup table
 	u8_t cBuf = cChr;
 	*psXP->pU32 = crc32_le(*psXP->pU32, &cBuf, sizeof(cBuf));
-	#else												// use fastest of external libraries
+#else												// use fastest of external libraries
 	u32_t MsgCRC = crcSlow((u8_t *) pBuf, iRV);
-	#endif
+#endif
 	return cChr;
 }
 
