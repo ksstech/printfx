@@ -519,11 +519,11 @@ void vPrintPointer(xp_t * psXP, px_t pX) {
 	caBuf[xpfMAX_LEN_PNTR-1] = CHR_NUL;
 	SAVE_XPC();
 	psXP->ctl.uBase = BASE16;
+	psXP->ctl.bPad0 = 1;
 	psXP->ctl.bNegVal = 0;
 	psXP->ctl.bPlus = 0;								// no leading '+'
 	psXP->ctl.bAltF = 0;								// disable scaling
 	psXP->ctl.bGroup = 0;								// disable 3-digit grouping
-	psXP->ctl.bPad0 = 1;
 	x64_t X64;
 	#if (xpfSIZE_POINTER == 2)
 		psXP->ctl.MinWid = 4;
@@ -870,9 +870,9 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	Buffer[Len] = 0;
 
 	REST_XPC();
-	psXP->ctl.Precis = 0;								// was only used for uSec resolution
 	if (psXP->ctl.bMinWid && psXP->ctl.MinWid < Len)
 		psXP->ctl.MinWid = Len;							// enable full string if longer
+	psXP->ctl.Precis = 0;			// changed for uSec digits, remove limit on max string length
 	vPrintStringJustified(psXP, Buffer);
 }
 
@@ -1208,11 +1208,10 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			case CHR_T:				// Local TZ time
 			case CHR_Z: {			// Local TZ DATE+TIME+ZONE
 				IF_myASSERT(debugTRACK, psXP->ctl.bRelVal == 0);
-				psTSZ = va_arg(psXP->vaList, tsz_t *);
-
+				psTSZ = va_arg(psXP->vaList, tsz_t *);	// retrieve TSX pointer parameter
 				IF_myASSERT(debugTRACK, halMEM_AddrInANY(psTSZ));
+				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs);	// convert to u32_t epoch value
 				// If full local time required, add TZ and DST offsets
-				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs);
 				if (psXP->ctl.bPlus && psTSZ->pTZ)
 					X32.u32 += psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
 				// Convert to component values
@@ -1224,8 +1223,9 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				if (cFmt == CHR_D || cFmt == CHR_Z) {
 					vPrintDate(psXP, &sTM);	// bPad0=1, bPlus=0
 				}
-				if (cFmt == CHR_T || cFmt == CHR_Z)
+				if (cFmt == CHR_T || cFmt == CHR_Z) {
 					vPrintTime(psXP, &sTM, (u32_t)(psTSZ->usecs % MICROS_IN_SECOND));
+				}
 				if (cFmt == CHR_Z) {
 					REST_XPC();
 					vPrintZone(psXP, psTSZ);
@@ -1286,8 +1286,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				IF_myASSERT(debugTRACK, !psXP->ctl.bMinWid && !psXP->ctl.bPrecis);
 				/* In order for formatting to work the "*" or "." bRadix specifiers
 				 * should not be used. The requirement for a second parameter is implied and assumed */
-				X32.iX = va_arg(psXP->vaList, int);
-				pX.pc8 = va_arg(psXP->vaList, char *);
+				X32.iX = va_arg(psXP->vaList, int);		// retrieve implied/hidden size parameter
+				pX.pc8 = va_arg(psXP->vaList, char *);	// retrieve the pointer to data
 				IF_myASSERT(debugTRACK, halMEM_AddrInANY(pX.pc8));
 				psXP->ctl.uForm = form3X;
 				vPrintHexDump(psXP, X32.iX, pX.pc8);
@@ -1422,8 +1422,7 @@ int	xPrintF(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pcF
 	sXP.handler = Hdlr;
 	sXP.pVoid = pVoid;
 	sXP.vaList = vaList;
-	// [v]wprintfx() ONLY!! 
-	// Move flags mapped onto MSByte of Size into xp_t structure MSByte
+	// [v]wprintfx() ONLY!! Move flags mapped onto MSByte of Size into xp_t structure MSByte
 	if (Size > xpfMAXLEN_MAXVAL) {
 		sXP.ctl.flg2 = Size >> (32 - xpfBITS_REPORT);
 		Size &= BIT_MASK32(0, xpfMAXLEN_BITS - 1);
