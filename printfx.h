@@ -17,22 +17,21 @@ extern "C" {
 // "format" used by ALL tracking macros.
 extern u64_t RunTime;
 
-#define	_L_(f)						" [%s:%d] " f, __FUNCTION__, __LINE__
-#define	_T_(f)						" [%!.R] " f, RunTime
-#define	_TL_(f)						" [%!.R:%s:%d] " f, RunTime, __FUNCTION__, __LINE__
-
-#define	P(f, ...)					printfx(f, ##__VA_ARGS__)
-#define	PX(f, ...)					printfx(f, ##__VA_ARGS__)
-#define	PL(f, ...)					printfx(_L_(f), ##__VA_ARGS__)
-#define	PT(f, ...)					printfx(_T_(f), ##__VA_ARGS__)
-#define	PTL(f, ...)					printfx(_TL_(f), ##__VA_ARGS__)
-
-#define	IF_P(T, f, ...)				if (T) P(f, ##__VA_ARGS__)
+#define	PX(f, ...)					wprintfx(NULL, f, ##__VA_ARGS__)
 #define	IF_PX(T, f, ...)			if (T) PX(f, ##__VA_ARGS__)
-#define	IF_PL(T, f, ...)			if (T) PL(f, ##__VA_ARGS__)
-#define	IF_PT(T, f, ...)			if (T) PT(f, ##__VA_ARGS__)
-#define	IF_PTL(T, f, ...)			if (T) PTL(f, ##__VA_ARGS__)
 
+#define	_L_(f)						" [%s:%d] " f, __FUNCTION__, __LINE__
+#define	PL(f, ...)					wprintfx(NULL, _L_(f), ##__VA_ARGS__)
+#define	IF_PL(T, f, ...)			if (T) PL(f, ##__VA_ARGS__)
+
+#define	_T_(f)						" [%!.R] " f, RunTime
+#define	PT(f, ...)					wprintfx(NULL, _T_(f), ##__VA_ARGS__)
+#define	IF_PT(T, f, ...)			if (T) PT(f, ##__VA_ARGS__)
+
+#define	_TL_(f)						" [%!.R:%s:%d] " f, RunTime, __FUNCTION__, __LINE__
+#define	PTL(f, ...)					wprintfx(NULL, _TL_(f), ##__VA_ARGS__)
+#define	IF_PTL(T, f, ...)			if (T) PTL(f, ##__VA_ARGS__)
+/*
 #define	CP(f, ...)					cprintfx(f, ##__VA_ARGS__)
 #define	CPL(f, ...)					cprintfx(_L_(f), ##__VA_ARGS__)
 #define	CPT(f, ...)					cprintfx(_T_(f), ##__VA_ARGS__)
@@ -56,7 +55,7 @@ extern u64_t RunTime;
 #define	IF_RP(T, f, ...)			if (T) RP(f, ##__VA_ARGS__)
 #define	IF_RPL(T, f, ...)			if (T) RPL(f, ##__VA_ARGS__)
 #define	IF_RPT(T, f, ...)			if (T) RPT(f, ##__VA_ARGS__)
-
+*/
 // ################################## public build definitions #####################################
 
 #define	xpfMAXIMUM_DECIMALS			15
@@ -135,7 +134,7 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 
 /* https://en.wikipedia.org/wiki/ANSI_escape_code#Escape_sequences
  * http://www.termsys.demon.co.uk/vtansi.htm#colors
- */
+*/
 #define _xpfSGR(p,v)				((v & 0xFF) << (p * 8))
 #define	xpfSGR(r,c,a1,a2)			(_xpfSGR(3,r) | _xpfSGR(2,c) | _xpfSGR(1,a1) | _xpfSGR(0,a2))
 // Used to convert LVGL 16bit colour code to 2x 8bit values
@@ -378,15 +377,11 @@ int xPrintF(int (handler)(xp_t *, int), void *, size_t, const char *, va_list);
 
 // ##################################### Destination = STDOUT ######################################
 
-//int vnprintfx_nolock(size_t count, const char * format, va_list);
-//int vprintfx_nolock(const char * format, va_list);
-//int printfx_nolock(const char * format, ...);
-
-int vnprintfx(size_t, const char *, va_list) _ATTRIBUTE ((__format__ (__printf__, 2, 0)));
-int vprintfx(const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
-int nprintfx(size_t, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 2, 3)));
+//int vnprintfx(size_t, const char *, va_list) _ATTRIBUTE ((__format__ (__printf__, 2, 0)));
+//int vprintfx(const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
+//int nprintfx(size_t, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 2, 3)));
 //int printfx(const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 1, 2)));
-int printfx(const char *, ...);
+//int printfx(const char *, ...);
 
 // ##################################### Destination = STRING ######################################
 
@@ -394,7 +389,7 @@ int vsnprintfx(char *, size_t, const char *, va_list) _ATTRIBUTE ((__format__ (_
 int vsprintfx(char *, const char *, va_list) _ATTRIBUTE ((__format__ (__printf__, 2, 0)));
 //int snprintfx(char *, size_t, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 3, 4)));
 int snprintfx(char *, size_t, const char *, ...);
-int sprintfx(char *, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 2, 3)));
+//int sprintfx(char *, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 2, 3)));
 
 // ############################## Destination = STDOUT -or- STRING #################################
 
@@ -403,8 +398,8 @@ int wprintfx(report_t * psRprt, const char * pcFormat, ...);
 
 // ############################## LOW LEVEL DIRECT formatted output ################################
 
-int vcprintfx(const char *, va_list);
-int cprintfx(const char *, ...);
+//int vcprintfx(const char *, va_list);
+//int cprintfx(const char *, ...);
 
 // ################################### Destination = FILE PTR ######################################
 
