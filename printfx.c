@@ -7,6 +7,7 @@
  */
 
 #include "hal_platform.h"
+#include "hal_memory.h"
 #include "hal_options.h"
 #include "hal_stdio.h"
 #include "printfx.h"
@@ -952,7 +953,7 @@ void vPrintZone(xp_t * psXP, tsz_t * psTSZ) {
  * @param	pString
  */
 void vPrintURL(xp_t * psXP, char * pStr) {
-	if (halCONFIG_inMEM(pStr)) {
+	if (halMEM_AddrInANY(pStr)) {
 		char cIn;
 		while ((cIn = *pStr++) != 0) {
 			if (INRANGE(CHR_A, cIn, CHR_Z) ||
@@ -1208,8 +1209,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			case CHR_Z: {			// Local TZ DATE+TIME+ZONE
 				IF_myASSERT(debugTRACK, psXP->ctl.bRelVal == 0);
 				psTSZ = va_arg(psXP->vaList, tsz_t *);
-				IF_myASSERT(debugTRACK, halCONFIG_inMEM(psTSZ));
 
+				IF_myASSERT(debugTRACK, halMEM_AddrInANY(psTSZ));
 				// If full local time required, add TZ and DST offsets
 				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs);
 				if (psXP->ctl.bPlus && psTSZ->pTZ)
@@ -1259,7 +1260,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			#if	(xpfSUPPORT_URL == 1)					// para = pointer to string to be encoded
 			case CHR_U:
 				pX.pc8 = va_arg(psXP->vaList, char *);
-				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pX.pc8));
+				IF_myASSERT(debugTRACK, halMEM_AddrInANY(pX.pc8));
 				vPrintURL(psXP, pX.pc8);
 				break;
 			#endif
@@ -1275,7 +1276,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				IF_myASSERT(debugTRACK, !psXP->ctl.bMinWid && !psXP->ctl.bPrecis);
 				psXP->ctl.uSize = S_hh;					// force interpretation as sequence of U8 values
 				pX.pc8 = va_arg(psXP->vaList, char *);
-				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pX.pc8));
+				IF_myASSERT(debugTRACK, halMEM_AddrInANY(pX.pc8));
 				vPrintHexValues(psXP, lenMAC_ADDRESS, pX.pc8);
 				break;
 			#endif
@@ -1287,7 +1288,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				 * should not be used. The requirement for a second parameter is implied and assumed */
 				X32.iX = va_arg(psXP->vaList, int);
 				pX.pc8 = va_arg(psXP->vaList, char *);
-				IF_myASSERT(debugTRACK, halCONFIG_inMEM(pX.pc8));
+				IF_myASSERT(debugTRACK, halMEM_AddrInANY(pX.pc8));
 				psXP->ctl.uForm = form3X;
 				vPrintHexDump(psXP, X32.iX, pX.pc8);
 				break;
@@ -1395,8 +1396,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			commonM_S:
 				// Required to avoid crash when wifi message is intercepted and a string pointer parameter
 				// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
-				pX.pc8 = halCONFIG_inMEM(pX.pc8) ? pX.pc8 : (pX.pc8 == NULL) ? strNULL : strOOR;
 				vPrintStringJustified(psXP, pX.pc8);
+				pX.pc8 = halMEM_AddrInANY(pX.pc8) ? pX.pc8 : (pX.pc8 == NULL) ? strNUL : strOOR;
 				break;
 
 			default:
@@ -1541,8 +1542,9 @@ int sprintfx(char * pBuf, const char * pcFmt, ...) {
 
 int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
 	int iRV = 0;
+	IF_myASSERT(debugPARAM && psR, halCONFIG_inSRAM(psR));
 	if (psR && psR->pcBuf && psR->size) {
-		IF_myASSERT(debugPARAM, halCONFIG_inSRAM(psR) && halCONFIG_inSRAM(psR->pcBuf));
+		IF_myASSERT(debugPARAM && psR->pcBuf, halCONFIG_inSRAM(psR->pcBuf));
 		iRV = vsnprintfx(psR->pcBuf, psR->Size, pcFmt, vaList);	// generate output to buffer
 		if (iRV > 0) {									// if anything written
 			IF_myASSERT(debugRESULT, iRV <= psR->size);
