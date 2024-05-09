@@ -287,56 +287,51 @@ typedef struct __attribute__((packed)) report_t {
 		u32_t Size;
 		struct __attribute__((packed)) {
 			u32_t size : xpfMAXLEN_BITS;
-			bool fUnlock : 1;		// Unlock at exit
-			bool fLock : 1;			// Lock at entry
-			bool fEcho : 1;			// enable command character(s) echo
-			bool fFlags : 1;		// Force checking of flag changes
-			bool fForce : 1;		// Force display of flags
 			u16_t spare : 9;
-			u32_t sgr : 2;
+			u8_t fNoLock : 1;		// Do not lock/unlock
+			u8_t fEcho : 1;			// enable command character(s) echo
+			u8_t fFlags : 1;		// Force checking of flag changes
+			u8_t fForce : 1;		// Force display of flags
+			u8_t bDebug : 1;		//Enable debug output where placed
+			u8_t uSGR : 2;
 		};
 	};
 	fm_t sFM;
 } report_t;
 DUMB_STATIC_ASSERT(sizeof(report_t) == (sizeof(char *) + 8));
 
-typedef	struct xpc_t {
-	union {
-		u32_t limits;
-		struct __attribute__((packed)) {
-			u32_t	MinWid : xpfMINWID_BITS;			// min field width
-			u32_t	Precis : xpfPRECIS_BITS;			// float precision or max string length
-		};
+typedef	union __attribute__((packed)) xpc_t {
+	struct __attribute__((packed)) {
+		u32_t limits;				// Combined MinWid & Precis
+/*b4*/	u8_t bAltF : 1;				// # alternative form
+		u8_t bLeft : 1;				// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
+		u8_t bCase : 1;				// true = 'a' or false = 'A'
+		u8_t bPlus : 1;				// true = force use of '+' or '-' signed
+		u8_t bSigned : 1;			// true = content is signed value
+		u8_t bNegVal : 1;			// if value < 0
+		u8_t bRelVal : 1;			// relative address / elapsed time
+		u8_t bRadix : 1;			// '.' specified
+/*b5*/	u32_t uBase : 5;			// 2, 8, 10 or 16
+		u8_t uForm : 2;				// format specifier FLOAT, MAC & HEXDUMP
+		u8_t bGroup : 1;			// ' SI group digits or select separator
+/*b6*/	u8_t uSize : 4;				// size override
+		u8_t bMinWid : 1;			// MinWid specified
+		u8_t bPrecis : 1;			// Precis specified
+		u8_t bPad0 : 1;				// 0 = ' ', 1 = '0'
+		u8_t bArray : 1;			// array pointer as parameter
+/*b7*/	u8_t bFloat : 1;			// array printing FLOAT values
+		u8_t uSpare : 4;
+		// end flg1. start flg2, sum of bit widths below = reportXPC_BITS
+		u8_t bDebug : 1;			// debug flag from wprintfx
+		u8_t uSGR : 2;				// check to align with report_t size struct
 	};
-	union {
-		u32_t flags;									// rest of flags
-		struct __attribute__((packed)) {
-			u32_t	flg1 : (32-xpfBITS_REPORT);			// flags to be reset
-			u32_t	flg2 : xpfBITS_REPORT;				// flags to be retained
-		};
-		struct __attribute__((packed)) {
-/*byte 0*/	bool	bAltF		: 1;					// # alternative form
-			bool	bLeft		: 1;					// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
-			bool	bCase		: 1;					// true = 'a' or false = 'A'
-			bool	bPlus		: 1;					// true = force use of '+' or '-' signed
-			bool	bSigned		: 1;					// true = content is signed value
-			bool	bNegVal		: 1;					// if value < 0
-			bool	bRelVal		: 1;					// relative address / elapsed time
-			bool	bRadix		: 1;					// '.' specified
-/*byte 1*/	u32_t	uBase 		: 5;					// 2, 8, 10 or 16
-			u8_t	uForm		: 2;					// format specifier FLOAT, MAC & HEXDUMP
-			bool	bGroup 		: 1;					// ' SI group digits or select separator
-/*byte 2*/	u8_t	uSize		: 4;					// size override
-			bool	bMinWid		: 1;					// MinWid specified
-			bool	bPrecis		: 1;					// Precis specified
-			bool	bPad0		: 1;					// true = pad with leading'0'
-			bool	bArray		: 1;
-/*byte 3*/	bool	bFloat		: 1;					// Indicate array printing FLOAT values
-			u8_t	uSpare		: 5;					// SPARE !!!
-			// end flg1. start flg2, sum of bit widths below = xpfBITS_REPORT
-			u8_t	sgr			: 2;					// check to align with report_t size struct
-		};
+	struct __attribute__((packed)) {
+		u32_t MinWid : xpfMINWID_BITS;			// min field width
+		u32_t Precis : xpfPRECIS_BITS;			// float precision or max string length
+		u32_t flg1 : (32-reportXPC_BITS);		// flags to be reset
+		u32_t flg2 : reportXPC_BITS;			// flags to be retained
 	};
+	u64_t u64Val;
 } xpc_t;
 DUMB_STATIC_ASSERT(sizeof(xpc_t) == 8);
 
