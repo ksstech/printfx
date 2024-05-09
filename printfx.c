@@ -824,7 +824,7 @@ void vPrintDate(xp_t * psXP, struct tm * psTM) {
 		}
 	}
 	Buffer[Len] = 0;									// converted L to R, so terminate
-	psXP->ctl.MinWid = 0;								// enable full string
+	psXP->ctl.Precis = 0;								// enable full string
 	vPrintStringJustified(psXP, Buffer);
 }
 
