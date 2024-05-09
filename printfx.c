@@ -1424,7 +1424,7 @@ int	xPrintF(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pcF
 	sXP.vaList = vaList;
 	// [v]wprintfx() ONLY!! Move flags mapped onto MSByte of Size into xp_t structure MSByte
 	if (Size > xpfMAXLEN_MAXVAL) {
-		sXP.ctl.flg2 = Size >> (32 - xpfBITS_REPORT);
+		sXP.ctl.flg2 = Size >> (32 - reportXPC_BITS);
 		Size &= BIT_MASK32(0, xpfMAXLEN_BITS - 1);
 	}
 	sXP.MaxLen = Size;
@@ -1445,21 +1445,20 @@ int vnprintfx(size_t szLen, const char * pcFmt, va_list vaList) {
 
 int nprintfx(size_t szLen, const char * pcFmt, ...) {
 	va_list vaList;
-	va_start(vaList, format);
-	int iRV = xPrintF(xPrintStdOut, NULL, szLen, format, vaList);
+	va_start(vaList, pcFmt);
+	int iRV = vnprintfx(szLen, pcFmt, vaList);
 	va_end(vaList);
 	return iRV;
 }
 
-int vprintfx(const char * format, va_list vaList) {
-	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
-	return iRV;
+int vprintfx(const char * pcFmt, va_list vaList) {
+	return vnprintfx(xpfMAXLEN_MAXVAL, pcFmt, vaList);
 }
 
 int printfx(const char * pcFmt, ...) {
 	va_list vaList;
-	va_start(vaList, format);
-	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
+	va_start(vaList, pcFmt);
+	int iRV = vnprintfx(xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	va_end(vaList);
 	return iRV;
 }
