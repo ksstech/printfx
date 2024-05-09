@@ -536,7 +536,7 @@ void vPrintPointer(xp_t * psXP, px_t pX) {
 		X64.u64 = pX.pv;
 	#endif
 	int Len = xPrintXxx(psXP, X64.u64, caBuf, xpfMAX_LEN_PNTR - 1);
-	memcpy(&caBuf[xpfMAX_LEN_PNTR - 3 - Len], psXP->ctl.bCase ? "0x" : "0X", 2);	// prepend
+	memcpy(&caBuf[xpfMAX_LEN_PNTR - 3 - Len], psXP->ctl.bCase ? "0X" : "0x", 2);	// prepend
 	Len += 2;
 	REST_XPC();
 	vPrintStringJustified(psXP, &caBuf[xpfMAX_LEN_PNTR - Len - 1]);
