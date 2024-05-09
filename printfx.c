@@ -1541,6 +1541,7 @@ int sprintfx(char * pBuf, const char * pcFmt, ...) {
 
 int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
 	int iRV = 0;
+	BaseType_t btRV = pdFALSE;
 	IF_myASSERT(debugPARAM && psR, halCONFIG_inSRAM(psR));
 	if (psR && psR->pcBuf && psR->size) {
 		IF_myASSERT(debugPARAM && psR->pcBuf, halCONFIG_inSRAM(psR->pcBuf));
@@ -1550,32 +1551,22 @@ int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
 			psR->pcBuf += iRV;							// update buffer pointer
 			psR->size -= iRV;							// available size
 		}
-	} else {
-		BaseType_t btRV = pdTRUE;
-		size_t Size = xpfMAXLEN_MAXVAL;
-		if (psR) {
-			if (psR->sgr)
-				Size |= (psR->sgr << 30);
-			if (psR->fLock) {
-				btRV = xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
-				psR->fLock = 0;
-			}
-		} else {
+	} else if (psR) {
+		if (psR->size == 0)								// NO value supplied, default
+			psR->size = xpfMAXLEN_MAXVAL;
+		if (psR->fNoLock == 0)
 			btRV = xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
-		}
-		if (btRV == pdFALSE)		// semaphore not obtained, return....
-			goto exit;
-		iRV = xPrintF(xPrintStdOut, NULL, Size, pcFormat, vaList);
-		if (psR) {
-			if (psR->fUnlock) {
-				btRV = xRtosSemaphoreGive(&shUARTmux);
-				psR->fUnlock = 0;
-			}
-		} else {
-			btRV = xRtosSemaphoreGive(&shUARTmux);
-		}
+		if (pcFmt != NULL)
+			iRV = xPrintF(xPrintStdOut, NULL, psR->Size, pcFmt, vaList);
+		if (psR->fNoLock == 0 && btRV == pdTRUE)
+			xRtosSemaphoreGive(&shUARTmux);
+	} else {
+		// NO valid psR ie no structure/members
+		btRV = xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
+		iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+		if (btRV == pdTRUE)
+			xRtosSemaphoreGive(&shUARTmux);
 	}
-exit:
 	return iRV;
 }
 
