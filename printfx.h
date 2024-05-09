@@ -194,7 +194,7 @@ enum {			//	F64		Hex		Other
 
 enum { S_none, S_hh, S_h, S_l, S_ll, S_j, S_z, S_t, S_L, S_XXX };
 
-enum { sgrNONE, sgrANSI, sgrLVGL, sgrOTHER };
+enum { sgrNONE, sgrANSI, sgrAGFX, sgrLVGL };
 
 // #################################### Public structures ##########################################
 
