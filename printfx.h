@@ -141,8 +141,6 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define xpfSGR_LVGL_Ha(val)			(val >> 8)
 #define xpfSGR_LVGL_Lb(val)			(val &0xFF)
 
-#define	xpfBITS_REPORT				2
-
 #define	makeMASK08x24(A,B,C,D,E,F,G,H,I)	\
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|(I&0x00FFFFFF)))
 #define	makeMASK09x23(A,B,C,D,E,F,G,H,I,J)	\
@@ -155,11 +153,35 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|K<<21|L<<20|(M&0x00FFFFF)))
 
 #define WPFX_TIMEOUT			pdMS_TO_TICKS(1000)
-#define WPFX_LOCK(psR)			{ if (psR != NULL) psR->fLock = 1; }
-#define WPFX_UNLOCK(psR)		{ if (psR != NULL) psR->fUnlock = 1; }
-#define WPFX_LOCK_UNLOCK(psR)	{ if (psR != NULL) psR->fLock = psR->fUnlock = 1; }
+#define WPFX_LOCK()				xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
+#define WPFX_UNLOCK()			xRtosSemaphoreGive(&shUARTmux);
 
-#define reportSIZE(a,b,c,ml,mu,sga,size) ((sga&3)<<30 | (a&1)<<20 | (b&1)<<19 | (c&1)<<18 | (ml&1)<<17 | (mu&1)<<16 | (size&0xFFFF))
+#define	reportXPC_BITS			3						// sgr:2, bDebug:1
+#define SAVE_XPC()	xpc_t sXPC = { .u64Val = psXP->ctl.u64Val };	// save ALL flags + limits 
+#define REST_XPC()	psXP->ctl.u64Val = sXPC.u64Val;					// restore ALL flags + limits
+
+#define repBIT_SGR				30						// width = 2
+#define repBIT_DEBUG			29						// width = 1
+#define repBIT_FORCE			28
+#define repBIT_FLAGS			27
+#define repBIT_ECHO				26
+#define repBIT_NOLOCK			25
+
+#define repSIZE_SET(force,flags,echo,nolock,sgr,debug,size) ( \
+	((force & 1) << repBIT_FORCE)	|	\
+	((flags & 1) << repBIT_FLAGS)	|	\
+	((echo & 1) << repBIT_ECHO)		|	\
+	((nolock & 1) << repBIT_NOLOCK) |	\
+	((sgr & 3) << repBIT_SGR) 		|	\
+	((debug & 1) << repBIT_DEBUG)	|	\
+	(size & 0xFFFF))
+
+#define repFLAG_TST(psR,Mem) 		((psR && (psR->Mem != 0) ? 1 : 0))
+#define repFLAG_SET(psR,Mem,Val)	{ if (psR) psR->Mem = Val; }
+
+#define repFORM_TST(psR,Mem) 		(psR && psR->sFM.Mem)
+#define repFORM_GET(psR,Mem)		(psR ? psR->sFM.Mem : 0)			// read a field value
+#define repFORM_SET(psR,Mem,Val)	{ if (psR) psR->sFM.Mem = Val; }	// restore a field value
 
 // ####################################### enumerations ############################################
 
@@ -335,10 +357,6 @@ typedef	union __attribute__((packed)) xpc_t {
 } xpc_t;
 DUMB_STATIC_ASSERT(sizeof(xpc_t) == 8);
 
-//#define SAVE_XPC()	xpc_t sXPC; memcpy(&sXPC, &psXP->ctl, sizeof(xpc_t));	// save flags
-//#define REST_XPC()	memcpy(&psXP->ctl, &sXPC, sizeof(xpc_t));				// restore flags
-#define SAVE_XPC()	xpc_t sXPC = psXP->ctl;				// save ALL flags + limits 
-#define REST_XPC()	psXP->ctl = sXPC;					// restore ALL flags + limits
 
 typedef	struct xp_t {
 	int (*handler)(struct xp_t *, int);
