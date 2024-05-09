@@ -1446,26 +1446,20 @@ int vnprintfx(size_t szLen, const char * pcFmt, va_list vaList) {
 int nprintfx(size_t szLen, const char * pcFmt, ...) {
 	va_list vaList;
 	va_start(vaList, format);
-	xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
 	int iRV = xPrintF(xPrintStdOut, NULL, szLen, format, vaList);
-	xRtosSemaphoreGive(&shUARTmux);
 	va_end(vaList);
 	return iRV;
 }
 
 int vprintfx(const char * format, va_list vaList) {
-	xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
 	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
-	xRtosSemaphoreGive(&shUARTmux);
 	return iRV;
 }
 
 int printfx(const char * pcFmt, ...) {
 	va_list vaList;
 	va_start(vaList, format);
-	xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
 	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, format, vaList);
-	xRtosSemaphoreGive(&shUARTmux);
 	va_end(vaList);
 	return iRV;
 }
@@ -1649,8 +1643,6 @@ int vcprintfx(const char * pcFmt, va_list vaList) {
 
 int cprintfx(const char * pcFmt, ...) {
 	va_list vaList;
-	xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
-	xRtosSemaphoreGive(&shUARTmux);
 	va_start(vaList, pcFmt);
 	int iRV = vcprintfx(pcFmt, vaList);
 	va_end(vaList);
