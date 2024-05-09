@@ -526,19 +526,24 @@ void vPrintPointer(xp_t * psXP, px_t pX) {
 	psXP->ctl.bGroup = 0;								// disable 3-digit grouping
 	x64_t X64;
 	#if (xpfSIZE_POINTER == 2)
-		psXP->ctl.MinWid = 4;
+		psXP->ctl.bMinWid = psXP->ctl.bPrecis = 1;
+		psXP->ctl.MinWid = psXP->ctl.Precis = 4;
 		X64.u64 = (u16_t) pX.pv;
 	#elif (xpfSIZE_POINTER == 4)
-		psXP->ctl.MinWid = 8;
+		psXP->ctl.bMinWid = psXP->ctl.bPrecis = 1;
+		psXP->ctl.MinWid = psXP->ctl.Precis = 8;
 		X64.u64 = (u32_t) pX.pv;
 	#elif (xpfSIZE_POINTER == 8)
-		psXP->ctl.MinWid = 16;
+		psXP->ctl.bMinWid = psXP->ctl.bPrecis = 1;
+		psXP->ctl.MinWid = psXP->ctl.Precis = 16;
 		X64.u64 = pX.pv;
 	#endif
 	int Len = xPrintXxx(psXP, X64.u64, caBuf, xpfMAX_LEN_PNTR - 1);
 	memcpy(&caBuf[xpfMAX_LEN_PNTR - 3 - Len], psXP->ctl.bCase ? "0X" : "0x", 2);	// prepend
 	Len += 2;
 	REST_XPC();
+	psXP->ctl.MinWid += 2;
+	psXP->ctl.Precis += 2;
 	vPrintStringJustified(psXP, &caBuf[xpfMAX_LEN_PNTR - Len - 1]);
 }
 
