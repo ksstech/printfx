@@ -1080,7 +1080,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			int	cFmt;
 			x32_t X32 = { 0 };
 			// Optional FLAGS must be in correct sequence of interpretation
-			while ((cFmt = strchr_i("!#&'*+-0", *pcFmt)) != erFAILURE) {
+			while ((cFmt = strchr_i("!#&'*+-0 ", *pcFmt)) != erFAILURE) {
 				switch (cFmt) {
 				case 0:	psXP->ctl.bRelVal = 1; break;	// !	HEXDUMP/DTZ abs->rel address/time, MAC use ':' separator
 				case 1:	psXP->ctl.bAltF = 1; break;		// #	DTZ=GMT format, HEXDUMP/IP swop endian, STRING centre
@@ -1096,6 +1096,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				case 5: psXP->ctl.bPlus = 1; break;		// +	force +/-, HEXDUMP add ASCII, TIME add TZ info
 				case 6: psXP->ctl.bLeft = 1; break;		// -	Left justify, HEXDUMP remove address pointer
 				case 7:	psXP->ctl.bPad0 = 1; break;		// 0	force leading '0's
+				case 8:	psXP->ctl.bPadS = 1; break;		//		force leading ' 's
 				default: assert(0);
 				}
 				++pcFmt;
@@ -1251,7 +1252,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			break;
 
 			case CHR_r: {			// U64 epoch (yr+mth+day) OR relative (days) + TIME
-				IF_myASSERT(debugTRACK, psXP->ctl.bPlus == 0 && psXP->ctl.bPad0 == 0);
+				IF_myASSERT(debugTRACK, psXP->ctl.bPlus == 0);
 				psXP->ctl.bSigned = psXP->ctl.bRelVal ? 1 : 0;		// Relative values signed
 				psXP->ctl.uSize = psXP->ctl.bCase ? S_ll : S_l;		// 'R' = 64bit, 'r' = 32bit
 				X64 = x64PrintGetValue(psXP);
