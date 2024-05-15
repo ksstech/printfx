@@ -1316,6 +1316,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			 * '''	Group digits using '|' (bytes) and '-' (nibbles)
 			 */
 			case CHR_b: {
+					//IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0 && psXP->ctl.bPad0 == 0);
 					X64 = x64PrintGetValue(psXP);
 					X32.iX = S_bytes[psXP->ctl.uSize] * BITS_IN_BYTE;
 					if (psXP->ctl.MinWid)
@@ -1386,6 +1387,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			case CHR_x: psXP->ctl.bGroup = 0;			// hex as in "789abcd" UC/LC, disable grouping
 				/* FALLTHRU */ /* no break */
 			case CHR_u:									// unsigned decimal "ddddd"
+				//IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0);
 				psXP->ctl.uBase = (cFmt == CHR_x) ? BASE16 : 
 								 (cFmt == CHR_u) ? BASE10 : BASE08;
  				if (psXP->ctl.bArray) {
