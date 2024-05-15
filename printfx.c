@@ -80,6 +80,7 @@ const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 };
 
 // ###################################### Public variables #########################################
+
 // ##################################### Private functions #########################################
 
 x64_t x64PrintGetValue(xp_t * psXP) {
@@ -118,6 +119,10 @@ x64_t x64PrintGetValue(xp_t * psXP) {
 	default:
 		myASSERT(0);
 		X64.u64 = 0ULL;
+	}
+	if (psXP->ctl.bSigned && X64.i64 < 0LL) {			// if signed value requested
+		psXP->ctl.bNegVal = 1;							// and value is negative, set the flag
+		X64.i64 *= -1; 									// and convert to unsigned
 	}
 	return X64;
 }
@@ -236,7 +241,6 @@ void vPrintStringJustified(xp_t * psXP, char * pStr) {
  *	1.234K		1K234		1,234
  *	123			123			123
 */
-
 /**
  * @brief	Convert u64_t value to a formatted string (build right to left)
  * @param	psXP - pointer to control structure
@@ -749,11 +753,13 @@ seconds_t xPrintCalcSeconds(xp_t * psXP, tsz_t * psTSZ, struct tm * psTM) {
  * @note	Changes MinWid
  * @return	Number of digits if value formatted print
  */
-int	xPrintTimeCalcSize(xp_t * psXP, int i32Val) {		// REVIEW to make generic for any value...
-	if (psXP->ctl.bRelVal == 0 || psXP->ctl.bPad0 == 1 || i32Val > 9)
-		return psXP->ctl.MinWid = 2;
-	psXP->ctl.MinWid = 1;
-	return xDigitsInI32(i32Val, psXP->ctl.bGroup);
+int	xPrintTimeCalcSize(xp_t * psXP, u32_t uVal) {		// REVIEW to make generic for any value...
+	int Len = xDigitsInU32(uVal, psXP->ctl.bGroup);
+	if (psXP->ctl.bNegVal)
+		++Len;
+	if ((uVal < 10) && psXP->ctl.bPad0)
+		++Len;
+	return psXP->ctl.MinWid = Len;
 }
 
 /**
@@ -844,6 +850,7 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 		Len = xPrintXxx(psXP, (u64_t) psTM->tm_hour, Buffer, xPrintTimeCalcSize(psXP, psTM->tm_hour));
 		Buffer[Len++] = Delim2[sXPC.bGroup];
 		psXP->ctl.bPad0 = 1;
+		psXP->ctl.bNegVal = 0;		// disable possible second '-'
 	} else {
 		Len = 0;
 	}
@@ -853,13 +860,14 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 		Len += xPrintXxx(psXP, (u64_t) psTM->tm_min, Buffer+Len, xPrintTimeCalcSize(psXP, psTM->tm_min));
 		Buffer[Len++] = Delim3[sXPC.bGroup];
 		psXP->ctl.bPad0 = 1;
+		psXP->ctl.bNegVal = 0;		// disable possible second '-'
 	}
 
 	// Part 3: seconds
 	Len += xPrintXxx(psXP, (u64_t) psTM->tm_sec, Buffer+Len, xPrintTimeCalcSize(psXP, psTM->tm_sec));
 
 	// Part 4: [.xxxxxx]
-	if (psXP->ctl.bRadix && uSecs) {
+	if (psXP->ctl.bRadix) {
 		Buffer[Len++] = CHR_FULLSTOP;
 		psXP->ctl.Precis = INRANGE(1, psXP->ctl.Precis, xpfMAX_TIME_FRAC) ? psXP->ctl.Precis : xpfDEF_TIME_FRAC;
 		if (psXP->ctl.Precis < xpfMAX_TIME_FRAC)
@@ -867,6 +875,7 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 		psXP->ctl.bPad0 = 1;							// need leading '0's
 		psXP->ctl.bLeft = 0;							// force R-just
 		psXP->ctl.bGroup = 0;
+		psXP->ctl.bNegVal = 0;							// fractions can only be positive
 		Len += xPrintXxx(psXP, uSecs, Buffer+Len, psXP->ctl.MinWid = psXP->ctl.Precis);
 	}
 	if (sXPC.bGroup) {
@@ -875,9 +884,9 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	Buffer[Len] = 0;
 
 	REST_XPC();
-	if (psXP->ctl.bMinWid && psXP->ctl.MinWid < Len)
-		psXP->ctl.MinWid = Len;							// enable full string if longer
-	psXP->ctl.Precis = 0;			// changed for uSec digits, remove limit on max string length
+	if (psXP->ctl.bMinWid && psXP->ctl.MinWid < Len)	// if MinWid specified and value smaller than string length
+		psXP->ctl.MinWid = Len;							// override MinWid to enable full string
+	psXP->ctl.Precis = 0;								// Remove limit on max string length
 	vPrintStringJustified(psXP, Buffer);
 }
 
@@ -1243,20 +1252,19 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 
 			case CHR_r: {			// U64 epoch (yr+mth+day) OR relative (days) + TIME
 				IF_myASSERT(debugTRACK, psXP->ctl.bPlus == 0 && psXP->ctl.bPad0 == 0);
-				if (psXP->ctl.bCase) {					// 64bit value supplied
-					X64.u64 = va_arg(psXP->vaList,u64_t);
-					X32.u32 = (u32_t) (X64.u64 / MICROS_IN_SECOND);
-				} else {								// 32bit value supplied
-					X32.u32 = va_arg(psXP->vaList,u32_t);
-					X64.u64 = (u64_t) X32.u32 * MICROS_IN_SECOND;
-				}
+				psXP->ctl.bSigned = psXP->ctl.bRelVal ? 1 : 0;		// Relative values signed
+				psXP->ctl.uSize = psXP->ctl.bCase ? S_ll : S_l;		// 'R' = 64bit, 'r' = 32bit
+				X64 = x64PrintGetValue(psXP);
+				X32.u32 = (u32_t) psXP->ctl.bCase ? (X64.u64 / MICROS_IN_SECOND) : X64.u64;
+
 				xTimeGMTime(X32.u32, &sTM, psXP->ctl.bRelVal);
-				if (psXP->ctl.bRelVal == 0)				// absolute value
+				if (psXP->ctl.bRelVal == 0)				// absolute (not relative) value
 					psXP->ctl.bPad0 = 1;				// must pad
 				SAVE_XPC();
 				if (psXP->ctl.bRelVal == 0 || sTM.tm_mday) {
 					vPrintDate(psXP, &sTM);
 					REST_XPC();
+					psXP->ctl.bNegVal = 0;				// disable possible second '-'
 				}
 				vPrintTime(psXP, &sTM, (u32_t) (X64.u64 % MICROS_IN_SECOND));
 				if (psXP->ctl.bRelVal == 0)

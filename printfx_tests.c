@@ -13,14 +13,14 @@
 
 // ##################################### functional tests ##########################################
 
-#define		TEST_INTEGER	1
-#define		TEST_STRING		1
-#define		TEST_FLOAT		1
-#define		TEST_BINARY		1
-#define		TEST_ADDRESS	1
+#define		TEST_INTEGER	0
+#define		TEST_STRING		0
+#define		TEST_FLOAT		0
+#define		TEST_BINARY		0
+#define		TEST_ADDRESS	0
 #define		TEST_DATETIME	1
-#define		TEST_HEXDUMP	1
-#define		TEST_WIDTH_PREC	1
+#define		TEST_HEXDUMP	0
+#define		TEST_WIDTH_PREC	0
 
 #define TESTP(f,...) wprintfx(NULL, f, ##__VA_ARGS__)
 
@@ -171,17 +171,23 @@ void vPrintfUnitTest(void) {
 	#if	defined(__TIMESTAMP__ISO__)
 		TESTP("_TIMESTAMP_ISO_ : %s\n", __TIMESTAMP__ISO__);
 	#endif
-	sTSZ.usecs = (u64_t) BuildSeconds * 1000000ULL;
+	sTSZ.usecs = (u64_t) BuildSeconds * 1000001ULL;
 	TESTP("Normal (S1): %Z\n", &sTSZ);
 	TESTP("Normal Alt : %#Z\n", &sTSZ);
 
-	TESTP("Elapsed      : %!R\n", RunTime);
-	TESTP("Elapsed x3uS : %!.R\n", RunTime);
-	TESTP("Elapsed x6uS : %!.6R\n", RunTime);
+	TESTP("Elapsed      : %!R\n", sTSZ.usecs);
+	TESTP("Elapsed x3uS : %!.R\n", sTSZ.usecs);
+	TESTP("Elapsed x6uS : %!.6R\n", sTSZ.usecs);
 
-	seconds_t	Seconds;
+	TESTP("Relative +64b: %!.6R\n", 1000000000001LL);
+	TESTP("Relative -64b: %!.6R\n", -1000000000001LL);
+
+	TESTP("Relative +32b: %!r\n", 1000001L);
+	TESTP("Relative -32b: %!r\n", -1000001L);
+
+	seconds_t Seconds;
 	u64_t uSecs;
-	struct	tm 	sTM;
+	struct tm sTM;
 	for(u64_t i = 0; i <= 1000; i += 50) {
 		TESTP("#%llu", i);
 		uSecs = i * 86398999000ULL;

@@ -87,7 +87,7 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 
 #define xpfMAX_LEN_PNTR				((xpfSIZE_POINTER * 2) + sizeof("0x"))
 
-#define	xpfMAX_LEN_TIME				sizeof("12:34:56.654321")
+#define	xpfMAX_LEN_TIME				sizeof("-12:34:56.654321")
 #define	xpfMAX_LEN_DATE				sizeof("Sun, 10 Sep 2017   ")
 #define	xpfMAX_LEN_DTZ				(xpfMAX_LEN_DATE + xpfMAX_LEN_TIME + configTIME_MAX_LEN_TZINFO)
 
