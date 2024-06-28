@@ -41,6 +41,7 @@ extern u64_t RunTime;
 #define	IF_CPL(T, f, ...)			if (T) CPL(f, ##__VA_ARGS__)
 #define	IF_CPT(T, f, ...)			if (T) CPT(f, ##__VA_ARGS__)
 #define	IF_CPTL(T, f, ...)			if (T) CPTL(f, ##__VA_ARGS__)
+*/
 
 // Using ROM based esp_rom_printf (no 64bit support so 32bit timestamps)
 #define	_RL_(f)						"[%s:%d]" f "", __FUNCTION__, __LINE__
@@ -55,7 +56,7 @@ extern u64_t RunTime;
 #define	IF_RP(T, f, ...)			if (T) RP(f, ##__VA_ARGS__)
 #define	IF_RPL(T, f, ...)			if (T) RPL(f, ##__VA_ARGS__)
 #define	IF_RPT(T, f, ...)			if (T) RPT(f, ##__VA_ARGS__)
-*/
+
 // ################################## public build definitions #####################################
 
 #define	xpfMAXIMUM_DECIMALS			15
