@@ -718,7 +718,7 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 			}
 		}
 		if ((Now < xLen) && (xLen > iWidth))
-			vPrintString(psXP, strCRLF);
+			vPrintString(psXP, strNL);
 	}
 }
 
