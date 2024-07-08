@@ -317,7 +317,7 @@ typedef struct __attribute__((packed)) report_t {
 			u8_t fEcho : 1;			// enable command character(s) echo
 			u8_t fFlags : 1;		// Force checking of flag changes
 			u8_t fForce : 1;		// Force display of flags
-			u8_t bDebug : 1;		//Enable debug output where placed
+			u8_t bDebug : 1;		// Enable debug output where placed
 			u8_t uSGR : 2;
 		};
 	};
