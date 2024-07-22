@@ -1284,8 +1284,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 					psXP->ctl.bNegVal = 0;				// disable possible second '-'
 				}
 				vPrintTime(psXP, &sTM, (u32_t) (X64.u64 % MICROS_IN_SECOND));
-				if (psXP->ctl.bRelVal == 0)
-					xPrintChar(psXP, CHR_Z);
+				// How do we know if UTC or local TZ value?
+//				if (psXP->ctl.bRelVal == 0) xPrintChar(psXP, CHR_Z);
 			}
 			break;
 			#endif
