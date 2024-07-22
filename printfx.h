@@ -20,15 +20,15 @@ extern u64_t RunTime;
 #define	PX(f, ...)					wprintfx(NULL, f, ##__VA_ARGS__)
 #define	IF_PX(T, f, ...)			if (T) PX(f, ##__VA_ARGS__)
 
-#define	_L_(f)						" [%s:%d] " f, __FUNCTION__, __LINE__
+#define	_L_(f)						"[%s:%d]" f, __FUNCTION__, __LINE__
 #define	PL(f, ...)					wprintfx(NULL, _L_(f), ##__VA_ARGS__)
 #define	IF_PL(T, f, ...)			if (T) PL(f, ##__VA_ARGS__)
 
-#define	_T_(f)						" [%!.R] " f, RunTime
+#define	_T_(f)						"[%!.R]" f, RunTime
 #define	PT(f, ...)					wprintfx(NULL, _T_(f), ##__VA_ARGS__)
 #define	IF_PT(T, f, ...)			if (T) PT(f, ##__VA_ARGS__)
 
-#define	_TL_(f)						" [%!.R:%s:%d] " f, RunTime, __FUNCTION__, __LINE__
+#define	_TL_(f)						"[%!.R:%s:%d]" f, RunTime, __FUNCTION__, __LINE__
 #define	PTL(f, ...)					wprintfx(NULL, _TL_(f), ##__VA_ARGS__)
 #define	IF_PTL(T, f, ...)			if (T) PTL(f, ##__VA_ARGS__)
 /*
