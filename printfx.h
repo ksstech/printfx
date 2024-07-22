@@ -253,10 +253,10 @@ typedef	union {
 		u32_t	aSpare8:24;
 		u32_t	aSpare7:1;
 		u32_t	aSpare6:1;
-		u32_t	aSpare5:1;
-		u32_t	aSpare4:1;
-		u32_t	aSpare3:1;
-		u32_t	aSpare2:1;
+		u32_t	aLev4:1;
+		u32_t	aLev3:1;
+		u32_t	aLev2:1;
+		u32_t	aLev1:1;
 		u32_t	aNL:1;
 		u32_t	aRT:1;
 	};
