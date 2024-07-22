@@ -71,9 +71,10 @@
 	U	format specifier
 
 # Flags
-	!#&'*+- 0
-	|||||||||
-	||||||||*---> PAD ZERO flag
+	!#&'*+- ><
+	||||||||||
+	|||||||||*--> All to UC flag
+	||||||||*---> All to LC flag
 	|||||||*----> PAD SPACE flag
 	||||||*-----> LEFT justification, HEXDUMP remove address info
 	|||||*------> SIGN leading '+' or '-',	DTZ=Add full TZ info, HEXDUMP add ASCII info
