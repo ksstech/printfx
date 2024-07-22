@@ -142,17 +142,17 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define xpfSGR_LVGL_Ha(val)			(val >> 8)
 #define xpfSGR_LVGL_Lb(val)			(val &0xFF)
 
-#define	makeMASK08x24(A,B,C,D,E,F,G,H,I)	\
 #define	makeMASK08_3x8(A,B,C,D,E,F,G,H,I,J,K)		\
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|(I&0xFF)<<16|(J&0xFF)<<8|(K&0xFF)))
+#define	makeMASK08x24(A,B,C,D,E,F,G,H,I)			\
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|(I&0x00FFFFFF)))
-#define	makeMASK09x23(A,B,C,D,E,F,G,H,I,J)	\
+#define	makeMASK09x23(A,B,C,D,E,F,G,H,I,J)			\
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|(J&0x007FFFFF)))
-#define	makeMASK10x22(A,B,C,D,E,F,G,H,I,J,K) \
+#define	makeMASK10x22(A,B,C,D,E,F,G,H,I,J,K) 		\
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|(K&0x03FFFFF)))
-#define	makeMASK11x21(A,B,C,D,E,F,G,H,I,J,K,L) \
+#define	makeMASK11x21(A,B,C,D,E,F,G,H,I,J,K,L)		\
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|K<<21|(L&0x01FFFFF)))
-#define	makeMASK12x20(A,B,C,D,E,F,G,H,I,J,K,L,M) \
+#define	makeMASK12x20(A,B,C,D,E,F,G,H,I,J,K,L,M)	\
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|K<<21|L<<20|(M&0x00FFFFF)))
 
 #define WPFX_TIMEOUT			pdMS_TO_TICKS(1000)
@@ -370,10 +370,9 @@ DUMB_STATIC_ASSERT(sizeof(xpc_t) == 8);
  * IF_PX(psXP->ctl.bDebug, " %.*s]", Len, Buffer);
  * To set the bDebug flag use reportSIZE(a,b,c,d,e,) 
 */
-
 typedef	struct xp_t {
 	int (*handler)(struct xp_t *, int);
-	union {
+	union {							// parameter->buffer/stream/socket/ubuf/handle/driver/pCRC 
 		void * pVoid;
 		char * pStr;				// string buffer
 		FILE * stream;				// file stream
@@ -383,11 +382,11 @@ typedef	struct xp_t {
 		int (*DevPutc)(int);		// custom device driver
 		unsigned int * pU32;		// Address of running CRC32 value
 	};
-	union {												// keep outside xpt_t not to save/restore
-		u32_t lengths;									// maxlen & curlen;
-		struct __attribute__((packed)) {
-			u32_t	MaxLen : xpfMAXLEN_BITS;			// max chars to output 0 = unlimited
-			u32_t	CurLen : xpfMAXLEN_BITS;			// number of chars output so far
+	union {							// maxlen & curlen, outside xpc_t not to save/restore
+		u32_t lengths;				// single member used to clear both
+		struct __attribute__((packed)) {				// current and maximum length
+			u16_t MaxLen : xpfMAXLEN_BITS;				// max chars to output 0 = unlimited
+			u16_t CurLen : xpfMAXLEN_BITS;				// number of chars output so far
 		};
 	};
 	xpc_t ctl;
