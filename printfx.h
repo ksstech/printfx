@@ -333,7 +333,7 @@ typedef struct __attribute__((packed)) report_t {
 	};
 	fm_t sFM;
 } report_t;
-DUMB_STATIC_ASSERT(sizeof(report_t) == (sizeof(char *) + 8));
+DUMB_STATIC_ASSERT(sizeof(report_t) == ((2 * sizeof(void *)) + 8));
 
 typedef	union __attribute__((packed)) xpc_t {
 	struct __attribute__((packed)) {
