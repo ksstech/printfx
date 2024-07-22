@@ -243,6 +243,12 @@ typedef	union {
 		};
 		u32_t	h:1, g:1, f:1, e:1, d:1, c:1, b:1, a:1;
 	};
+	struct __attribute__((packed)) {// 8:3x8 JSON printing
+		u8_t jsCount;
+		u8_t jsDepth;
+		u8_t jsIndent;
+		u8_t js7:1, js6:1, js5:1, js4:1, js3:1, js2:1, jsNL:1, js0:1;
+	};
 	struct __attribute__((packed)) {// 8:24 General printing
 		u32_t	aSpare8:24;
 		u32_t	aSpare7:1;
