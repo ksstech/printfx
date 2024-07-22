@@ -146,6 +146,7 @@ char cPrintNibbleToChar(xp_t * psXP, u8_t Value) {
  * @brief	output a single character using/via the preselected function
  * @param	psXP - pointer to control structure to be referenced/updated
  * @param	cChr - char to be output
+ * @note	Uses MaxLen and CurLen
  * @note	Changes CurLen
  * @return	1 or 0 based on whether char was '\000'
  */
@@ -171,6 +172,7 @@ int xPrintChar(xp_t * psXP, char cChr) {
  * @param	psXP - pointer to structure controlling the operation
  * @param	pStr - pointer to the string to be output
  * @note	Changes CurLen indirectly through xPrintChar()
+ * @note	Uses xPrintChar
  * @return	number of ACTUAL characters output.
  */
 int vPrintString(xp_t * psXP, char * pStr) {
@@ -305,7 +307,7 @@ int	xPrintValueJustified(xp_t * psXP, u64_t u64Val, char * pBuffer, int BufSize)
 			*pTemp-- = cPrintNibbleToChar(psXP, iTemp);
 			++Len;
 			u64Val /= psXP->ctl.uBase;
-			if (u64Val && psXP->ctl.bGroup) {				// handle digit grouping, if required
+			if (u64Val && psXP->ctl.bGroup) {			// handle digit grouping, if required
 				if ((++Count % 3) == 0) {
 					*pTemp-- = CHR_COMMA;
 					++Len;
@@ -482,7 +484,7 @@ void vPrintX64(xp_t * psXP, u64_t Value) {
  * @param	psXP
  * @note	Handles 8/16/32/64 bit values, un/signed/float
  * @note	Uses uSize bFloat bSigned 
- * @note	Changes CurLen indirectly through xPrintXxx() and vPrintStringJustified()
+ * @note	Changes CurLen indirectly through xPrintValueJustified() and vPrintStringJustified()
  * @note	Uses vPrintStringJustified()
 */
 void vPrintX64array(xp_t * psXP) {
@@ -1000,15 +1002,15 @@ void vPrintURL(xp_t * psXP, char * pStr) {
 // ############################## Proprietary extension: IP address ################################
 
 /**
- * @brief		Print DOT formatted IP address to destination
- * @param[in]	psXP - pointer to output & format control structure
- * @param[in]	Val - IP address value in HOST format !!!
- * @return		none
- * @note		Used the following modifiers
- * @note		'!'		Invert the LSB normal MSB byte order (Network <> Host related)
- * @note		'-'		Left align the individual numbers between the '.'
- * @note		'0'		Zero pad the individual numbers between the '.'
- * @note		Changes bAltF MinWid
+ * @brief	Print DOT formatted IP address to destination
+ * @param	psXP - pointer to output & format control structure
+ * @param	Val - IP address value in HOST format !!!
+ * @return	none
+ * @note	Used the following modifiers
+ * @note	'!'		Invert the LSB normal MSB byte order (Network <> Host related)
+ * @note	'-'		Left align the individual numbers between the '.'
+ * @note	'0'		Zero pad the individual numbers between the '.'
+ * @note	Changes bAltF MinWid
  * @note	Uses vPrintStringJustified()
  */
 void vPrintIpAddress(xp_t * psXP, u32_t Val) {
@@ -1193,7 +1195,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			cFmt = *pcFmt;
 			if (strchr_i(vPrintStr1, cFmt) != erFAILURE) {
 				cFmt |= 0x20;							// convert to lower case, but ...
-				psXP->ctl.bCase = 1;						// indicate as UPPER case requested
+				psXP->ctl.bCase = 1;					// indicate as UPPER case requested
 			}
 
 			x64_t X64;									// default x64 variable
@@ -1323,31 +1325,31 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				break;
 			#endif
 
-			/* convert unsigned 32/64 bit value to 1/0 ASCI string
+			/* convert unsigned 32/64 bit value to 1/0 ASCII string
 			 * field width specifier is applied as mask starting from LSB to MSB
 			 * '#'	change prepended "0b" to "0B"
 			 * '''	Group digits using '|' (bytes) and '-' (nibbles)
 			 */
-			case CHR_b: {
-					//IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0 && psXP->ctl.bPad0 == 0);
-					X64 = x64PrintGetValue(psXP);
-					X32.iX = S_bytes[psXP->ctl.uSize] * BITS_IN_BYTE;
-					if (psXP->ctl.MinWid)
-						X32.iX = (psXP->ctl.MinWid > X32.iX) ? X32.iX : psXP->ctl.MinWid;
-					u64_t mask = 1ULL << (X32.iX - 1);
-					vPrintString(psXP, psXP->ctl.bCase ? "0B" : "0b");
-					while (mask) {
-						xPrintChar(psXP, (X64.u64 & mask) ? CHR_1 : CHR_0);
-						mask >>= 1;
-						// handle the complex grouping separator(s) boundary 8 use '|' or 4 use '-'
-						if (--X32.iX && psXP->ctl.bGroup && (X32.iX % 4) == 0) {
-							xPrintChar(psXP, X32.iX % 32 == 0 ? CHR_VERT_BAR :			// word
-											  X32.iX % 16 == 0 ? CHR_COLON :			// short
-										  	  X32.iX % 8 == 0 ? CHR_SPACE : CHR_MINUS);	// byte or nibble
-						}
+			case CHR_b:
+			{	//IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0 && psXP->ctl.bPad0 == 0);
+				X64 = x64PrintGetValue(psXP);
+				X32.iX = S_bytes[psXP->ctl.uSize] * BITS_IN_BYTE;
+				if (psXP->ctl.MinWid)
+					X32.iX = (psXP->ctl.MinWid > X32.iX) ? X32.iX : psXP->ctl.MinWid;
+				u64_t mask = 1ULL << (X32.iX - 1);
+				vPrintString(psXP, psXP->ctl.bCase ? "0B" : "0b");
+				
+				while (mask) {
+					xPrintChar(psXP, (X64.u64 & mask) ? CHR_1 : CHR_0);
+					mask >>= 1;
+					// handle the complex grouping separator(s) boundary 8 use '|' or 4 use '-'
+					if (--X32.iX && psXP->ctl.bGroup && (X32.iX % 4) == 0) {
+						xPrintChar(psXP, X32.iX % 32 == 0 ? CHR_VERT_BAR :			// word
+										  X32.iX % 16 == 0 ? CHR_COLON :			// short
+									  	  X32.iX % 8 == 0 ? CHR_SPACE : CHR_MINUS);	// byte or nibble
 					}
 				}
-				break;
+			}	break;
 
 			case CHR_c: xPrintChar(psXP, va_arg(psXP->vaList, int)); break;
 
@@ -1372,7 +1374,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				/* FALLTHRU */ /* no break */
 			case CHR_f: ++psXP->ctl.uForm;				// form = 1
 				/* FALLTHRU */ /* no break */
-			case CHR_g:									// form = 0
+			case CHR_g:									// form = 0 (or 1 or 2)
 				psXP->ctl.bSigned = 1;					// float always signed value.
 				if (psXP->ctl.bPrecis) {				// explicit precision specified ?
 					psXP->ctl.Precis = psXP->ctl.Precis > xpfMAXIMUM_DECIMALS ? xpfMAXIMUM_DECIMALS : psXP->ctl.Precis;
@@ -1422,8 +1424,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				vPrintPointer(psXP, pX);
 				break;
 
-			case CHR_s: pX.pc8 = va_arg(psXP->vaList, char *);
-
+			case CHR_s:
+				pX.pc8 = va_arg(psXP->vaList, char *);
 			commonM_S:
 				// Required to avoid crash when wifi message is intercepted and a string pointer parameter
 				// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
