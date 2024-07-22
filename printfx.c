@@ -259,7 +259,7 @@ void vPrintStringJustified(xp_t * psXP, char * pStr) {
  * @note	Changes nothing
  * @note	Buffer overflow if incorrect size allocated in calling function
 */
-int	xPrintXxx(xp_t * psXP, u64_t u64Val, char * pBuffer, int BufSize) {
+int	xPrintValueJustified(xp_t * psXP, u64_t u64Val, char * pBuffer, int BufSize) {
 	int	Len = 0;
 	int Count, iTemp;
 	char * pTemp = pBuffer + BufSize - 1;				// Point to last space in buffer
@@ -359,6 +359,7 @@ int	xPrintXxx(xp_t * psXP, u64_t u64Val, char * pBuffer, int BufSize) {
  * @param	F64 double value to be converted
  * @note	Uses bCase bNegVal uForm Precis
  * @note	Changes bPrecis Precis
+ * @note	Uses vPrintStringJustified()
  * @return	none
  *
  * References:
@@ -415,7 +416,7 @@ void vPrintF64(xp_t * psXP, double F64) {
 		psXP->ctl.bLeft = 0;
 		psXP->ctl.bNegVal = (Exp < 0) ? 1 : 0;
 		Exp *= psXP->ctl.bNegVal ? -1LL : 1LL;
-		Len += xPrintXxx(psXP, Exp, Buffer, xpfMAX_LEN_F64 - 1);
+		Len += xPrintValueJustified(psXP, Exp, Buffer, xpfMAX_LEN_F64 - 1);
 		Buffer[xpfMAX_LEN_F64-2-Len] = psXP->ctl.bCase ? CHR_E : CHR_e;
 		++Len;
 	}
@@ -443,7 +444,7 @@ void vPrintF64(xp_t * psXP, double F64) {
 		psXP->ctl.bSigned = 0;							// always unsigned value
 		psXP->ctl.bNegVal = 0;							// and never negative
 		psXP->ctl.bPlus = 0;							// no leading +/- before fractional part
-		Len += xPrintXxx(psXP, X64.u64, Buffer, xpfMAX_LEN_F64-1-Len);
+		Len += xPrintValueJustified(psXP, X64.u64, Buffer, xpfMAX_LEN_F64-1-Len);
 	}
 	// process the bRadix = '.'
 	if (psXP->ctl.MinWid || psXP->ctl.bRadix) {
@@ -455,7 +456,7 @@ void vPrintF64(xp_t * psXP, double F64) {
 	// adjust MinWid to do padding (if required) based on string length after adding whole number
 	REST_XPC();
 	psXP->ctl.MinWid = psXP->ctl.MinWid > Len ? psXP->ctl.MinWid - Len : 0;
-	Len += xPrintXxx(psXP, X64.u64, Buffer, xpfMAX_LEN_F64 - 1 - Len);
+	Len += xPrintValueJustified(psXP, X64.u64, Buffer, xpfMAX_LEN_F64 - 1 - Len);
 	REST_XPC();
 	psXP->ctl.bPrecis = 1;
 	psXP->ctl.Precis = Len;
@@ -466,12 +467,13 @@ void vPrintF64(xp_t * psXP, double F64) {
  * @brief
  * @param	psXP
  * @param	Value
+ * @note	Uses vPrintStringJustified()
  * @note
 */
 void vPrintX64(xp_t * psXP, u64_t Value) {
 	char Buffer[xpfMAX_LEN_X64];
 	Buffer[xpfMAX_LEN_X64 - 1] = 0;				// terminate the buffer, single value built R to L
-	int Len = xPrintXxx(psXP, Value, Buffer, xpfMAX_LEN_X64 - 1);
+	int Len = xPrintValueJustified(psXP, Value, Buffer, xpfMAX_LEN_X64 - 1);
 	vPrintStringJustified(psXP, Buffer + (xpfMAX_LEN_X64 - 1 - Len));
 }
 
@@ -481,6 +483,7 @@ void vPrintX64(xp_t * psXP, u64_t Value) {
  * @note	Handles 8/16/32/64 bit values, un/signed/float
  * @note	Uses uSize bFloat bSigned 
  * @note	Changes CurLen indirectly through xPrintXxx() and vPrintStringJustified()
+ * @note	Uses vPrintStringJustified()
 */
 void vPrintX64array(xp_t * psXP) {
 	vs_e eVS = (psXP->ctl.uSize == S_hh) ? vs08B :
@@ -516,6 +519,7 @@ void vPrintX64array(xp_t * psXP) {
  * @note	Also called internally from HexDump for [optional] address
  * @note	Uses NONE
  * @note	Changes NONE
+ * @note	Uses vPrintStringJustified()
  * @return
 */
 void vPrintPointer(xp_t * psXP, px_t pX) {
@@ -542,7 +546,7 @@ void vPrintPointer(xp_t * psXP, px_t pX) {
 		psXP->ctl.MinWid = psXP->ctl.Precis = 16;
 		X64.u64 = pX.pv;
 	#endif
-	int Len = xPrintXxx(psXP, X64.u64, caBuf, xpfMAX_LEN_PNTR - 1);
+	int Len = xPrintValueJustified(psXP, X64.u64, caBuf, xpfMAX_LEN_PNTR - 1);
 	memcpy(&caBuf[xpfMAX_LEN_PNTR - 3 - Len], psXP->ctl.bCase ? "0X" : "0x", 2);	// prepend
 	Len += 2;
 	psXP->ctl.MinWid += 2;
@@ -770,7 +774,7 @@ int	xPrintTimeCalcSize(xp_t * psXP, u32_t uVal) {		// REVIEW to make generic for
  */
 int	xPrintDate_Year(xp_t * psXP, struct tm * psTM, char * pBuffer) {
 	psXP->ctl.MinWid = 0;
-	int Len = xPrintXxx(psXP, (u64_t) (psTM->tm_year + YEAR_BASE_MIN), pBuffer, 4);
+	int Len = xPrintValueJustified(psXP, (u64_t) (psTM->tm_year + YEAR_BASE_MIN), pBuffer, 4);
 	if (psXP->ctl.bAltF == 0)
 		pBuffer[Len++] = Delim0[psXP->ctl.bGroup];
 	return Len;
@@ -783,7 +787,7 @@ int	xPrintDate_Year(xp_t * psXP, struct tm * psTM, char * pBuffer) {
  * @return	Number of characters stored ie length of generated output
  */
 int	xPrintDate_Month(xp_t * psXP, struct tm * psTM, char * pBuffer) {
-	int Len = xPrintXxx(psXP, (u64_t) (psTM->tm_mon + 1), pBuffer, psXP->ctl.MinWid = 2);
+	int Len = xPrintValueJustified(psXP, (u64_t) (psTM->tm_mon + 1), pBuffer, psXP->ctl.MinWid = 2);
 	pBuffer[Len++] = psXP->ctl.bAltF ? CHR_SPACE : Delim0[psXP->ctl.bGroup];
 	return Len;
 }
@@ -795,7 +799,7 @@ int	xPrintDate_Month(xp_t * psXP, struct tm * psTM, char * pBuffer) {
  * @return	Number of characters stored ie length of generated output
  */
 int	xPrintDate_Day(xp_t * psXP, struct tm * psTM, char * pBuffer) {
-	int Len = xPrintXxx(psXP, (u64_t) psTM->tm_mday, pBuffer, xPrintTimeCalcSize(psXP, psTM->tm_mday));
+	int Len = xPrintValueJustified(psXP, (u64_t) psTM->tm_mday, pBuffer, xPrintTimeCalcSize(psXP, psTM->tm_mday));
 	pBuffer[Len++] = psXP->ctl.bAltF ? CHR_SPACE :
 					(psXP->ctl.bRelVal && psXP->ctl.bGroup) ? CHR_d : Delim1[psXP->ctl.bGroup];
 	psXP->ctl.bPad0 = 1;
@@ -808,6 +812,7 @@ int	xPrintDate_Day(xp_t * psXP, struct tm * psTM, char * pBuffer) {
  * @param	psTM pointer to date & time component structure
  * @note	Uses bAltF bRelVal bPad0
  * @note	Changes bAltF MinWid
+ * @note	Uses vPrintStringJustified()
 */
 void vPrintDate(xp_t * psXP, struct tm * psTM) {
 	int	Len = 0;
@@ -840,6 +845,7 @@ void vPrintDate(xp_t * psXP, struct tm * psTM) {
  * @param	psTM pointer to date & time component structure
  * @note	Uses bPad0 bGroup bRadix Precis
  * @note	Changes bPad0 bLeft bGroup
+ * @note	Uses vPrintStringJustified()
 */
 void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	char Buffer[xpfMAX_LEN_TIME];
@@ -847,7 +853,7 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	SAVE_XPC();
 	// Part 1: hours
 	if (psTM->tm_hour || psXP->ctl.bPad0) {
-		Len = xPrintXxx(psXP, (u64_t) psTM->tm_hour, Buffer, xPrintTimeCalcSize(psXP, psTM->tm_hour));
+		Len = xPrintValueJustified(psXP, (u64_t) psTM->tm_hour, Buffer, xPrintTimeCalcSize(psXP, psTM->tm_hour));
 		Buffer[Len++] = Delim2[sXPC.bGroup];
 		psXP->ctl.bPad0 = 1;
 		psXP->ctl.bNegVal = 0;		// disable possible second '-'
@@ -857,14 +863,14 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 
 	// Part 2: minutes
 	if (psTM->tm_min || psXP->ctl.bPad0) {
-		Len += xPrintXxx(psXP, (u64_t) psTM->tm_min, Buffer+Len, xPrintTimeCalcSize(psXP, psTM->tm_min));
+		Len += xPrintValueJustified(psXP, (u64_t) psTM->tm_min, Buffer+Len, xPrintTimeCalcSize(psXP, psTM->tm_min));
 		Buffer[Len++] = Delim3[sXPC.bGroup];
 		psXP->ctl.bPad0 = 1;
 		psXP->ctl.bNegVal = 0;		// disable possible second '-'
 	}
 
 	// Part 3: seconds
-	Len += xPrintXxx(psXP, (u64_t) psTM->tm_sec, Buffer+Len, xPrintTimeCalcSize(psXP, psTM->tm_sec));
+	Len += xPrintValueJustified(psXP, (u64_t) psTM->tm_sec, Buffer+Len, xPrintTimeCalcSize(psXP, psTM->tm_sec));
 
 	// Part 4: [.xxxxxx]
 	if (psXP->ctl.bRadix) {
@@ -876,7 +882,7 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 		psXP->ctl.bLeft = 0;							// force R-just
 		psXP->ctl.bGroup = 0;
 		psXP->ctl.bNegVal = 0;							// fractions can only be positive
-		Len += xPrintXxx(psXP, uSecs, Buffer+Len, psXP->ctl.MinWid = psXP->ctl.Precis);
+		Len += xPrintValueJustified(psXP, uSecs, Buffer+Len, psXP->ctl.MinWid = psXP->ctl.Precis);
 	}
 	if (sXPC.bGroup) {
 		Buffer[Len++] = CHR_s;
@@ -890,6 +896,10 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	vPrintStringJustified(psXP, Buffer);
 }
 
+/**
+ * @brief	
+ * @note	Uses vPrintStringJustified
+ */
 void vPrintZone(xp_t * psXP, tsz_t * psTSZ) {
 	int	Len = 0;
 	char Buffer[configTIME_MAX_LEN_TZINFO];
@@ -903,22 +913,22 @@ void vPrintZone(xp_t * psXP, tsz_t * psTSZ) {
 		#if	(timexTZTYPE_SELECTED == timexTZTYPE_RFC5424)
 		if (psXP->ctl.bPlus) {
 			psXP->ctl.bSigned = 1;						// TZ hours offset is a signed value
-			Len += xPrintXxx(psXP, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer+Len, psXP->ctl.MinWid = 3);
+			Len += xPrintValueJustified(psXP, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer+Len, psXP->ctl.MinWid = 3);
 			Buffer[Len++] = Delim2[psXP->ctl.bGroup];
 			psXP->ctl.bSigned = 0;						// TZ offset minutes unsigned
 			psXP->ctl.bPlus = 0;
-			Len += xPrintXxx(psXP, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer+Len, psXP->ctl.MinWid = 2);
+			Len += xPrintValueJustified(psXP, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer+Len, psXP->ctl.MinWid = 2);
 		} else {
 			Buffer[Len++] = CHR_Z;						// add 'Z' for Zulu/zero time zone
 		}
 		#elif (timexTZTYPE_SELECTED == timexTZTYPE_POINTER)
 		psXP->ctl.bSigned = 1;							// TZ hours offset is a signed value
 		psXP->ctl.bPlus = 1;							// force display of sign
-		Len = xPrintXxx(psXP, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXP->ctl.MinWid = 3);
+		Len = xPrintValueJustified(psXP, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXP->ctl.MinWid = 3);
 		Buffer[Len++] = Delim2[psXP->ctl.bGroup];
 		psXP->ctl.bSigned = 0;							// TZ offset minutes unsigned
 		psXP->ctl.bPlus = 0;
-		Len += xPrintXxx(psXP, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXP->ctl.MinWid = 2);
+		Len += xPrintValueJustified(psXP, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXP->ctl.MinWid = 2);
 		if (psTSZ->pTZ->pcTZName) {						// handle TZ name (as string pointer) if there
 			Buffer[Len++] = CHR_L_ROUND;
 			psXP->ctl.MinWid = 0;						// then complete with the TZ name
@@ -933,11 +943,11 @@ void vPrintZone(xp_t * psXP, tsz_t * psTSZ) {
 		#elif (timexTZTYPE_SELECTED == timexTZTYPE_FOURCHARS)
 		psXP->ctl.bSigned = 1;							// TZ hours offset is a signed value
 		psXP->ctl.bPlus = 1;							// force display of sign
-		Len = xPrintXxx(psXP, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXP->ctl.MinWid = 3);
+		Len = xPrintValueJustified(psXP, (int64_t) psTSZ->pTZ->timezone / SECONDS_IN_HOUR, Buffer, psXP->ctl.MinWid = 3);
 		Buffer[Len++] = Delim2[psXP->ctl.bGroup];
 		psXP->ctl.bSigned = 0;							// TZ offset minutes unsigned
 		psXP->ctl.bPlus = 0;
-		Len += xPrintXxx(psXP, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXP->ctl.MinWid = 2);
+		Len += xPrintValueJustified(psXP, (int64_t) psTSZ->pTZ->timezone % SECONDS_IN_MINUTE, Buffer + Len, psXP->ctl.MinWid = 2);
 		// Now handle the TZ name if there, check to ensure max 4 chars all UCase
 		if (xstrverify(&psTSZ->pTZ->tzname[0], CHR_A, CHR_Z, configTIME_MAX_LEN_TZNAME) == erSUCCESS) {
 			Buffer[Len++] = CHR_L_ROUND;
@@ -965,6 +975,7 @@ void vPrintZone(xp_t * psXP, tsz_t * psTSZ) {
  * @brief	generate URL 
  * @param	psXP
  * @param	pString
+ * @note	Uses vPrintStringJustified
  */
 void vPrintURL(xp_t * psXP, char * pStr) {
 	if (halMEM_AddrInANY(pStr)) {
@@ -998,6 +1009,7 @@ void vPrintURL(xp_t * psXP, char * pStr) {
  * @note		'-'		Left align the individual numbers between the '.'
  * @note		'0'		Zero pad the individual numbers between the '.'
  * @note		Changes bAltF MinWid
+ * @note	Uses vPrintStringJustified()
  */
 void vPrintIpAddress(xp_t * psXP, u32_t Val) {
 	psXP->ctl.MinWid = psXP->ctl.bLeft ? 0 : 3;
@@ -1010,7 +1022,7 @@ void vPrintIpAddress(xp_t * psXP, u32_t Val) {
 		temp = *(pChr+1);
 		*(pChr+1) = *(pChr+2);
 		*(pChr+2) = temp;
-		psXP->ctl.bAltF = 0;							// clear so not to confuse xPrintXxx()
+		psXP->ctl.bAltF = 0;							// clear so not to confuse xPrintValueJustified()
 	}
 	// building R to L, ensure buffer NULL-term
 	char Buffer[xpfMAX_LEN_IP];
@@ -1020,7 +1032,7 @@ void vPrintIpAddress(xp_t * psXP, u32_t Val) {
 	int	Idx, Len;
 	for (Idx = 0, Len = 0; Idx < sizeof(Val); ++Idx) {
 		u64_t u64Val = (u8_t) pChr[Idx];
-		Len += xPrintXxx(psXP, u64Val, Buffer + xpfMAX_LEN_IP - 5 - Len, 4);
+		Len += xPrintValueJustified(psXP, u64Val, Buffer + xpfMAX_LEN_IP - 5 - Len, 4);
 		if (Idx < 3)
 			Buffer[xpfMAX_LEN_IP - 1 - ++Len] = CHR_FULLSTOP;
 	}
