@@ -353,10 +353,11 @@ typedef	union __attribute__((packed)) xpc_t {
 		u8_t bMinWid : 1;			// MinWid specified
 		u8_t bPrecis : 1;			// Precis specified
 		u8_t bPad0 : 1;				// 1 = '0'
-		u8_t bPadS : 1;				// 1 = ''	
-/*b7*/	u8_t bArray : 1;			// array pointer as parameter
-		u8_t bFloat : 1;			// array printing FLOAT values
-		u8_t uSpare : 3;
+		u8_t bArray : 1;			// array pointer as parameter
+/*b7*/	u8_t bFloat : 1;			// array printing FLOAT values
+		u8_t bGT:1;					// convert to LC
+		u8_t bLT:1;					// convert to UC 
+		u8_t uSpare : 2;
 		// end flg1. start flg2, sum of bit widths below = reportXPC_BITS
 		u8_t bDebug : 1;			// debug flag from wprintfx
 		u8_t uSGR : 2;				// check to align with report_t size struct
