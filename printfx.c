@@ -1590,7 +1590,7 @@ int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
 		if (psR->fNoLock == 0)
 			btRV = xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
 		if (pcFmt != NULL)
-			iRV = xPrintF(xPrintStdOut, NULL, psR->Size, pcFmt, vaList);
+			iRV = xPrintF(psR->putc ? psR->putc : xPrintStdOut, NULL, psR->Size, pcFmt, vaList);
 		if (psR->fNoLock == 0 && btRV == pdTRUE)
 			xRtosSemaphoreGive(&shUARTmux);
 	} else {
