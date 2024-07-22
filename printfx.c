@@ -219,7 +219,8 @@ void vPrintStringJustified(xp_t * psXP, char * pStr) {
 	}
 	u8_t Cpad = psXP->ctl.bPad0 ? CHR_0 : CHR_SPACE;
 	for (;Lpad--; xPrintChar(psXP, Cpad));
-	for (;uLen-- && *pStr; xPrintChar(psXP, *pStr++));
+	for (;uLen-- && *pStr; ++pStr)
+		xPrintChar(psXP, psXP->ctl.bGT ? tolower(*pStr) : psXP->ctl.bLT ? toupper(*pStr) : *pStr);
 	for (;Rpad--; xPrintChar(psXP, Cpad));
 }
 
@@ -1094,7 +1095,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			int	cFmt;
 			x32_t X32 = { 0 };
 			// Optional FLAGS must be in correct sequence of interpretation
-			while ((cFmt = strchr_i("!#&'*+-0 ", *pcFmt)) != erFAILURE) {
+			while ((cFmt = strchr_i("!#&'*+-0><", *pcFmt)) != erFAILURE) {
 				switch (cFmt) {
 				case 0:	psXP->ctl.bRelVal = 1; break;	// !	HEXDUMP/DTZ abs->rel address/time, MAC use ':' separator
 				case 1:	psXP->ctl.bAltF = 1; break;		// #	DTZ=GMT format, HEXDUMP/IP swop endian, STRING centre
@@ -1110,7 +1111,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				case 5: psXP->ctl.bPlus = 1; break;		// +	force +/-, HEXDUMP add ASCII, TIME add TZ info
 				case 6: psXP->ctl.bLeft = 1; break;		// -	Left justify, HEXDUMP remove address pointer
 				case 7:	psXP->ctl.bPad0 = 1; break;		// 0	force leading '0's
-				case 8:	psXP->ctl.bPadS = 1; break;		//		force leading ' 's
+				case 8: psXP->ctl.bGT = 1; break;		// >	to LC
+				case 9: psXP->ctl.bLT = 1; break;		// >	to UC
 				default: assert(0);
 				}
 				++pcFmt;
