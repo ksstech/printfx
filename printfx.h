@@ -143,6 +143,8 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define xpfSGR_LVGL_Lb(val)			(val &0xFF)
 
 #define	makeMASK08x24(A,B,C,D,E,F,G,H,I)	\
+#define	makeMASK08_3x8(A,B,C,D,E,F,G,H,I,J,K)		\
+	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|(I&0xFF)<<16|(J&0xFF)<<8|(K&0xFF)))
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|(I&0x00FFFFFF)))
 #define	makeMASK09x23(A,B,C,D,E,F,G,H,I,J)	\
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|(J&0x007FFFFF)))
