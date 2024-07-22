@@ -314,8 +314,10 @@ typedef	union {
 } fm_t;
 DUMB_STATIC_ASSERT(sizeof(fm_t) == sizeof(u32_t));
 
+struct xp_t;
 typedef struct __attribute__((packed)) report_t {
 	char * pcBuf;
+	int (* putc)(struct xp_t *, int);		// alternative character output handler
 	union __attribute__((packed)) {
 		u32_t Size;
 		struct __attribute__((packed)) {
