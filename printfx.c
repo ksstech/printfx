@@ -1153,7 +1153,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 						IF_myASSERT(debugTRACK, X32.iX <= xpfMINWID_MAXVAL);
 						psXP->ctl.MinWid = X32.iX;		// save value as MinWid
 						psXP->ctl.bMinWid = 1;			// set MinWid flag
-					} else if (psXP->ctl.bRadix == 1 && psXP->ctl.bPrecis == 0) {	// no '.' nor Precis
+					} else if (psXP->ctl.bRadix == 1 && psXP->ctl.bPrecis == 0) {	// '.' but no Precis
 						IF_myASSERT(debugTRACK, X32.iX <= xpfPRECIS_MAXVAL);
 						psXP->ctl.Precis = X32.iX;		// save value as precision
 						psXP->ctl.bPrecis = 1;			// set precision flag
@@ -1316,10 +1316,11 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 
 			#if	(xpfSUPPORT_HEXDUMP == 1)
 			case CHR_Y:									// HEXDUMP
-				IF_myASSERT(debugTRACK, psXP->ctl.bMinWid == 0 && psXP->ctl.bPrecis == 0);
-				/* In order for formatting to work the "*" or "." bRadix specifiers
-				 * should not be used. The requirement for a second parameter is implied and assumed */
-				X32.iX = va_arg(psXP->vaList, int);		// retrieve implied/hidden size parameter
+				IF_myASSERT(debugTRACK, psXP->ctl.bMinWid == 0);
+				// In order for formatting to work the "*" or "." bRadix specifiers
+				// should not be used. The requirement for a second parameter is implied and assumed
+				// retrieve implied/hidden size parameter if not specified...
+				X32.iX = psXP->ctl.bPrecis ? psXP->ctl.Precis : va_arg(psXP->vaList, int);
 				pX.pc8 = va_arg(psXP->vaList, char *);	// retrieve the pointer to data
 				IF_myASSERT(debugTRACK, halMEM_AddrInANY(pX.pc8));
 				psXP->ctl.uForm = form3X;
