@@ -23,7 +23,7 @@
 
 #ifdef ESP_PLATFORM
 	#include "esp_log.h"
-	#include "esp32/rom/crc.h"		// ESP32 ROM routine
+	#include "esp_rom_crc.h"
 #else
 	#include "crc-barr.h"						// Barr group CRC
 #endif
@@ -1744,7 +1744,7 @@ int	uprintfx(ubuf_t * psUBuf, const char * pcFmt, ...) {
 static int xPrintToCRC32(xp_t * psXP, int cChr) {
 #if defined(ESP_PLATFORM)							// use ROM based CRC lookup table
 	u8_t cBuf = cChr;
-	*psXP->pU32 = crc32_le(*psXP->pU32, &cBuf, sizeof(cBuf));
+	*psXP->pU32 = esp_rom_crc32_le(*psXP->pU32, &cBuf, sizeof(cBuf));
 #else												// use fastest of external libraries
 	u32_t MsgCRC = crcSlow((u8_t *) pBuf, iRV);
 #endif
