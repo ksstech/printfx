@@ -8,7 +8,6 @@
 
 #include "hal_platform.h"
 #include "hal_memory.h"
-#include "hal_options.h"
 #include "hal_stdio.h"
 #include "printfx.h"
 #include "socketsX.h"
@@ -718,10 +717,8 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 				xPrintChar(psXP, CHR_SPACE);			// handle space padding for ASCII dump to line up
 			for (Count = 0; Count < Width; ++Count) {	// values as ASCII characters
 				int cChr = *(pStr + Now + Count);
-				bool bFlag = ioB1GET(ioPrintFx);		// 0 = x20 ~ x7E, 1 = x20 ~ xFE
-				bFlag = INRANGE(0x20, cChr, 0x7F) ? 0 :
-						(INRANGE(0x80, cChr, 0xFE) && bFlag) ? 0 : 1;
-				xPrintChar(psXP, bFlag ? CHR_FULLSTOP : cChr);
+//				xPrintChar(psXP, INRANGE(0x20, cChr, 0x7F) ? cChr : CHR_FULLSTOP);
+				xPrintChar(psXP, INRANGE(0x20, cChr, 0xFE) ? cChr : CHR_FULLSTOP);
 			}
 		}
 		if ((Now < xLen) && (xLen > iWidth))
