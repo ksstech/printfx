@@ -47,6 +47,7 @@
 #define	xpfSUPPORT_URL				1					// URL encoding
 #define	xpfSUPPORT_ALIASES			1
 #define	xpfSUPPORT_FILTER_NUL		1
+#define	xpfSUPPORT_CHAR8BIT			0
 
 // ###################################### Scaling factors ##########################################
 
@@ -116,7 +117,7 @@ x64_t x64PrintGetValue(xp_t * psXP) {
 		}
 		break;
 	default:
-		myASSERT(0);
+		IF_myASSERT(debugTRACK, 0);
 		X64.u64 = 0ULL;
 	}
 	if (psXP->ctl.bSigned && X64.i64 < 0LL) {			// if signed value requested
@@ -717,8 +718,13 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 				xPrintChar(psXP, CHR_SPACE);			// handle space padding for ASCII dump to line up
 			for (Count = 0; Count < Width; ++Count) {	// values as ASCII characters
 				int cChr = *(pStr + Now + Count);
-//				xPrintChar(psXP, INRANGE(0x20, cChr, 0x7F) ? cChr : CHR_FULLSTOP);
-				xPrintChar(psXP, INRANGE(0x20, cChr, 0xFE) ? cChr : CHR_FULLSTOP);
+			#if (xpfSUPPORT_CHAR8BIT == 1)
+				// theoretically support up to 0xFF, but loses some characters idp.py and Serial
+				xPrintChar(psXP, (cChr < 0x20 || cChr == 0x7F || cChr == 0xFF) ? CHR_FULLSTOP : cChr);
+			#else
+				// Only support range 0x20 to 0x7E, rest mapped to '.'
+				xPrintChar(psXP, (cChr < 0x20 || cChr > 0x7E) ? CHR_FULLSTOP : cChr);
+			#endif
 			}
 		}
 		if ((Now < xLen) && (xLen > iWidth))
@@ -1121,7 +1127,6 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 					if (INRANGE(CHR_0, *pcFmt, CHR_9)) {
 						X32.i32 *= 10;
 						X32.i32 += *pcFmt - CHR_0;
-						++pcFmt;
 					} else if (*pcFmt == CHR_FULLSTOP) {
 						if (X32.i32 > 0) {				// save value if previously parsed
 							IF_myASSERT(debugTRACK, psXP->ctl.bMinWid == 0 && X32.iX <= xpfMINWID_MAXVAL);
@@ -1131,7 +1136,6 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 						}
 						IF_myASSERT(debugTRACK, psXP->ctl.bRadix == 0);	// 2x bRadix not allowed
 						psXP->ctl.bRadix = 1;
-						++pcFmt;
 					} else if (*pcFmt == CHR_ASTERISK) {
 						IF_myASSERT(debugTRACK, psXP->ctl.bRadix == 1 && X32.iX == 0);
 						X32.iX	= va_arg(psXP->vaList, int);
@@ -1139,10 +1143,10 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 						psXP->ctl.bPrecis = 1;
 						psXP->ctl.Precis = X32.iX;
 						X32.i32 = 0;
-						++pcFmt;
 					} else {
 						break;
 					}
+					++pcFmt;
 				}
 				// Save possible parsed value
 				if (X32.i32 > 0) {						// if a number was parsed...
@@ -1313,9 +1317,6 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 
 			#if	(xpfSUPPORT_HEXDUMP == 1)
 			case CHR_Y:									// HEXDUMP
-				IF_myASSERT(debugTRACK, psXP->ctl.bMinWid == 0);
-				// In order for formatting to work the "*" or "." bRadix specifiers
-				// should not be used. The requirement for a second parameter is implied and assumed
 				// retrieve implied/hidden size parameter if not specified...
 				X32.iX = psXP->ctl.bPrecis ? psXP->ctl.Precis : va_arg(psXP->vaList, int);
 				pX.pc8 = va_arg(psXP->vaList, char *);	// retrieve the pointer to data
