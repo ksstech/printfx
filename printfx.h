@@ -262,12 +262,12 @@ typedef	union {
 	};
 	struct __attribute__((packed)) {// 8:24 (fs) filesystem
 		u32_t	fsCount:24;			// Counter
-		u32_t	fsSpare:1;
-		u32_t	fsContent:1;		// File content
-		u32_t	fsDetail:1;			// File details 
-		u32_t	fsS2:1;				// 
-		u32_t	fsS1:1;				// 
-		u32_t	fsS0:1;				//
+		u32_t	fsS1:1;
+		u32_t	fss0:1;
+		u32_t	fsLev4:1;			// File content
+		u32_t	fsLev3:1;			// File extended info
+		u32_t	fsLev2:1;			// Directory & file info
+		u32_t	fsLev1:1;			// system info
 		u32_t	fsNL:1;
 		u32_t	fsRT:1;
 	};
