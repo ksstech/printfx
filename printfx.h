@@ -160,8 +160,11 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define WPFX_UNLOCK()			xRtosSemaphoreGive(&shUARTmux);
 
 #define	reportXPC_BITS			3						// sgr:2, bDebug:1
-#define SAVE_XPC()	xpc_t sXPC = { .u64Val = psXP->ctl.u64Val };	// save ALL flags + limits 
-#define REST_XPC()	psXP->ctl.u64Val = sXPC.u64Val;					// restore ALL flags + limits
+// save & restore ALL flags + limits 
+#define XPC_SAVE()				xpc_t sXPC = { .u64Val = psXP->ctl.u64Val };
+#define XPC_REST()				psXP->ctl.u64Val = sXPC.u64Val;
+// restore specifc member from  previously saved value
+#define XPC_FLAG(M)			psXP->ctl.M = sXPC.M
 
 #define repBIT_SGR				30						// width = 2
 #define repBIT_DEBUG			29						// width = 1

@@ -385,7 +385,7 @@ void vPrintF64(xp_t * psXP, double F64) {
 	}
 	psXP->ctl.bNegVal = F64 < 0.0 ? 1 : 0;				// set bNegVal if < 0.0
 	F64 *= psXP->ctl.bNegVal ? -1.0 : 1.0;				// convert to positive number
-	SAVE_XPC();
+	XPC_SAVE();
 	x64_t X64  = { 0 };
 
 	int	Exp = 0;										// if exponential format requested, calculate the exponent
@@ -457,10 +457,10 @@ void vPrintF64(xp_t * psXP, double F64) {
 
 	X64.u64	= F64;										// extract and convert the whole number portions
 	// adjust MinWid to do padding (if required) based on string length after adding whole number
-	REST_XPC();
+	XPC_REST();
 	psXP->ctl.MinWid = psXP->ctl.MinWid > Len ? psXP->ctl.MinWid - Len : 0;
 	Len += xPrintValueJustified(psXP, X64.u64, Buffer, xpfMAX_LEN_F64 - 1 - Len);
-	REST_XPC();
+	XPC_REST();
 	psXP->ctl.bPrecis = 1;
 	psXP->ctl.Precis = Len;
 	vPrintStringJustified(psXP, Buffer + (xpfMAX_LEN_F64 - 1 - Len));
@@ -497,7 +497,7 @@ void vPrintX64array(xp_t * psXP) {
 	cvi_e cvI = xFormSize2Index(eVF, eVS);
 	x32_t X32; X32.iX = va_arg(psXP->vaList, int);	// array size
 	px_t pX; pX.pv = va_arg(psXP->vaList, void *);	// pointer to 1st element of array
-	SAVE_XPC();
+	XPC_SAVE();
 	while (X32.iX) {
 		x64_t X64 = x64ValueFetch(pX, cvI);
 		if (eVF == vfIXX && X64.i64 < 0LL) {
@@ -509,7 +509,7 @@ void vPrintX64array(xp_t * psXP) {
 		} else {
 			vPrintX64(psXP, X64.u64);
 		}
-		REST_XPC();
+		XPC_REST();
 		if (--X32.iX)
 			xPrintChar(psXP, CHR_COMMA);
 		pX = pxAddrNextWithIndex(pX, cvI);
@@ -528,7 +528,7 @@ void vPrintX64array(xp_t * psXP) {
 void vPrintPointer(xp_t * psXP, px_t pX) {
 	char caBuf[xpfMAX_LEN_PNTR];
 	caBuf[xpfMAX_LEN_PNTR-1] = CHR_NUL;
-	SAVE_XPC();
+	XPC_SAVE();
 	psXP->ctl.uBase = BASE16;
 	psXP->ctl.bPad0 = 1;
 	psXP->ctl.bNegVal = 0;
@@ -555,7 +555,7 @@ void vPrintPointer(xp_t * psXP, px_t pX) {
 	psXP->ctl.MinWid += 2;
 	psXP->ctl.Precis += 2;
 	vPrintStringJustified(psXP, &caBuf[xpfMAX_LEN_PNTR - Len - 1]);
-	REST_XPC();
+	XPC_REST();
 }
 
 // ############################# Proprietary extension: hexdump ####################################
@@ -817,7 +817,7 @@ int	xPrintDate_Day(xp_t * psXP, struct tm * psTM, char * pBuffer) {
  * @param	psXP ponter to control structure
  * @param	psTM pointer to date & time component structure
  * @note	Uses bAltF bRelVal bPad0
- * @note	Changes bAltF MinWid
+ * @note	Changes bAltF MinWid bPrecis
  * @note	Uses vPrintStringJustified()
 */
 void vPrintDate(xp_t * psXP, struct tm * psTM) {
@@ -856,7 +856,7 @@ void vPrintDate(xp_t * psXP, struct tm * psTM) {
 void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	char Buffer[xpfMAX_LEN_TIME];
 	int	Len;
-	SAVE_XPC();
+	XPC_SAVE();
 	// Part 1: hours
 	if (psTM->tm_hour || psXP->ctl.bPad0) {
 		Len = xPrintValueJustified(psXP, (u64_t) psTM->tm_hour, Buffer, xPrintTimeCalcSize(psXP, psTM->tm_hour));
@@ -895,7 +895,7 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	}
 	Buffer[Len] = 0;
 
-	REST_XPC();
+	XPC_REST();
 	if (psXP->ctl.bMinWid && psXP->ctl.MinWid < Len)	// if MinWid specified and value smaller than string length
 		psXP->ctl.MinWid = Len;							// override MinWid to enable full string
 	psXP->ctl.Precis = 0;								// Remove limit on max string length
@@ -1252,17 +1252,17 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				xTimeGMTime(X32.u32, &sTM, psXP->ctl.bRelVal);
 				// setup flags for date & time portions
 				psXP->ctl.bPad0 = 1;		// Need 0 on date & time, want to restore same
-				SAVE_XPC();
+				XPC_SAVE();
 				psXP->ctl.bPlus = 0;		// only for DTZone, need to restore status later..
 				if (cFmt == CHR_D || cFmt == CHR_Z) {
 					vPrintDate(psXP, &sTM);	// bPad0=1, bPlus=0
-					REST_XPC();				// bAltF changed
+					XPC_REST();				// bAltF changed
 				}
 				if (cFmt == CHR_T || cFmt == CHR_Z) {
 					vPrintTime(psXP, &sTM, (u32_t)(psTSZ->usecs % MICROS_IN_SECOND));
 				}
 				if (cFmt == CHR_Z) {
-					REST_XPC();
+					XPC_REST();
 					vPrintZone(psXP, psTSZ);
 				}
 			}
@@ -1278,10 +1278,10 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				xTimeGMTime(X32.u32, &sTM, psXP->ctl.bRelVal);
 				if (psXP->ctl.bRelVal == 0)				// absolute (not relative) value
 					psXP->ctl.bPad0 = 1;				// must pad
-				SAVE_XPC();
 				if (psXP->ctl.bRelVal == 0 || sTM.tm_mday) {
+//					XPC_SAVE();
 					vPrintDate(psXP, &sTM);
-					REST_XPC();
+//					XPC_FLAG(Precis);
 					psXP->ctl.bNegVal = 0;				// disable possible second '-'
 				}
 				vPrintTime(psXP, &sTM, (u32_t) (X64.u64 % MICROS_IN_SECOND));
