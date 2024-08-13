@@ -858,7 +858,7 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	int	Len;
 	XPC_SAVE();
 	// Part 1: hours
-	if (psTM->tm_hour || psXP->ctl.bPad0) {
+	if (psTM->tm_mday || psTM->tm_hour || psXP->ctl.bPad0) {
 		Len = xPrintValueJustified(psXP, (u64_t) psTM->tm_hour, Buffer, xPrintTimeCalcSize(psXP, psTM->tm_hour));
 		Buffer[Len++] = Delim2[sXPC.bGroup];
 		psXP->ctl.bPad0 = 1;
