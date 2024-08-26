@@ -8,7 +8,6 @@
 
 #include "hal_platform.h"
 #include "hal_memory.h"
-#include "hal_stdio.h"
 #include "printfx.h"
 #include "socketsX.h"
 #include "struct_union.h"
@@ -1061,14 +1060,12 @@ void vPrintSetGraphicRendition(xp_t * psXP, u32_t Val) {
 	case sgrANSI:
 		char Buffer[xpfMAX_LEN_SGR];
 		sgr_info_t sSGR = { .u32 = Val };
-		#if (halUSE_CURSOR == 1)						// Optional terminal support
-		if (pcTermLocate(Buffer, sSGR.r, sSGR.c) != Buffer) {
+	#if (halUSE_CURSOR == 1)
+		if (pcTermLocate(Buffer, sSGR.r, sSGR.c) != Buffer)
 			vPrintString(psXP, Buffer);					// cursor location, 1 relative, row & column
-		}
-		#endif
-		if (pcTermAttrib(Buffer, sSGR.a1, sSGR.a2) != Buffer) {
+	#endif
+		if (pcTermAttrib(Buffer, sSGR.a1, sSGR.a2) != Buffer)
 			vPrintString(psXP, Buffer);					// attribute[s]
-		}
 		break;
 	default:
 	}
