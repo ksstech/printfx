@@ -2,11 +2,12 @@
 
 #pragma once
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdint.h>
 #include "FreeRTOS_Support.h"
-#include "definitions.h"
+#include "hal_stdio.h"
+
+#include <stdarg.h>
+
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -149,11 +150,11 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define	makeMASK09x23(A,B,C,D,E,F,G,H,I,J)			\
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|(J&0x007FFFFF)))
 #define	makeMASK10x22(A,B,C,D,E,F,G,H,I,J,K) 		\
-	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|(K&0x03FFFFF)))
+	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|(K&0x003FFFFF)))
 #define	makeMASK11x21(A,B,C,D,E,F,G,H,I,J,K,L)		\
-	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|K<<21|(L&0x01FFFFF)))
+	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|K<<21|(L&0x001FFFFF)))
 #define	makeMASK12x20(A,B,C,D,E,F,G,H,I,J,K,L,M)	\
-	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|K<<21|L<<20|(M&0x00FFFFF)))
+	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|K<<21|L<<20|(M&0x000FFFFF)))
 
 #define WPFX_TIMEOUT			pdMS_TO_TICKS(1000)
 #define WPFX_LOCK()				xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
@@ -288,7 +289,7 @@ typedef	union {
 	};
 	struct __attribute__((packed)) {// 12:20 Memory reporting
 		u32_t	rmCAPS:20;
-		u32_t	rmSect:1;
+		u32_t	rmSect:1;			// Summary Section
 		u32_t	rmDetail:1;			// individual block details
 		u32_t	rmSmall:1;			// Select compressed heading & data formats
 		u32_t	rmMinFre:1;			// Field #6 far right
@@ -313,7 +314,7 @@ typedef	union {
 		u32_t	senNL:1;			// 0= no CRLF, 1= single CRLF
 		u32_t	senURI:1;
 	};
-	u32_t	u32Val;
+	u32_t u32Val;
 } fm_t;
 DUMB_STATIC_ASSERT(sizeof(fm_t) == sizeof(u32_t));
 
@@ -326,10 +327,12 @@ typedef struct __attribute__((packed)) report_t {
 		struct __attribute__((packed)) {
 			u32_t size : xpfMAXLEN_BITS;
 			u16_t spare : 9;
+			// flags NOT passed onto xPrintF() only used in in highe rlevel formatting
 			u8_t fNoLock : 1;		// Do not lock/unlock
 			u8_t fEcho : 1;			// enable command character(s) echo
 			u8_t fFlags : 1;		// Force checking of flag changes
 			u8_t fForce : 1;		// Force display of flags
+			// flags passed on to xPrintF()
 			u8_t bDebug : 1;		// Enable debug output where placed
 			u8_t uSGR : 2;
 		};
