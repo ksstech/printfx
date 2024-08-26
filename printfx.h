@@ -326,8 +326,10 @@ typedef struct __attribute__((packed)) report_t {
 		u32_t Size;
 		struct __attribute__((packed)) {
 			u32_t size : xpfMAXLEN_BITS;
-			u16_t spare : 9;
 			// flags NOT passed onto xPrintF() only used in in highe rlevel formatting
+			u8_t col1 : 4;
+			u8_t col2 : 4;
+			u8_t spare : 1;
 			u8_t fNoLock : 1;		// Do not lock/unlock
 			u8_t fEcho : 1;			// enable command character(s) echo
 			u8_t fFlags : 1;		// Force checking of flag changes
