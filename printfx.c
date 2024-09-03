@@ -1057,16 +1057,16 @@ void vPrintSetGraphicRendition(xp_t * psXP, u32_t Val) {
 	switch (psXP->ctl.uSGR) {
 	case sgrNONE:
 		break;
-	case sgrANSI:
+	case sgrANSI: {
 		char Buffer[xpfMAX_LEN_SGR];
 		sgr_info_t sSGR = { .u32 = Val };
-	#if (halUSE_CURSOR == 1)
+		#if (halUSE_CURSOR == 1)
 		if (pcTermLocate(Buffer, sSGR.r, sSGR.c) != Buffer)
 			vPrintString(psXP, Buffer);					// cursor location, 1 relative, row & column
-	#endif
+		#endif
 		if (pcTermAttrib(Buffer, sSGR.a1, sSGR.a2) != Buffer)
 			vPrintString(psXP, Buffer);					// attribute[s]
-		break;
+	}	break;
 	default:
 	}
 }
