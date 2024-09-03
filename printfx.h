@@ -287,6 +287,18 @@ typedef	union {
 		u32_t	bNL:1;				// NewLine
 		u32_t	bRT:1;				// RunTime
 	};
+	struct __attribute__((packed)) {// 9:23 Sensors reporting
+		u32_t	senFree:23;
+		u32_t	senTlog:1;
+		u32_t	senTsen:1;
+		u32_t 	senDev:1;
+		u32_t 	senAvg:1;
+		u32_t 	senSum:1;
+		u32_t 	senMMP:1;
+		u32_t	senUnit:1;
+		u32_t	senNL:1;			// 0= no CRLF, 1= single CRLF
+		u32_t	senURI:1;
+	};
 	struct __attribute__((packed)) {// 12:20 Memory reporting
 		u32_t	rmCAPS:20;
 		u32_t	rmSect:1;			// Summary Section
@@ -301,18 +313,6 @@ typedef	union {
 		u32_t	rmHdr2:1;			// additional header for CAPS
 		u32_t 	rmHdr1:1;			// 1 header for whole report
 		u32_t	rmNL:1;
-	};
-	struct __attribute__((packed)) {// 9:23 Sensors reporting
-		u32_t	senFree:23;
-		u32_t	senTlog:1;
-		u32_t	senTsen:1;
-		u32_t 	senDev:1;
-		u32_t 	senAvg:1;
-		u32_t 	senSum:1;
-		u32_t 	senMMP:1;
-		u32_t	senUnit:1;
-		u32_t	senNL:1;			// 0= no CRLF, 1= single CRLF
-		u32_t	senURI:1;
 	};
 	u32_t u32Val;
 } fm_t;
