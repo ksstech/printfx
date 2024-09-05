@@ -4,9 +4,9 @@
 
 #include "FreeRTOS_Support.h"
 #include "hal_stdio.h"
+#include "hal_usart.h"
 
 #include <stdarg.h>
-
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -157,8 +157,6 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|I<<23|J<<22|K<<21|L<<20|(M&0x000FFFFF)))
 
 #define WPFX_TIMEOUT			pdMS_TO_TICKS(1000)
-#define WPFX_LOCK()				xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
-#define WPFX_UNLOCK()			xRtosSemaphoreGive(&shUARTmux);
 
 #define	reportXPC_BITS			3						// sgr:2, bDebug:1
 // save & restore ALL flags + limits 
@@ -412,6 +410,7 @@ typedef	struct xp_t {
 DUMB_STATIC_ASSERT(sizeof(xp_t) == (sizeof(int *) + sizeof(void *) + sizeof(u32_t) + sizeof(xpc_t) + sizeof(va_list)));
 
 // ################################### Public variables ############################################
+
 // ################################### Public functions ############################################
 
 int xPrintFX(xp_t * psXPC, const char * format);

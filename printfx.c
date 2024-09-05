@@ -1469,9 +1469,9 @@ int	xPrintF(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pcF
 static int xPrintStdOut(xp_t * psXP, int cChr) { return putchar(cChr); }
 
 int vnprintfx(size_t szLen, const char * pcFmt, va_list vaList) {
-	xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
+	halUartLock(WPFX_TIMEOUT);
 	int iRV = xPrintF(xPrintStdOut, NULL, szLen, pcFmt, vaList);
-	xRtosSemaphoreGive(&shUARTmux);
+	halUartUnLock();
 	return iRV;
 }
 
@@ -1586,17 +1586,17 @@ int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
 		if (psR->size == 0)								// NO value supplied, default
 			psR->size = xpfMAXLEN_MAXVAL;
 		if (psR->fNoLock == 0)
-			btRV = xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
+			btRV = halUartLock(WPFX_TIMEOUT);
 		if (pcFmt != NULL)
 			iRV = xPrintF(psR->putc ? psR->putc : xPrintStdOut, NULL, psR->Size, pcFmt, vaList);
 		if (psR->fNoLock == 0 && btRV == pdTRUE)
-			xRtosSemaphoreGive(&shUARTmux);
+			halUartUnLock();
 	} else {
 		// NO valid psR ie no structure/members
-		btRV = xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
+		btRV = halUartLock(WPFX_TIMEOUT);
 		iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 		if (btRV == pdTRUE)
-			xRtosSemaphoreGive(&shUARTmux);
+			halUartUnLock();
 	}
 	return iRV;
 }
@@ -1649,18 +1649,12 @@ int	dprintfx(int fd, const char * pcFmt, ...) {
  * Output directly to the [possibly redirected] stdout/UART channel
  */
 
-static int xPrintToConsole(xp_t * psXP, int cChr) {
-	#if (buildSTDOUT_LEVEL > 0)
-	return putchar_cursor(cChr, 0);
-	#else
-	return esp_rom_printf("%c", cChr);
-	#endif
-}
+static int xPrintToConsole(xp_t * psXP, int cChr) { return putchar_cursor(cChr, 0); }
 
 int vcprintfx(const char * pcFmt, va_list vaList) {
-	xRtosSemaphoreTake(&shUARTmux, WPFX_TIMEOUT);
+	halUartLock(WPFX_TIMEOUT);
 	int iRV = xPrintF(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, pcFmt, vaList);
-	xRtosSemaphoreGive(&shUARTmux);
+	halUartUnLock();
 	return iRV;
 }
 
