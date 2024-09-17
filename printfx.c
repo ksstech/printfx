@@ -270,11 +270,11 @@ int	xPrintValueJustified(xp_t * psXP, u64_t u64Val, char * pBuffer, int BufSize)
 		if (psXP->ctl.bAltF) {
 			u32_t I, F;
 			u8_t ScaleChr;
-			if (u64Val >= Q1)		{ F = (u64Val % Q1) / q1; I = u64Val / Q1; ScaleChr = CHR_Q; }
-			else if (u64Val >= q1)	{ F = (u64Val % q1) / T1; I = u64Val / q1; ScaleChr = CHR_q; }
-			else if (u64Val >= T1)	{ F = (u64Val % T1) / B1; I = u64Val / T1; ScaleChr = CHR_T; }
-			else if (u64Val >= B1)	{ F = (u64Val % B1) / M1; I = u64Val / B1; ScaleChr = CHR_B; }
-			else if (u64Val >= M1)	{ F = (u64Val % M1) / K1; I = u64Val / M1; ScaleChr = CHR_M; }
+			if (u64Val >= Q1)		{ F = u64Val % Q1; I = u64Val / Q1; ScaleChr = CHR_Q; }
+			else if (u64Val >= q1)	{ F = u64Val % q1; I = u64Val / q1; ScaleChr = CHR_q; }
+			else if (u64Val >= T1)	{ F = u64Val % T1; I = u64Val / T1; ScaleChr = CHR_T; }
+			else if (u64Val >= B1)	{ F = u64Val % B1; I = u64Val / B1; ScaleChr = CHR_B; }
+			else if (u64Val >= M1)	{ F = u64Val % M1; I = u64Val / M1; ScaleChr = CHR_M; }
 			else if (u64Val >= K1)	{ F = u64Val % K1;		  I = u64Val / K1; ScaleChr = CHR_K; }
 			else { ScaleChr = 0; }
 			if (ScaleChr) {
@@ -285,9 +285,13 @@ int	xPrintValueJustified(xp_t * psXP, u64_t u64Val, char * pBuffer, int BufSize)
 				// calculate & convert the required # of fractional digits
 				int Ilen = xDigitsInU32(I, 0);			// 1 (0) -> 3 (999)
 				int Flen = xDigitsInU32(F, 0);
-				if (Ilen != 2 || Flen != 2) {
-					Flen = 4 - Ilen;
-					F /= u32pow(psXP->ctl.uBase, 3 - Flen);
+				// if field width has been specified, use that as base, adjusted for scaling character
+				#define xpMIN_SCALED_WIDTH	5		// 3?1 / 2?2 / 1?3
+				int MaxDigit = (psXP->ctl.bMinWid && (psXP->ctl.MinWid > xpMIN_SCALED_WIDTH)) ? psXP->ctl.MinWid : xpMIN_SCALED_WIDTH;
+				MaxDigit -= psXP->ctl.bGroup ? 1 : 2;	// lose 1 (?) or 2 (.?) positions
+				if ((Ilen + Flen) > MaxDigit) {			// if sum of I+F digits > available space
+					F /= u32pow(psXP->ctl.uBase, Flen - (MaxDigit - Ilen));
+					Flen = MaxDigit - Ilen;				// adjust Flen to what remains
 				}
 				while (Flen--) {
 					*pTemp-- = cPrintNibbleToChar(psXP, F % psXP->ctl.uBase);	// digit
