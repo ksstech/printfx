@@ -16,7 +16,7 @@
 	&	Print array of comma separated values "defgioux"
 		PLEASE NOTE:
 			Requires 2 parameters being array SIZE and ADDRESS
-			Must use hh, h, l or ll to specify 8/16/32/64 values
+			Must use hh, h, l or ll to specify 8/16/32/64 sized values
 
   Text center justify
   ## Modifier(s):
