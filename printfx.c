@@ -300,11 +300,11 @@ int	xPrintValueJustified(xp_t * psXP, u64_t u64Val, char * pBuffer, int BufSize)
 				}
 				*pTemp-- = psXP->ctl.bGroup ? ScaleChr : CHR_FULLSTOP;
 				++Len;
-				u64Val = (u32_t) I;
+				u64Val = I;
 			}
 		}
 		#endif
-		// convert to string starting at end of buffer from Least (R) to Most (L) significant digits
+		// convert to string starting at end of buffer from R/Least -> L/Most significant digits
 		Count = 0;
 		while (u64Val) {
 			iTemp = u64Val % psXP->ctl.uBase;			// calculate the next remainder ie digit
@@ -1356,7 +1356,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			case CHR_c: xPrintChar(psXP, va_arg(psXP->vaList, int)); break;
 
 			case CHR_d:									// signed decimal "[-]ddddd"
-			case CHR_i:									// signed integer (same as decimal ?)
+			case CHR_i: {								// signed integer (same as decimal ?)
 				psXP->ctl.bSigned = 1;
 				if (psXP->ctl.bArray) {
 					vPrintX64array(psXP);
@@ -1368,7 +1368,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 					}
 					vPrintX64(psXP, X64.u64);
 				}
-				break;
+			}	break;
 
 			#if	(xpfSUPPORT_IEEE754 == 1)
 //			case CHR_a:									// HEX format not yet supported
@@ -1392,18 +1392,20 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				break;
 			#endif
 
-			case CHR_m: pX.pc8 = strerror(errno); goto commonM_S;
+			case CHR_m:
+				pX.pc8 = strerror(errno);
+				goto commonM_S;
 
-			case CHR_n:									// store chars to date at location.
+			case CHR_n: {								// store chars to date at location.
 				pX.piX = va_arg(psXP->vaList, int *);
 				IF_myASSERT(debugTRACK, halMemorySRAM(pX.pc8));
 				*pX.piX = psXP->CurLen;
-				break;
+			}	break;
 
 			case CHR_o:									// unsigned octal "ddddd"
 			case CHR_x: psXP->ctl.bGroup = 0;			// hex as in "789abcd" UC/LC, disable grouping
 				/* FALLTHRU */ /* no break */
-			case CHR_u:									// unsigned decimal "ddddd"
+			case CHR_u: {								// unsigned decimal "ddddd"
 				//IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0);
 				psXP->ctl.uBase = (cFmt == CHR_x) ? BASE16 : 
 								 (cFmt == CHR_u) ? BASE10 : BASE08;
@@ -1419,14 +1421,14 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 					X64.u64 &= BIT_MASK64(0, Width);
 					vPrintX64(psXP, X64.u64);
 				}
-				break;
+			}	break;
 
-			case CHR_p:
+			case CHR_p: {
 				pX.pv = va_arg(psXP->vaList, void *);
 				vPrintPointer(psXP, pX);
-				break;
+			}	break;
 
-			case CHR_s:
+			case CHR_s: {
 				pX.pc8 = va_arg(psXP->vaList, char *);
 			commonM_S:
 				// Required to avoid crash when wifi message is intercepted and a string pointer parameter
@@ -1434,7 +1436,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				pX.pc8 = halMemoryANY(pX.pc8) ? pX.pc8 : pX.pc8 ? strOOR : strNUL;
 				if (pX.pc8)
 					vPrintStringJustified(psXP, pX.pc8);
-				break;
+			}	break;
 
 			default:
 				/* At this stage we have handled the '%' as assumed, but the next character found is invalid.
