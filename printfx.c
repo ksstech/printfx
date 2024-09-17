@@ -1126,38 +1126,38 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			if (*pcFmt == CHR_FULLSTOP || INRANGE(CHR_1, *pcFmt, CHR_9)) {
 				while (1) {
 					if (INRANGE(CHR_0, *pcFmt, CHR_9)) {
-						X32.i32 *= 10;
-						X32.i32 += *pcFmt - CHR_0;
+						X32.u32 *= 10;
+						X32.u32 += *pcFmt - CHR_0;
 					} else if (*pcFmt == CHR_FULLSTOP) {
-						if (X32.i32 > 0) {				// save value if previously parsed
-							IF_myASSERT(debugTRACK, psXP->ctl.bMinWid == 0 && X32.iX <= xpfMINWID_MAXVAL);
-							psXP->ctl.MinWid = X32.iX;
+						if (X32.u32 > 0) {				// save value if previously parsed
+							IF_myASSERT(debugTRACK, psXP->ctl.bMinWid == 0 && X32.u32 <= xpfMINWID_MAXVAL);
+							psXP->ctl.MinWid = X32.u32;
 							psXP->ctl.bMinWid = 1;
-							X32.i32 = 0;
+							X32.u32 = 0;
 						}
 						IF_myASSERT(debugTRACK, psXP->ctl.bRadix == 0);	// 2x bRadix not allowed
 						psXP->ctl.bRadix = 1;
 					} else if (*pcFmt == CHR_ASTERISK) {
-						IF_myASSERT(debugTRACK, psXP->ctl.bRadix == 1 && X32.iX == 0);
-						X32.iX	= va_arg(psXP->vaList, int);
-						IF_myASSERT(debugTRACK, X32.iX <= xpfPRECIS_MAXVAL);
+						IF_myASSERT(debugTRACK, psXP->ctl.bRadix == 1 && X32.u32 == 0);
+						X32.u32 = va_arg(psXP->vaList, unsigned int);
+						IF_myASSERT(debugTRACK, X32.u32 <= xpfPRECIS_MAXVAL);
 						psXP->ctl.bPrecis = 1;
-						psXP->ctl.Precis = X32.iX;
-						X32.i32 = 0;
+						psXP->ctl.Precis = X32.u32;
+						X32.u32 = 0;
 					} else {
 						break;
 					}
 					++pcFmt;
 				}
 				// Save possible parsed value
-				if (X32.i32 > 0) {						// if a number was parsed...
+				if (X32.u32 > 0) {						// if a number was parsed...
 					if (psXP->ctl.bRadix == 0 && psXP->ctl.bMinWid == 0) {	// no '.' nor width
-						IF_myASSERT(debugTRACK, X32.iX <= xpfMINWID_MAXVAL);
-						psXP->ctl.MinWid = X32.iX;		// save value as MinWid
+						IF_myASSERT(debugTRACK, X32.u32 <= xpfMINWID_MAXVAL);
+						psXP->ctl.MinWid = X32.u32;		// save value as MinWid
 						psXP->ctl.bMinWid = 1;			// set MinWid flag
 					} else if (psXP->ctl.bRadix == 1 && psXP->ctl.bPrecis == 0) {	// '.' but no Precis
-						IF_myASSERT(debugTRACK, X32.iX <= xpfPRECIS_MAXVAL);
-						psXP->ctl.Precis = X32.iX;		// save value as precision
+						IF_myASSERT(debugTRACK, X32.u32 <= xpfPRECIS_MAXVAL);
+						psXP->ctl.Precis = X32.u32;		// save value as precision
 						psXP->ctl.bPrecis = 1;			// set precision flag
 					} else {
 						assert(0);
