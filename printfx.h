@@ -314,6 +314,17 @@ typedef	union {
 		u32_t 	rmHdr1:1;			// 1 header for whole report
 		u32_t	rmNL:1;
 	};
+	struct __attribute__((packed)) {// 08:24 LVGL reporting
+		u32_t	lvPart : 24;		// LV_PART??? number
+		u32_t	lv07 : 1;
+		u32_t	lv06 : 1;
+		u32_t	lv05 : 1;
+		u32_t	lvStyle : 1;
+		u32_t	lvScroll : 1;
+		u32_t	lvClick : 1;
+		u32_t	lvContent : 1;
+		u32_t	lvNL : 1;
+	};
 	u32_t u32Val;
 } fm_t;
 DUMB_STATIC_ASSERT(sizeof(fm_t) == sizeof(u32_t));
