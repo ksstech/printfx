@@ -1017,75 +1017,6 @@ void vPrintURL(xp_t * psXP, char * pStr) {
 	}
 }
 
-// ############################## Proprietary extension: IP address ################################
-
-/**
- * @brief	Print DOT formatted IP address to destination
- * @param	psXP - pointer to output & format control structure
- * @param	Val - IP address value in HOST format !!!
- * @return	none
- * @note	Used the following modifiers
- * @note	'!'		Invert the LSB normal MSB byte order (Network <> Host related)
- * @note	'-'		Left align the individual numbers between the '.'
- * @note	'0'		Zero pad the individual numbers between the '.'
- * @note	Changes bAltF MinWid
- * @note	Uses vPrintStringJustified()
- */
-void vPrintIpAddress(xp_t * psXP, u32_t Val) {
-	psXP->ctl.MinWid = psXP->ctl.bLeft ? 0 : 3;
-	u8_t * pChr = (u8_t *) &Val;
-	if (psXP->ctl.bAltF) {								// '#' specified to invert order ?
-		u8_t temp;
-		temp = *pChr;
-		*pChr = *(pChr+3);
-		*(pChr+3) = temp;
-		temp = *(pChr+1);
-		*(pChr+1) = *(pChr+2);
-		*(pChr+2) = temp;
-		psXP->ctl.bAltF = 0;							// clear so not to confuse xPrintValueJustified()
-	}
-	// building R to L, ensure buffer NULL-term
-	char Buffer[xpfMAX_LEN_IP];
-	Buffer[xpfMAX_LEN_IP - 1] = 0;
-
-	// then convert the IP address, LSB first
-	int	Idx, Len;
-	for (Idx = 0, Len = 0; Idx < sizeof(Val); ++Idx) {
-		u64_t u64Val = (u8_t) pChr[Idx];
-		Len += xPrintValueJustified(psXP, u64Val, Buffer + xpfMAX_LEN_IP - 5 - Len, 4);
-		if (Idx < 3)
-			Buffer[xpfMAX_LEN_IP - 1 - ++Len] = CHR_FULLSTOP;
-	}
-	// then send the formatted output to the correct stream
-	vPrintStringJustified(psXP, Buffer + (xpfMAX_LEN_IP - 1 - Len));
-}
-
-// ########################### Proprietary extension: SGR attributes ###############################
-
-/**
- * @brief	set starting and ending fore/background colors
- * @param	psXP
- * @param	Val	- u32_t value treated as 4x U8 being SGR color/attribute codes
- * @note	https://docs.lvgl.io/8.4/widgets/core/label.html?highlight=printf%20text%20color
- */
-void vPrintSetGraphicRendition(xp_t * psXP, u32_t Val) {
-	switch (psXP->ctl.uSGR) {
-	case sgrNONE:
-		break;
-	case sgrANSI: {
-		char Buffer[xpfMAX_LEN_SGR];
-		sgr_info_t sSGR = { .u32 = Val };
-		#if (halUSE_CURSOR == 1)
-		if (pcTermLocate(Buffer, sSGR.r, sSGR.c) != Buffer)
-			vPrintString(psXP, Buffer);					// cursor location, 1 relative, row & column
-		#endif
-		if (pcTermAttrib(Buffer, sSGR.a1, sSGR.a2) != Buffer)
-			vPrintString(psXP, Buffer);					// attribute[s]
-	}	break;
-	default:
-	}
-}
-
 /* ################################# The HEART of the PRINTFX matter ###############################
  * PrintFX - common routine for formatted print functionality
  * @brief	parse the format string and interpret the conversions, flags and modifiers
@@ -1222,14 +1153,41 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 
 			switch (cFmt) {
 			#if	(xpfSUPPORT_SGR == 1)
-			case CHR_C: vPrintSetGraphicRendition(psXP, va_arg(psXP->vaList, u32_t)); break;
+			case CHR_C: {
+				char Buffer[xpfMAX_LEN_SGR];
+				sgr_info_t sSGR; sSGR.u32 = va_arg(psXP->vaList, u32_t);	// ensure removed from stack
+				if (psXP->ctl.uSGR == sgrANSI) {
+					if (sSGR.rowcol && pcTermLocate(Buffer, sSGR.r, sSGR.c) != Buffer)
+						vPrintString(psXP, Buffer);		// cursor location, 1 relative row & column
+					if (pcTermAttrib(Buffer, sSGR.a1, sSGR.a2) != Buffer)
+						vPrintString(psXP, Buffer);		// attribute[s]
+				}
+			}	break;
 			#endif
 
 			#if	(xpfSUPPORT_IP_ADDR == 1)				// IP address
-			case CHR_I:
+			case CHR_I: {
 				IF_myASSERT(debugTRACK, !psXP->ctl.bPrecis && !psXP->ctl.Precis && !psXP->ctl.bPlus);
-				vPrintIpAddress(psXP, va_arg(psXP->vaList, u32_t)); 
-				break;
+				psXP->ctl.MinWid = psXP->ctl.bLeft ? 0 : 3;
+				X32.u32 = va_arg(psXP->vaList, u32_t);
+				u8_t temp;
+				u8_t * pChr = (u8_t *) &X32;
+				if (psXP->ctl.bAltF) {					// '#' specified to invert order ?
+					temp = *pChr;		*pChr = *(pChr+3);		*(pChr+3) = temp;
+					temp = *(pChr+1);	*(pChr+1) = *(pChr+2);	*(pChr+2) = temp;
+					psXP->ctl.bAltF = 0;				// clear so not to confuse xPrintValueJustified()
+				}
+				char Buffer[xpfMAX_LEN_IP];
+				Buffer[xpfMAX_LEN_IP - 1] = 0;			// building R to L, ensure buffer NULL-term
+				int	Idx, Len;
+				for (Idx = 0, Len = 0; Idx < sizeof(u32_t); ++Idx) {	// then convert the IP address, LSB first
+					X64.u64 = (u8_t) pChr[Idx];
+					Len += xPrintValueJustified(psXP, X64.u64, Buffer + xpfMAX_LEN_IP - 5 - Len, 4);
+					if (Idx < 3) Buffer[xpfMAX_LEN_IP - 1 - ++Len] = CHR_FULLSTOP;
+				}
+				// then send the formatted output to the correct stream
+				vPrintStringJustified(psXP, Buffer + (xpfMAX_LEN_IP - 1 - Len));
+			}	break;
 			#endif
 
 			#if	(xpfSUPPORT_DATETIME == 1)
