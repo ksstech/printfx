@@ -1402,9 +1402,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			commonM_S:
 				// Required to avoid crash when wifi message is intercepted and a string pointer parameter
 				// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
-				pX.pc8 = halMemoryANY(pX.pc8) ? pX.pc8 : pX.pc8 ? strOOR : strNUL;
-				if (pX.pc8)
-					vPrintStringJustified(psXP, pX.pc8);
+				pX.pc8 = halMemoryANY(pX.pc8) ? pX.pc8 : pX.pc8 ? strOOR : strNULL;
+				vPrintStringJustified(psXP, pX.pc8);
 			}	break;
 
 			default:
