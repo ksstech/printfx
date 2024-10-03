@@ -904,9 +904,7 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 		psXP->ctl.bNegVal = 0;							// fractions can only be positive
 		Len += xPrintValueJustified(psXP, uSecs, Buffer+Len, psXP->ctl.MinWid = psXP->ctl.Precis);
 	}
-	if (sXPC.bGroup) {
-		Buffer[Len++] = CHR_s;
-	}
+	if (sXPC.bGroup) Buffer[Len++] = CHR_s;
 	Buffer[Len] = 0;
 
 	XPC_REST();
@@ -1001,9 +999,7 @@ void vPrintURL(xp_t * psXP, char * pStr) {
 	if (halMemoryANY(pStr)) {
 		char cIn;
 		while ((cIn = *pStr++) != 0) {
-			if (INRANGE(CHR_A, cIn, CHR_Z) ||
-				INRANGE(CHR_a, cIn, CHR_z) ||
-				INRANGE(CHR_0, cIn, CHR_9) ||
+			if (INRANGE(CHR_A, cIn, CHR_Z) || INRANGE(CHR_a, cIn, CHR_z) || INRANGE(CHR_0, cIn, CHR_9) ||
 				(cIn == CHR_MINUS || cIn == CHR_FULLSTOP || cIn == CHR_UNDERSCORE || cIn == CHR_TILDE)) {
 				xPrintChar(psXP, cIn);
 			} else {
@@ -1083,8 +1079,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 						IF_myASSERT(debugTRACK, psXP->ctl.bRadix == 1 && X32.u32 == 0);
 						X32.u32 = va_arg(psXP->vaList, unsigned int);
 						IF_myASSERT(debugTRACK, X32.u32 <= xpfPRECIS_MAXVAL);
-						psXP->ctl.bPrecis = 1;
 						psXP->ctl.Precis = X32.u32;
+						psXP->ctl.bPrecis = 1;
 						X32.u32 = 0;
 					} else {
 						break;
@@ -1193,17 +1189,17 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			#if	(xpfSUPPORT_DATETIME == 1)
 			/* Prints date and/or time in POSIX format
 			 * Use the following modifiers
-			 *	'''		select between 2 different separator sets being
-			 *			'/' or '-' (years)
-			 *			'/' or '-' (months)
-			 *			'T' or ' ' (days)
-			 *			':' or 'h' (hours)
-			 *			':' or 'm' (minutes)
-			 *			'.' or 's' (seconds)
-			 * 	'!'		Treat value as relative/elapsed and not epoch
-			 * 	'.'		Append 1 -> 6 digit(s) fractional seconds
-			 *	'+'		Convert to local time, add TZ offset and DSt if available
-			 *	'#'		Select the alternative format
+			 *	'	select between 2 different separator sets being
+			 *		'/' or '-' (years)
+			 *		'/' or '-' (months)
+			 *		'T' or ' ' (days)
+			 *		':' or 'h' (hours)
+			 *		':' or 'm' (minutes)
+			 *		'.' or 's' (seconds)
+			 * 	!	Treat value as relative/elapsed and not epoch
+			 * 	.	Append 1 -> 6 digit(s) fractional seconds
+			 *	+	Convert to local time, add TZ offset and DSt if available
+			 *	#	Select the alternative format
 			 * Norm 1	1970/01/01T00:00:00Z
 			 * Norm 2	1970-01-01 00h00m00s
 			 * Altform	Mon, 01 Jan 1970 00:00:00 GMT
@@ -1213,20 +1209,17 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			case CHR_Z: {			// Local TZ DATE+TIME+ZONE
 				IF_myASSERT(debugTRACK, psXP->ctl.bRelVal == 0);
 				psTSZ = va_arg(psXP->vaList, tsz_t *);	// retrieve TSX pointer parameter
-				IF_myASSERT(debugTRACK, halMemoryANY(psTSZ));
-				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs);	// convert to u32_t epoch value
-				// If full local time required, add TZ and DST offsets
-				if (psXP->ctl.bPlus && psTSZ->pTZ)
+				IF_myASSERT(debugTRACK, halMemoryRAM(psTSZ));
+				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs);				// convert to u32_t epoch value
+				if (psXP->ctl.bPlus && psTSZ->pTZ)		// If full local time required, add TZ and DST offsets
 					X32.u32 += psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
-				// Convert to component values
-				xTimeGMTime(X32.u32, &sTM, psXP->ctl.bRelVal);
-				// setup flags for date & time portions
-				psXP->ctl.bPad0 = 1;		// Need 0 on date & time, want to restore same
+				xTimeGMTime(X32.u32, &sTM, psXP->ctl.bRelVal);				// Convert to component values
+				psXP->ctl.bPad0 = 1;					// Need 0 on date & time, want to restore same
 				XPC_SAVE();
-				psXP->ctl.bPlus = 0;		// only for DTZone, need to restore status later..
+				psXP->ctl.bPlus = 0;					// only for DTZone, need to restore status later..
 				if (cFmt == CHR_D || cFmt == CHR_Z) {
-					vPrintDate(psXP, &sTM);	// bPad0=1, bPlus=0
-					XPC_REST();				// bAltF changed
+					vPrintDate(psXP, &sTM);									// bPad0=1, bPlus=0
+					XPC_REST();												// bAltF changed
 				}
 				if (cFmt == CHR_T || cFmt == CHR_Z) {
 					vPrintTime(psXP, &sTM, (u32_t)(psTSZ->usecs % MICROS_IN_SECOND));
@@ -1249,14 +1242,10 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				if (psXP->ctl.bRelVal == 0)				// absolute (not relative) value
 					psXP->ctl.bPad0 = 1;				// must pad
 				if (psXP->ctl.bRelVal == 0 || sTM.tm_mday) {
-//					XPC_SAVE();
 					vPrintDate(psXP, &sTM);
-//					XPC_FLAG(Precis);
 					psXP->ctl.bNegVal = 0;				// disable possible second '-'
 				}
 				vPrintTime(psXP, &sTM, (u32_t) (X64.u64 % MICROS_IN_SECOND));
-				// How do we know if UTC or local TZ value?
-//				if (psXP->ctl.bRelVal == 0) xPrintChar(psXP, CHR_Z);
 			}
 			break;
 			#endif
@@ -1350,7 +1339,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				if (psXP->ctl.bPrecis) {				// explicit precision specified ?
 					psXP->ctl.Precis = psXP->ctl.Precis > xpfMAXIMUM_DECIMALS ? xpfMAXIMUM_DECIMALS : psXP->ctl.Precis;
 				} else {
-					psXP->ctl.Precis	= xpfDEFAULT_DECIMALS;
+					psXP->ctl.Precis = xpfDEFAULT_DECIMALS;
 				}
 				if (psXP->ctl.bArray) {
 					psXP->ctl.bFloat = 1;
