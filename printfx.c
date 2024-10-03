@@ -70,7 +70,9 @@ const char Delim3[2] = { ':', 'm' };					// ":m"
 const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 	'B',							// Binary formatted, prepend "0b" or "0B"
 	'P',							// pointer formatted, 0x00abcdef or 0X00ABCDEF
+	#if	(xpfSUPPORT_DATETIME == 1)
 	'R',							// Time, absolute/relative, no ZONE info, 64bit/uSec or 32bit/Sec
+	#endif
 	'X',							// hex formatted 'x' or 'X' values, always there
 	#if	(xpfSUPPORT_IEEE754 == 1)
 	'A', 'E', 'F', 'G',				// float hex/exponential/general
