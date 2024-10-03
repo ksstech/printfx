@@ -895,9 +895,11 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	Len += xPrintValueJustified(psXP, (u64_t) psTM->tm_sec, Buffer+Len, xPrintTimeCalcSize(psXP, psTM->tm_sec));
 
 	// Part 4: [.xxxxxx]
-	if (psXP->ctl.bRadix) {
+	if (psXP->ctl.bPrecis == 0 || (psXP->ctl.Precis > xpfMAX_TIME_FRAC))
+		psXP->ctl.Precis = xpfDEF_TIME_FRAC;
+	if (psXP->ctl.bRadix || psXP->ctl.Precis)
 		Buffer[Len++] = CHR_FULLSTOP;
-		psXP->ctl.Precis = INRANGE(1, psXP->ctl.Precis, xpfMAX_TIME_FRAC) ? psXP->ctl.Precis : xpfDEF_TIME_FRAC;
+	if (psXP->ctl.Precis) {
 		if (psXP->ctl.Precis < xpfMAX_TIME_FRAC)
 			uSecs /= u32pow(10, xpfMAX_TIME_FRAC - psXP->ctl.Precis);
 		psXP->ctl.bPad0 = 1;							// need leading '0's
