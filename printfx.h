@@ -141,6 +141,7 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define	xpfLOC(r,c)					(_xpfSGR(3,r) | _xpfSGR(2,c) | _xpfSGR(1,0) | _xpfSGR(0,0))
 #define	xpfCOL(a1,a2)				(_xpfSGR(3,0) | _xpfSGR(2,0) | _xpfSGR(1,a1) | _xpfSGR(0,a2))
 #define	xpfSGR(r,c,a1,a2)			(_xpfSGR(3,r) | _xpfSGR(2,c) | _xpfSGR(1,a1) | _xpfSGR(0,a2))
+
 // Used to convert LVGL 16bit colour code to 2x 8bit values
 #define xpfSGR_LVGL_Ha(val)			(val >> 8)
 #define xpfSGR_LVGL_Lb(val)			(val &0xFF)
@@ -185,7 +186,6 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 
 #define repFLAG_TST(psR,Mem) 		((psR && (psR->Mem != 0) ? 1 : 0))
 #define repFLAG_SET(psR,Mem,Val)	{ if (psR) psR->Mem = Val; }
-
 #define repFORM_TST(psR,Mem) 		(psR && psR->sFM.Mem)
 #define repFORM_GET(psR,Mem)		(psR ? psR->sFM.Mem : 0)			// read a field value
 #define repFORM_SET(psR,Mem,Val)	{ if (psR) psR->sFM.Mem = Val; }	// restore a field value
