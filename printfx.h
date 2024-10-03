@@ -175,7 +175,7 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define repBIT_ECHO				26
 #define repBIT_NOLOCK			25
 
-#define repSIZE_SET(force,flags,echo,nolock,sgr,debug,size) ( \
+#define repSIZE_SET(force,flags,echo,nolock,sgr,debug,size) (u32_t) ( \
 	((force & 1) << repBIT_FORCE)	|	\
 	((flags & 1) << repBIT_FLAGS)	|	\
 	((echo & 1) << repBIT_ECHO)		|	\
@@ -184,11 +184,17 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 	((debug & 1) << repBIT_DEBUG)	|	\
 	(size & 0xFFFF))
 
+#define repSIZE_SETX(force,flags,echo,nolock,sgr,debug,Size)	(u32_t) { 		\
+	.fForce=force, .fFlags=flags, .fEcho=echo, .fNoLock=nolock, .uSGR=sgr,	\
+	.dDebug=debug, .size=Size, .col1 = 0, .col2 = 0, .spare = 0, }
+
 #define repFLAG_TST(psR,Mem) 		((psR && (psR->Mem != 0) ? 1 : 0))
 #define repFLAG_SET(psR,Mem,Val)	{ if (psR) psR->Mem = Val; }
 #define repFORM_TST(psR,Mem) 		(psR && psR->sFM.Mem)
 #define repFORM_GET(psR,Mem)		(psR ? psR->sFM.Mem : 0)			// read a field value
 #define repFORM_SET(psR,Mem,Val)	{ if (psR) psR->sFM.Mem = Val; }	// restore a field value
+
+#define REP_LVGL(a,b,c,d,e,f,g,h,i) (fm_t){ .lvPart=i, .lv07=h, .lv06=g, .lv05=f, .lvStyle=e, .lvScroll=d, .lvClick=c, .lvContent=b, .lvNL=a }
 
 // ####################################### enumerations ############################################
 
