@@ -138,6 +138,8 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
  * http://www.termsys.demon.co.uk/vtansi.htm#colors
 */
 #define _xpfSGR(p,v)				((v & 0xFF) << (p * 8))
+#define	xpfLOC(r,c)					(_xpfSGR(3,r) | _xpfSGR(2,c) | _xpfSGR(1,0) | _xpfSGR(0,0))
+#define	xpfCOL(a1,a2)				(_xpfSGR(3,0) | _xpfSGR(2,0) | _xpfSGR(1,a1) | _xpfSGR(0,a2))
 #define	xpfSGR(r,c,a1,a2)			(_xpfSGR(3,r) | _xpfSGR(2,c) | _xpfSGR(1,a1) | _xpfSGR(0,a2))
 // Used to convert LVGL 16bit colour code to 2x 8bit values
 #define xpfSGR_LVGL_Ha(val)			(val >> 8)
