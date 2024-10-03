@@ -213,7 +213,7 @@ enum { sgrNONE, sgrANSI, sgrAGFX, sgrLVGL };
 
 typedef union {
 	struct __attribute__((packed)) { u8_t a2, a1, c, r; };
-	u8_t u8[sizeof(u32_t)];
+	u16_t rowcol, attrib;
 	u32_t u32;
 } sgr_info_t;
 DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4);
