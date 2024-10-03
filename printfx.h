@@ -316,31 +316,6 @@ typedef	union {
 } fm_t;
 DUMB_STATIC_ASSERT(sizeof(fm_t) == sizeof(u32_t));
 
-struct xp_t;
-typedef struct __attribute__((packed)) report_t {
-	char * pcBuf;
-	int (* putc)(struct xp_t *, int);		// alternative character output handler
-	union __attribute__((packed)) {
-		u32_t Size;
-		struct __attribute__((packed)) {
-			u32_t size : xpfMAXLEN_BITS;
-			// flags NOT passed onto xPrintF() only used in in highe rlevel formatting
-			u8_t col1 : 4;
-			u8_t col2 : 4;
-			u8_t spare : 1;
-			u8_t fNoLock : 1;		// Do not lock/unlock
-			u8_t fEcho : 1;			// enable command character(s) echo
-			u8_t fFlags : 1;		// Force checking of flag changes
-			u8_t fForce : 1;		// Force display of flags
-			// flags passed on to xPrintF()
-			u8_t bDebug : 1;		// Enable debug output where placed
-			u8_t uSGR : 2;
-		};
-	};
-	fm_t sFM;
-} report_t;
-DUMB_STATIC_ASSERT(sizeof(report_t) == ((2 * sizeof(void *)) + 8));
-
 typedef	union __attribute__((packed)) xpc_t {
 	struct __attribute__((packed)) {
 		u32_t limits;				// Combined MinWid & Precis
@@ -408,6 +383,30 @@ typedef	struct xp_t {
 	va_list vaList;
 } xp_t;
 DUMB_STATIC_ASSERT(sizeof(xp_t) == (sizeof(int *) + sizeof(void *) + sizeof(u32_t) + sizeof(xpc_t) + sizeof(va_list)));
+
+typedef struct __attribute__((packed)) report_t {
+	char * pcBuf;
+	int (* putc)(struct xp_t *, int);		// alternative character output handler
+	union __attribute__((packed)) {
+		u32_t Size;
+		struct __attribute__((packed)) {
+			u32_t size : xpfMAXLEN_BITS;
+			// flags NOT passed onto xPrintF() only used in in higher level formatting
+			u8_t col1 : 4;
+			u8_t col2 : 4;
+			u8_t sNoLock : 1;		/* saved fNoLock */
+			u8_t fNoLock : 1;		/* Do not lock/unlock */
+			u8_t fEcho : 1;			// enable command character(s) echo
+			u8_t fFlags : 1;		// Force checking of flag changes
+			u8_t fForce : 1;		// Force display of flags
+			// flags passed on to xPrintF()
+			u8_t bDebug : 1;		// Enable debug output where placed
+			u8_t uSGR : 2;
+		};
+	};
+	fm_t sFM;
+} report_t;
+DUMB_STATIC_ASSERT(sizeof(report_t) == ((2 * sizeof(void *)) + 8));
 
 // ################################### Public variables ############################################
 
