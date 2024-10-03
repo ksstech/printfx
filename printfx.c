@@ -1547,9 +1547,14 @@ int sprintfx(char * pBuf, const char * pcFmt, ...) {
 
 int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
 	int iRV = 0;
-	BaseType_t btRV = pdFALSE;
-	IF_myASSERT(debugPARAM && psR, halMemorySRAM(psR));
-	if (psR && psR->pcBuf && psR->size) {
+	if (psR == NULL) {
+		report_t sRprt = { 0 };
+		psR = &sRprt;
+		psR->
+		uSGR = sgrANSI;
+	}
+	IF_myASSERT(debugPARAM, halMemorySRAM(psR));
+	if (psR->pcBuf && psR->size) {
 		IF_myASSERT(debugPARAM, halMemorySRAM(psR->pcBuf));
 		iRV = vsnprintfx(psR->pcBuf, psR->Size, pcFmt, vaList);	// generate output to buffer
 		if (iRV > 0) {									// if anything written
@@ -1557,21 +1562,13 @@ int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
 			psR->pcBuf += iRV;							// update buffer pointer
 			psR->size -= iRV;							// available size
 		}
-	} else if (psR) {
-		if (psR->size == 0)								// NO value supplied, default
-			psR->size = xpfMAXLEN_MAXVAL;
-		if (psR->fNoLock == 0)
-			btRV = halUartLock(WPFX_TIMEOUT);
-		if (pcFmt != NULL)
-			iRV = xPrintF(psR->putc ? psR->putc : xPrintStdOut, NULL, psR->Size, pcFmt, vaList);
-		if (psR->fNoLock == 0 && btRV == pdTRUE)
-			halUartUnLock();
 	} else {
-		// NO valid psR ie no structure/members
-		btRV = halUartLock(WPFX_TIMEOUT);
-		iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, pcFmt, vaList);
-		if (btRV == pdTRUE)
-			halUartUnLock();
+		if (psR->putc == NULL)						psR->putc = xPrintStdOut;
+		if (psR->size == 0) 						psR->size = xpfMAXLEN_MAXVAL;
+		BaseType_t btRV = pdFALSE;
+		if (psR->fNoLock == 0)						btRV = halUartLock(WPFX_TIMEOUT);
+		iRV = xPrintF(psR->putc, NULL, psR->Size, pcFmt, vaList);
+		if (psR->fNoLock == 0 && btRV == pdTRUE)	halUartUnLock();
 	}
 	return iRV;
 }
