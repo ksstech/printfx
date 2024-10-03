@@ -413,6 +413,17 @@ DUMB_STATIC_ASSERT(sizeof(xp_t) == (sizeof(int *) + sizeof(void *) + sizeof(u32_
 
 // ################################### Public functions ############################################
 
+inline __attribute__((always_inline)) BaseType_t xPrintFxSaveLock(report_t * psR) {
+	psR->sNoLock = psR->fNoLock;
+	psR->fNoLock = 1; 
+	return halUartLock(WPFX_TIMEOUT); 
+}
+
+inline __attribute__((always_inline)) BaseType_t xPrintFxRestoreUnLock(report_t * psR) {
+	psR->fNoLock = psR->sNoLock;
+	return halUartUnLock(); 
+}
+
 int xPrintFX(xp_t * psXPC, const char * format);
 int xPrintF(int (handler)(xp_t *, int), void *, size_t, const char *, va_list);
 
