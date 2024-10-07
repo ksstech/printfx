@@ -895,10 +895,8 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	Len += xPrintValueJustified(psXP, (u64_t) psTM->tm_sec, Buffer+Len, xPrintTimeCalcSize(psXP, psTM->tm_sec));
 
 	// Part 4: [.xxxxxx]
-	if (psXP->ctl.bPrecis == 0 || (psXP->ctl.Precis > xpfMAX_TIME_FRAC))
-		psXP->ctl.Precis = xpfDEF_TIME_FRAC;
-	if (psXP->ctl.bRadix || psXP->ctl.Precis)
-		Buffer[Len++] = CHR_FULLSTOP;
+	if (psXP->ctl.Precis > xpfMAX_TIME_FRAC)	psXP->ctl.Precis = xpfMAX_TIME_FRAC;
+	if (psXP->ctl.bRadix || psXP->ctl.Precis)	Buffer[Len++] = CHR_FULLSTOP;
 	if (psXP->ctl.Precis) {
 		if (psXP->ctl.Precis < xpfMAX_TIME_FRAC)
 			uSecs /= u32pow(10, xpfMAX_TIME_FRAC - psXP->ctl.Precis);
@@ -912,8 +910,8 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	Buffer[Len] = 0;
 
 	XPC_REST();
-	if (psXP->ctl.bMinWid && psXP->ctl.MinWid < Len)	// if MinWid specified and value smaller than string length
-		psXP->ctl.MinWid = Len;							// override MinWid to enable full string
+	// if MinWid specified and value smaller than string length override MinWid to enable full string
+	if (psXP->ctl.bMinWid && psXP->ctl.MinWid < Len)	psXP->ctl.MinWid = Len;
 	psXP->ctl.Precis = 0;								// Remove limit on max string length
 	vPrintStringJustified(psXP, Buffer);
 }
@@ -1246,10 +1244,13 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				if (psXP->ctl.bRelVal == 0)				// absolute (not relative) value
 					psXP->ctl.bPad0 = 1;				// must pad
 				if (psXP->ctl.bRelVal == 0 || sTM.tm_mday) {
+					XPC_SAVE();
 					vPrintDate(psXP, &sTM);
+					XPC_REST();
 					psXP->ctl.bNegVal = 0;				// disable possible second '-'
 				}
-				vPrintTime(psXP, &sTM, (u32_t) (X64.u64 % MICROS_IN_SECOND));
+				X32.u32 = psXP->ctl.bCase ? X64.u64 % MICROS_IN_SECOND : 0;
+				vPrintTime(psXP, &sTM, X32.u32);
 			}
 			break;
 			#endif
