@@ -1091,7 +1091,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				}
 				// Save possible parsed value
 				if (X32.u32 > 0) {						// if a number was parsed...
-					if (psXP->ctl.bRadix == 0 && psXP->ctl.bMinWid == 0) {	// no '.' nor width
+					if (psXP->ctl.bRadix == 0 && psXP->ctl.bMinWid == 0) {			// no '.' nor width
 						IF_myASSERT(debugTRACK, X32.u32 <= xpfMINWID_MAXVAL);
 						psXP->ctl.MinWid = X32.u32;		// save value as MinWid
 						psXP->ctl.bMinWid = 1;			// set MinWid flag
@@ -1233,13 +1233,12 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			}
 			break;
 
-			case CHR_r: {			// U64 epoch (yr+mth+day) OR relative (days) + TIME
+			case CHR_r: {			// U32 epoch (yr+mth+day) OR relative (days) + TIME
 				IF_myASSERT(debugTRACK, psXP->ctl.bPlus == 0);
 				psXP->ctl.bSigned = psXP->ctl.bRelVal ? 1 : 0;		// Relative values signed
 				psXP->ctl.uSize = psXP->ctl.bCase ? S_ll : S_l;		// 'R' = 64bit, 'r' = 32bit
 				X64 = x64PrintGetValue(psXP);
 				X32.u32 = (u32_t) psXP->ctl.bCase ? (X64.u64 / MICROS_IN_SECOND) : X64.u64;
-
 				xTimeGMTime(X32.u32, &sTM, psXP->ctl.bRelVal);
 				if (psXP->ctl.bRelVal == 0)				// absolute (not relative) value
 					psXP->ctl.bPad0 = 1;				// must pad
