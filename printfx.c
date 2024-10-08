@@ -1540,7 +1540,7 @@ int sprintfx(char * pBuf, const char * pcFmt, ...) {
 int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
 	report_t sRprt = { 0 };
 	int iRV = 0;
-	if (psR == NULL) { psR = &sRprt; psR-> uSGR = sgrANSI; }
+	if (psR == NULL) { psR = &sRprt; psR->uSGR = sgrANSI; }
 	IF_myASSERT(debugPARAM, halMemorySRAM(psR));
 	if (psR->pcBuf && psR->size) {
 		IF_myASSERT(debugPARAM, halMemorySRAM(psR->pcBuf));
