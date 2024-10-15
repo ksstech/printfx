@@ -1610,7 +1610,7 @@ int	dprintfx(int fd, const char * pcFmt, ...) {
  * Output directly to the [possibly redirected] stdout/UART channel
  */
 
-static int xPrintToConsole(xp_t * psXP, int cChr) { return putchar_cursor(cChr, 0); }
+static int xPrintToConsole(xp_t * psXP, int cChr) { return putchar(cChr); }
 
 int vcprintfx(const char * pcFmt, va_list vaList) {
 	halUartLock(WPFX_TIMEOUT);
