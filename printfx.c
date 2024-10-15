@@ -1245,7 +1245,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				if (psXP->ctl.bRelVal == 0 || sTM.tm_mday) {
 					XPC_SAVE();
 					vPrintDate(psXP, &sTM);
-					XPC_REST();
+                    XPC_FLAG(flg1);
+                    XPC_FLAG(Precis);
 					psXP->ctl.bNegVal = 0;				// disable possible second '-'
 				}
 				X32.u32 = psXP->ctl.bCase ? X64.u64 % MICROS_IN_SECOND : 0;
