@@ -90,8 +90,8 @@ void xpDebugMem(void * pV) {
 
 void xpDebugFlags(xpc_t * psXPC) {
 	RP(" [SGR=%d  bLT=%d  bGT=%d  bFlt=%d  bArr=%d  bPad0=%d  ", psXPC->uSGR, psXPC->bLT, psXPC->bGT, psXPC->bFloat, psXPC->bArray, psXPC->bPad0);
-	RP("bPre=%d  Pre=%d  bMW=%d  uSiz=%d  bGrp=%d  ", psXPC->bPrecis, psXPC->Precis, psXPC->bMinWid, psXPC->uSize);
-	RP("uForm=%d  uBase=%d  bRad=%d  bRel=%d  bNeg=%d  ", psXPC->bGroup, psXPC->uForm, psXPC->uBase, psXPC->bRadix, psXPC->bRelVal, psXPC->bNegVal);
+	RP("bPre=%d  Pre=%d  bMW=%d  MW=%d  uSiz=%d  bGrp=%d  ", psXPC->bPrecis, psXPC->Precis, psXPC->bMinWid, psXPC->MinWid, psXPC->uSize, psXPC->bGroup);
+	RP("uForm=%d  uBase=%d  bRdx=%d  bRel=%d  bNeg=%d  ", psXPC->uForm, psXPC->uBase, psXPC->bRadix, psXPC->bRelVal, psXPC->bNegVal);
 	RP("bSign=%d  bPlus=%d  bCase=%d  bLeft=%d  bAltF=%d] " strNL, psXPC->bSigned, psXPC->bPlus, psXPC->bCase, psXPC->bLeft, psXPC->bAltF);
 }
 
