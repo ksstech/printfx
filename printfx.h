@@ -166,7 +166,7 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define XPC_SAVE()				xpc_t sXPC = { .u64Val = psXP->ctl.u64Val };
 #define XPC_REST()				psXP->ctl.u64Val = sXPC.u64Val;
 // restore specifc member from  previously saved value
-#define XPC_FLAG(M)			psXP->ctl.M = sXPC.M
+#define XPC_FLAG(M)			    psXP->ctl.M = sXPC.M
 
 #define repBIT_SGR				30						// width = 2
 #define repBIT_DEBUG			29						// width = 1
