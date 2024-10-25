@@ -1023,10 +1023,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 	for (; *pcFmt != CHR_NUL; ++pcFmt) {
 		if (*pcFmt == CHR_PERCENT) {					// start by expecting format indicator
 			++pcFmt;
-			if (*pcFmt == CHR_NUL)
-				break;
-			if (*pcFmt == CHR_PERCENT)
-				goto out_lbl;
+			if (*pcFmt == CHR_NUL)			break;
+			if (*pcFmt == CHR_PERCENT)		goto out_lbl;
 			psXP->ctl.limits = 0;						// reset field specific limits
 			psXP->ctl.flg1 = 0;							// reset internal/dynamic flags
 			psXP->ctl.uBase = BASE10;					// default number base
