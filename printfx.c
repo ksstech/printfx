@@ -697,12 +697,9 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 	if (psXP->ctl.bMinWid && INRANGE(8, psXP->ctl.MinWid, 64)) {
 		iWidth = psXP->ctl.MinWid;
 	} else {
-	#if (includeTERMINAL_CONTROLS == 1)
-		terminfo_t sTI;
-		vTermGetInfo(&sTI);
-		iWidth = sTI.MaxX;
-		if (psXP->ctl.bLeft && sTI.MaxX <= (32+6)) {
-			psXP->ctl.bLeft = 0;							// little space, disable addr
+		iWidth = xTermGetMaxColX();
+		if (psXP->ctl.bLeft && iWidth <= (32+6)) {
+			psXP->ctl.bLeft = 0;						// little space, disable addr
 		} else { 
 			iWidth -= psXP->ctl.bLeft ? 0 : 11;			// addr req, decr rem space
 		}
@@ -713,9 +710,6 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 			iWidth /= 3;								// no ASCII on right = 3 col/char
 		}
 		iWidth -= iWidth % 8;
-	#else
-		iWidth = xpfHEXDUMP_WIDTH;
-	#endif
 	}
 	for (int Now = 0; Now < xLen; Now += iWidth) {
 		if (psXP->ctl.bLeft == 0) {						// display address (absolute/relative)
