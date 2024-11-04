@@ -11,10 +11,10 @@
 #include "printfx.h"
 #include "socketsX.h"
 #include "struct_union.h"
-#include "x_string_general.h"		// xinstring function
-#include "x_errors_events.h"
-#include "x_terminal.h"
-#include "x_utilities.h"
+#include "string_general.h"		// xinstring function
+#include "errors_events.h"
+#include "terminalX.h"
+#include "utilitiesX.h"
 
 #include <math.h>					// isnan()
 #include <float.h>					// DBL_MIN/MAX

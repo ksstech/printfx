@@ -47,12 +47,10 @@ void vPrintArduinoProcess(u8_t u8Val) {
 
 extern "C" void vPrintArduino(u32_t Val) {
    	sgr_info_t sSGR = { .u32 = Val };
-    #if (halUSE_CURSOR == 1)						// Optional terminal support
 	if (sSGR.r && sSGR.c) {
 		PX("r=%d  c=%d\r\n", sSGR.r, sSGR.c);
 	    display.setTextCursor(sSGR.c * halLCD_FONT_PX, sSGR.r * halLCD_FONT_PY);
 	}
-    #endif
 	if (sSGR.a1 == 0 && sSGR.a2 == 0) {
 		vPrintArduinoProcess(colourFG_WHITE);
 		vPrintArduinoProcess(colourBG_BLACK);
