@@ -191,17 +191,17 @@ void vPrintfUnitTest(void) {
 	for(u64_t i = 0; i <= 1000; i += 50) {
 		TESTP("#%llu", i);
 		uSecs = i * 86398999000ULL;
-		Seconds = xTimeStampAsSeconds(uSecs);
+		Seconds = xTimeStampSeconds(uSecs);
 		xTimeGMTime(Seconds, &sTM, 1);
 		TESTP("  %lu / %i  ->  %!.R", Seconds, sTM.tm_mday, uSecs);
 
 		uSecs = i * 86400000000ULL;
-		Seconds = xTimeStampAsSeconds(uSecs);
+		Seconds = xTimeStampSeconds(uSecs);
 		xTimeGMTime(Seconds, &sTM, 1);
 		TESTP("  %lu / %i  ->  %!.R", Seconds, sTM.tm_mday, uSecs);
 
 		uSecs = i * 86401001000ULL;
-		Seconds = xTimeStampAsSeconds(uSecs);
+		Seconds = xTimeStampSeconds(uSecs);
 		xTimeGMTime(Seconds, &sTM, 1);
 		TESTP("  %lu / %i  ->  %!.R", Seconds, sTM.tm_mday, uSecs);
 		TESTP("\n");

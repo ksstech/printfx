@@ -758,7 +758,7 @@ seconds_t xPrintCalcSeconds(xp_t * psXP, tsz_t * psTSZ, struct tm * psTM) {
 		psXP->ctl.bRelVal == 0) {						// NOT relative time (has no TZ info)
 		Seconds = xTimeCalcLocalTimeSeconds(psTSZ);
 	} else {
-		Seconds = xTimeStampAsSeconds(psTSZ->usecs);
+		Seconds = xTimeStampSeconds(psTSZ->usecs);
 	}
 	if (psTM)											// convert seconds into components
 		xTimeGMTime(Seconds, psTM, psXP->ctl.bRelVal);
@@ -1202,7 +1202,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				IF_myASSERT(debugTRACK, psXP->ctl.bRelVal == 0);
 				psTSZ = va_arg(psXP->vaList, tsz_t *);	// retrieve TSX pointer parameter
 				IF_myASSERT(debugTRACK, halMemoryRAM(psTSZ));
-				X32.u32 = xTimeStampAsSeconds(psTSZ->usecs);				// convert to u32_t epoch value
+				X32.u32 = xTimeStampSeconds(psTSZ->usecs);				// convert to u32_t epoch value
 				if (psXP->ctl.bPlus && psTSZ->pTZ)		// If full local time required, add TZ and DST offsets
 					X32.u32 += psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
 				xTimeGMTime(X32.u32, &sTM, psXP->ctl.bRelVal);				// Convert to component values
