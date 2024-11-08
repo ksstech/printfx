@@ -738,6 +738,7 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 		}
 		if ((Now < xLen) && (xLen > iWidth)) vPrintString(psXP, strNL);
 	}
+	vPrintString(psXP, strNL);
 }
 
 // ############################# Proprietary extensions: date & time ###############################
