@@ -724,8 +724,7 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 			int Size = S_bytes[psXP->ctl.uSize];
 			u32_t Count = (xLen <= iWidth) ? 1 :
 				((iWidth - Width) / Size) * (Size * 2 + (psXP->ctl.bGroup ? 1 : 0)) + 1;
-			while (Count--)
-				xPrintChar(psXP, CHR_SPACE);			// handle space padding for ASCII dump to line up
+			while (Count--) xPrintChar(psXP, CHR_SPACE);// handle space padding for ASCII dump to line up
 			for (Count = 0; Count < Width; ++Count) {	// values as ASCII characters
 				int cChr = *(pStr + Now + Count);
 			#if (xpfSUPPORT_CHAR8BIT == 1)
@@ -737,8 +736,7 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 			#endif
 			}
 		}
-		if ((Now < xLen) && (xLen > iWidth))
-			vPrintString(psXP, strNL);
+		if ((Now < xLen) && (xLen > iWidth)) vPrintString(psXP, strNL);
 	}
 }
 
