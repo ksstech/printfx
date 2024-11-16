@@ -1535,7 +1535,7 @@ int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
 	if (psR == NULL) { psR = &sRprt; psR->uSGR = sgrANSI; }
 	IF_myASSERT(debugPARAM, halMemoryRAM(psR));
 	if (psR->pcBuf && psR->size) {
-		IF_myASSERT(debugPARAM, halMemoryRAM(psR->pcBuf));
+		IF_myASSERT(debugTRACK, halMemoryRAM(psR->pcBuf));
 		iRV = vsnprintfx(psR->pcBuf, psR->Size, pcFmt, vaList);	// generate output to buffer
 		if (iRV > 0) {									// if anything written
 			IF_myASSERT(debugRESULT, iRV <= psR->size);
