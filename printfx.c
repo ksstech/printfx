@@ -1425,7 +1425,7 @@ int	xPrintF(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pcF
 
 // ################################### Destination = STDOUT ########################################
 
-static int xPrintStdOut(xp_t * psXP, int cChr) { return putchar(cChr); }
+static int xPrintStdOut(xp_t * psXP, int cChr) { return __real_putchar(cChr); }
 
 int vnprintfx(size_t szLen, const char * pcFmt, va_list vaList) {
 	halUartLock(WPFX_TIMEOUT);
