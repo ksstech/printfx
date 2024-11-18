@@ -30,17 +30,17 @@ extern "C" {
 #define	_TL_(f)						"%!.3R [%s:%d] " f, halTIMER_ReadRunTime() , __FUNCTION__, __LINE__
 #define	PTL(f, ...)					wprintfx(NULL, _TL_(f), ##__VA_ARGS__)
 #define	IF_PTL(T, f, ...)			if (T) PTL(f, ##__VA_ARGS__)
-/*
-#define	CP(f, ...)					cprintfx(f, ##__VA_ARGS__)
-#define	CPL(f, ...)					cprintfx(_L_(f), ##__VA_ARGS__)
-#define	CPT(f, ...)					cprintfx(_T_(f), ##__VA_ARGS__)
-#define	CPTL(f, ...)				cprintfx(_TL_(f), ##__VA_ARGS__)
+
+#define	CP(f, ...)					printfx(f, ##__VA_ARGS__)
+#define	CPL(f, ...)					printfx(_L_(f), ##__VA_ARGS__)
+#define	CPT(f, ...)					printfx(_T_(f), ##__VA_ARGS__)
+#define	CPTL(f, ...)				printfx(_TL_(f), ##__VA_ARGS__)
 
 #define	IF_CP(T, f, ...)			if (T) CP(f, ##__VA_ARGS__)
 #define	IF_CPL(T, f, ...)			if (T) CPL(f, ##__VA_ARGS__)
 #define	IF_CPT(T, f, ...)			if (T) CPT(f, ##__VA_ARGS__)
 #define	IF_CPTL(T, f, ...)			if (T) CPTL(f, ##__VA_ARGS__)
-*/
+
 
 // Using ROM based esp_rom_printf (no 64bit support so 32bit timestamps)
 #define	_RL_(f)						"[%s:%d] " f, __FUNCTION__, __LINE__
@@ -451,11 +451,10 @@ int xPrintF(int (handler)(xp_t *, int), void *, size_t, const char *, va_list);
 
 // ##################################### Destination = STDOUT ######################################
 
-//int vnprintfx(size_t, const char *, va_list) _ATTRIBUTE ((__format__ (__printf__, 2, 0)));
+int vnprintfx(size_t, const char *, va_list) _ATTRIBUTE ((__format__ (__printf__, 2, 0)));
 //int vprintfx(const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
 //int nprintfx(size_t, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 2, 3)));
-//int printfx(const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 1, 2)));
-//int printfx(const char *, ...);
+int printfx(const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 1, 2)));
 
 // ##################################### Destination = STRING ######################################
 
