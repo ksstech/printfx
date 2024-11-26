@@ -1425,11 +1425,11 @@ int	xPrintF(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pcF
 
 // ################################### Destination = STDOUT ########################################
 
-static int xPrintStdOut(xp_t * psXP, int cChr) { return __real_putchar(cChr); }
+static int xPrintPutChar(xp_t * psXP, int cChr) { return __real_putchar(cChr); }
 
 int vnprintfx(size_t szLen, const char * pcFmt, va_list vaList) {
 	halUartLock(WPFX_TIMEOUT);
-	int iRV = xPrintF(xPrintStdOut, NULL, szLen, pcFmt, vaList);
+	int iRV = xPrintF(xPrintPutChar, NULL, szLen, pcFmt, vaList);
 	halUartUnLock();
 	return iRV;
 }
@@ -1452,26 +1452,24 @@ int printfx(const char * pcFmt, ...) {
 	return iRV;
 }
 
-#if 0
 /*
  * [v[n]]printfx_nolock() - print to stdout without any semaphore locking.
  */
 int vnprintfx_nolock(size_t szLen, const char * pcFmt, va_list vaList) {
-	return xPrintF(xPrintStdOut, NULL, szLen, pcFmt, vaList);
+	return xPrintF(xPrintPutChar, NULL, szLen, pcFmt, vaList);
 }
 
 int vprintfx_nolock(const char * pcFmt, va_list vaList) {
-	return xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	return xPrintF(xPrintPutChar, NULL, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 }
 
 int printfx_nolock(const char * pcFmt, ...) {
 	va_list vaList;
 	va_start(vaList, pcFmt);
-	int iRV = xPrintF(xPrintStdOut, NULL, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	int iRV = xPrintF(xPrintPutChar, NULL, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	va_end(vaList);
 	return iRV;
 }
-#endif
 
 // ##################################### Destination = STRING ######################################
 
@@ -1526,6 +1524,8 @@ int sprintfx(char * pBuf, const char * pcFmt, ...) {
  * no attempt is made to control access to the buffer or output channel as such.
  * It is the responsibility of the calling function to control (un/lock) access.
  */
+
+static int xPrintStdOut(xp_t * psXP, int cChr) { return __wrap_putchar(cChr); }
 
 int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
 	report_t sRprt = { 0 };
