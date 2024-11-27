@@ -20,28 +20,25 @@ extern "C" {
 #define	_T_(f)						"%!.3R " f, halTIMER_ReadRunTime()
 #define	_TL_(f)						"%!.3R [%s:%d] " f, halTIMER_ReadRunTime() , __FUNCTION__, __LINE__
 
-#define	PX(f, ...)					wprintfx(NULL, f, ##__VA_ARGS__)
-#define	IF_PX(T, f, ...)			if (T) PX(f, ##__VA_ARGS__)
-
-#define	PL(f, ...)					wprintfx(NULL, _L_(f), ##__VA_ARGS__)
-#define	IF_PL(T, f, ...)			if (T) PL(f, ##__VA_ARGS__)
-
-#define	PT(f, ...)					wprintfx(NULL, _T_(f), ##__VA_ARGS__)
-#define	IF_PT(T, f, ...)			if (T) PT(f, ##__VA_ARGS__)
-
-#define	PTL(f, ...)					wprintfx(NULL, _TL_(f), ##__VA_ARGS__)
-#define	IF_PTL(T, f, ...)			if (T) PTL(f, ##__VA_ARGS__)
-
 #define	CP(f, ...)					printfx(f, ##__VA_ARGS__)
 #define	CPL(f, ...)					printfx(_L_(f), ##__VA_ARGS__)
 #define	CPT(f, ...)					printfx(_T_(f), ##__VA_ARGS__)
 #define	CPTL(f, ...)				printfx(_TL_(f), ##__VA_ARGS__)
+
+#define	PX(f, ...)					wprintfx(NULL, f, ##__VA_ARGS__)
+#define	PXL(f, ...)					wprintfx(NULL, _L_(f), ##__VA_ARGS__)
+#define	PXT(f, ...)					wprintfx(NULL, _T_(f), ##__VA_ARGS__)
+#define	PXTL(f, ...)				wprintfx(NULL, _TL_(f), ##__VA_ARGS__)
 
 #define	IF_CP(T, f, ...)			if (T) CP(f, ##__VA_ARGS__)
 #define	IF_CPL(T, f, ...)			if (T) CPL(f, ##__VA_ARGS__)
 #define	IF_CPT(T, f, ...)			if (T) CPT(f, ##__VA_ARGS__)
 #define	IF_CPTL(T, f, ...)			if (T) CPTL(f, ##__VA_ARGS__)
 
+#define	IF_PX(T, f, ...)			if (T) PX(f, ##__VA_ARGS__)
+#define	IF_PXL(T, f, ...)			if (T) PXL(f, ##__VA_ARGS__)
+#define	IF_PXT(T, f, ...)			if (T) PXT(f, ##__VA_ARGS__)
+#define	IF_PXTL(T, f, ...)			if (T) PXTL(f, ##__VA_ARGS__)
 
 // Using ROM based esp_rom_printf (no 64bit support so 32bit timestamps)
 #define	_RL_(f)						"[%s:%d] " f, __FUNCTION__, __LINE__
