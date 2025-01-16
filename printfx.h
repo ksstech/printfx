@@ -174,17 +174,17 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define repBIT_ECHO				26
 #define repBIT_NOLOCK			25
 
-#define repSIZE_SET(force,flags,echo,nolock,sgr,debug,size) (u32_t) ( \
-	((force & 1) << repBIT_FORCE)	|	\
-	((flags & 1) << repBIT_FLAGS)	|	\
-	((echo & 1) << repBIT_ECHO)		|	\
-	((nolock & 1) << repBIT_NOLOCK) |	\
+#define repSIZE_SET(s0,s1,echo,nolock,sgr,debug,size) (u32_t) ( \
 	((sgr & 3) << repBIT_SGR) 		|	\
 	((debug & 1) << repBIT_DEBUG)	|	\
+	((s0 & 1) << repBIT_FORCE)		|	\
+	((s1 & 1) << repBIT_FLAGS)		|	\
+	((echo & 1) << repBIT_ECHO)		|	\
+	((nolock & 1) << repBIT_NOLOCK) |	\
 	(size & 0xFFFF))
 
-#define repSIZE_SETX(force,flags,echo,nolock,sgr,debug,Size)	(u32_t) { 		\
-	.fForce=force, .fFlags=flags, .fEcho=echo, .fNoLock=nolock, .uSGR=sgr,	\
+#define repSIZE_SETX(s0,s1,echo,nolock,sgr,debug,Size)	(u32_t) { 	\
+	.s0=s0, .s1=s1, .fEcho=echo, .fNoLock=nolock, .uSGR=sgr,		\
 	.dDebug=debug, .size=Size, .col1 = 0, .col2 = 0, .spare = 0, }
 
 #define repFLAG_TST(psR,Mem) 		((psR && (psR->Mem != 0) ? 1 : 0))
