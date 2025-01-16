@@ -193,6 +193,13 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define repFORM_GET(psR,Mem)		(psR ? psR->sFM.Mem : 0)			// read a field value
 #define repFORM_SET(psR,Mem,Val)	{ if (psR) psR->sFM.Mem = Val; }	// restore a field value
 
+#define fmSAVE()					fm_t sFM = { .u32Val = psR->sFM.u32Val };
+#define fmREST()					psR->sFM.u32Val = sFM.u32Val;
+#define fmBACK(Mem)					psR->sFM.Mem = sFM.Mem;
+
+#define fmSET(Mem,Val)				{ if (psR) psR->sFM.Mem = Val; }
+#define fmTST(Mem)					(psR && psR->sFM.Mem)
+
 #define REP_LVGL(a,b,c,d,e,f,g,h,i) (fm_t){ .lvPart=i, .lv07=h, .lv06=g, .lv05=f, .lvStyle=e, .lvScroll=d, .lvClick=c, .lvContent=b, .lvNL=a }
 
 // ####################################### enumerations ############################################
