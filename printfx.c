@@ -47,6 +47,7 @@
 #define	xpfSUPPORT_ALIASES			1
 #define	xpfSUPPORT_FILTER_NUL		1
 #define	xpfSUPPORT_CHAR8BIT			0
+#define xpfSUPPORT_ARRAYS			1					// uses complex vars to achieve
 
 // ###################################### Scaling factors ##########################################
 
@@ -496,6 +497,10 @@ void vPrintX64(xp_t * psXP, u64_t Value) {
 	vPrintStringJustified(psXP, Buffer + (xpfMAX_LEN_X64 - 1 - Len));
 }
 
+#if (xpfSUPPORT_ARRAYS > 0)
+
+#include "complex_vars.h"
+
 /**
  * @brief	Generate array of values separated by ','
  * @param	psXP
@@ -531,6 +536,7 @@ void vPrintX64array(xp_t * psXP) {
 		pX = pxAddrNextWithIndex(pX, cvI);
 	}
 }
+#endif
 
 /**
  * @brief
@@ -1312,9 +1318,12 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			case CHR_d:									// signed decimal "[-]ddddd"
 			case CHR_i: {								// signed integer (same as decimal ?)
 				psXP->ctl.bSigned = 1;
+			#if (xpfSUPPORT_ARRAYS > 0)
 				if (psXP->ctl.bArray) {
-					vPrintX64array(psXP);
-				} else {
+					IF_EXEC_1(xpfSUPPORT_ARRAYS, vPrintX64array, psXP);
+				} else
+			#endif
+				{
 					X64 = x64PrintGetValue(psXP);
 					if (X64.i64 < 0LL) {
 						psXP->ctl.bNegVal = 1;
@@ -1337,10 +1346,13 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				} else {
 					psXP->ctl.Precis = xpfDEFAULT_DECIMALS;
 				}
+			#if (xpfSUPPORT_ARRAYS > 0)
 				if (psXP->ctl.bArray) {
 					psXP->ctl.bFloat = 1;
 					vPrintX64array(psXP);
-				} else {
+				} else
+			#endif
+				{
 					vPrintF64(psXP, va_arg(psXP->vaList, f64_t));
 				}
 				break;
@@ -1363,9 +1375,12 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				//IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0);
 				psXP->ctl.uBase = (cFmt == CHR_x) ? BASE16 : 
 								 (cFmt == CHR_u) ? BASE10 : BASE08;
+			#if (xpfSUPPORT_ARRAYS > 0)
  				if (psXP->ctl.bArray) {
 					vPrintX64array(psXP);
-				} else {
+				} else
+			#endif
+				{
 					// Ensure sign-extended bits removed
 					int Width = (psXP->ctl.uSize == S_hh) ? 7 :
 								(psXP->ctl.uSize == S_h) ? 15 :
