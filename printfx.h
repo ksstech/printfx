@@ -161,7 +161,7 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define WPFX_TIMEOUT			pdMS_TO_TICKS(1000)
 
 #define	reportXPC_BITS			3						// sgr:2, bDebug:1
-// save & restore ALL flags + limits 
+// save & restore ALL flags + limits
 #define XPC_SAVE()				xpc_t sXPC = { .u64Val = psXP->ctl.u64Val };
 #define XPC_REST()				psXP->ctl.u64Val = sXPC.u64Val;
 // restore specifc member from  previously saved value
@@ -433,9 +433,9 @@ DUMB_STATIC_ASSERT(sizeof(report_t) == ((4 * sizeof(void *)) + 8));
 // ################################### Public functions ############################################
 
 inline __attribute__((always_inline)) BaseType_t xPrintFxSaveLock(report_t * psR) {
-	psR->sNoLock = psR->fNoLock;
-	psR->fNoLock = 1; 
-	return halUartLock(WPFX_TIMEOUT); 
+	psR->sNoLock = psR->fNoLock;						// save noLock flag
+	psR->fNoLock = 1; 									// force to non-locking (in future)
+	return halUartLock(WPFX_TIMEOUT); 					// lock the channel
 }
 
 inline __attribute__((always_inline)) BaseType_t xPrintFxRestoreUnLock(report_t * psR) {
