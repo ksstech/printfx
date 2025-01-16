@@ -446,8 +446,8 @@ inline __attribute__((always_inline)) BaseType_t xPrintFxSaveLock(report_t * psR
 }
 
 inline __attribute__((always_inline)) BaseType_t xPrintFxRestoreUnLock(report_t * psR) {
-	psR->fNoLock = psR->sNoLock;
-	return halUartUnLock(); 
+	psR->fNoLock = psR->sNoLock;						// restore noLock flag 
+	return halUartUnLock(); 							// and unlock the channel
 }
 
 int xPrintFX(xp_t * psXPC, const char * format);
