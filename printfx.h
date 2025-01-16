@@ -222,7 +222,7 @@ DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4);
  * the transparent transfer of selected flags from the report_t structure into 
  * the flags member of the xpc_t structure.
 */
-typedef	union {
+typedef	union  __attribute__((packed)) fm_t {
 	struct __attribute__((packed)) {// 8:24 Generic
 		union {
 			struct __attribute__((packed)) { u32_t z00:1, z01:1, z02:1, z03:1, zv04:1, z05:1, z06:1, z07:1, z08:1, z09:1, z10:1, z11:1, z12:1, z13:1, z14:1, z15:1, z16:1, z17:1, z18:1, z19:1, z20:1, z21:1, z22:1, z23:1; };
@@ -403,20 +403,22 @@ typedef	struct xp_t {
 DUMB_STATIC_ASSERT(sizeof(xp_t) == (sizeof(int *) + sizeof(void *) + sizeof(u32_t) + sizeof(xpc_t) + sizeof(va_list)));
 
 typedef struct __attribute__((packed)) report_t {
+	void * pvAlloc;
 	char * pcBuf;
 	int (* putc)(struct xp_t *, int);		// alternative character output handler
+	void * pvArg;
 	union __attribute__((packed)) {
 		u32_t Size;
 		struct __attribute__((packed)) {
 			u32_t size : xpfMAXLEN_BITS;
-			// flags NOT passed onto xPrintF() only used in in higher level formatting
+			/* flags NOT passed onto xPrintF() only used in in higher level formatting */
 			u8_t col1 : 4;
 			u8_t col2 : 4;
 			u8_t sNoLock : 1;		/* saved fNoLock */
 			u8_t fNoLock : 1;		/* Do not lock/unlock */
 			u8_t fEcho : 1;			// enable command character(s) echo
-			u8_t fFlags : 1;		// Force checking of flag changes
-			u8_t fForce : 1;		// Force display of flags
+			u8_t s0 : 1;
+			u8_t s1 : 1;
 			// flags passed on to xPrintF()
 			u8_t bDebug : 1;		// Enable debug output where placed
 			u8_t uSGR : 2;
@@ -424,7 +426,7 @@ typedef struct __attribute__((packed)) report_t {
 	};
 	fm_t sFM;
 } report_t;
-DUMB_STATIC_ASSERT(sizeof(report_t) == ((2 * sizeof(void *)) + 8));
+DUMB_STATIC_ASSERT(sizeof(report_t) == ((4 * sizeof(void *)) + 8));
 
 // ################################### Public variables ############################################
 
