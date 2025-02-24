@@ -59,15 +59,16 @@
 #define	Q1		1000000000000000000ULL
 
 // ####################################### Enumerations ############################################
+
 // ######################## Character and value translation & rounding tables ######################
 
 const u8_t S_bytes[S_XXX] = { sizeof(int), sizeof(char), sizeof(short), sizeof(long), sizeof(long long),
 							sizeof(intmax_t), sizeof(size_t), sizeof(ptrdiff_t), sizeof(long double) };
-const char hexchars[] = "0123456789ABCDEF";
 const char Delim0[2] = { '-', '/' };					// "-/"
 const char Delim1[2] = { 'T', ' ' };					// "T "
 const char Delim2[2] = { ':', 'h' };					// ":h"
 const char Delim3[2] = { ':', 'm' };					// ":m"
+const char hexchars[] = "0123456789ABCDEF";
 const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 	'B',							// Binary formatted, prepend "0b" or "0B"
 	'P',							// pointer formatted, 0x00abcdef or 0X00ABCDEF
@@ -101,34 +102,38 @@ x64_t x64PrintGetValue(xp_t * psXP) {
 	switch(psXP->ctl.uSize) {
 	case S_none:
 	case S_hh:
-	case S_h:
+	case S_h: {
 		if (psXP->ctl.bSigned == 1) {
 			X64.i64 = va_arg(psXP->vaList, int);
 		} else {
 			X64.u64 = va_arg(psXP->vaList, unsigned int);
 		}
 		break;
-	case S_l:
+	}
+	case S_l: {
 		if (psXP->ctl.bSigned == 1) {
 			X64.i64 = va_arg(psXP->vaList, i32_t);
 		} else {
 			X64.u64 = va_arg(psXP->vaList, u32_t);
 		}
 		break;
-	case S_ll:
+	}
+	case S_ll: {
 		if (psXP->ctl.bSigned) {
 			X64.i64 = va_arg(psXP->vaList, i64_t);
 		} else {
 			X64.u64 = va_arg(psXP->vaList, u64_t);
 		}
 		break;
-	case S_z:
+	}
+	case S_z: {
 		if (psXP->ctl.bSigned) {
 			X64.i64 = va_arg(psXP->vaList, ssize_t);
 		} else {
 			X64.u64 = va_arg(psXP->vaList, size_t);
 		}
 		break;
+	}
 	default:
 		IF_myASSERT(debugTRACK, 0);
 		X64.u64 = 0ULL;
@@ -1107,7 +1112,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			if (cFmt != erFAILURE) {
 				++pcFmt;
 				switch(cFmt) {
-				case 0:
+				case 0: {
 					if (*pcFmt == CHR_h) {				// "hh"
 						psXP->ctl.uSize = S_hh;
 						++pcFmt;
@@ -1115,7 +1120,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 						psXP->ctl.uSize = S_h;
 					}
 					break;
-				case 1:
+				}
+				case 1: {
 					if (*pcFmt != CHR_l) {
 						psXP->ctl.uSize = S_l;			// 'l'
 					} else {
@@ -1123,6 +1129,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 						++pcFmt;
 					}
 					break;
+				}
 				case 2: psXP->ctl.uSize = S_j; break;	// [u]intmax_t[*]
 				case 3: psXP->ctl.uSize = S_z; break;	// [s]size_t[*]
 				case 4: psXP->ctl.uSize = S_t; break;	// ptrdiff[*]
@@ -1311,7 +1318,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 									  	  X32.iX % 8 == 0 ? CHR_SPACE : CHR_MINUS);	// byte or nibble
 					}
 				}
-			}	break;
+				break;
+			}
 
 			case CHR_c: xPrintChar(psXP, va_arg(psXP->vaList, int)); break;
 
@@ -1331,8 +1339,9 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 					}
 					vPrintX64(psXP, X64.u64);
 				}
-			}	break;
-
+				break;
+			}
+		
 			#if	(xpfSUPPORT_IEEE754 == 1)
 //			case CHR_a:									// HEX format not yet supported
 			case CHR_e: ++psXP->ctl.uForm;				// form = 2
@@ -1358,15 +1367,17 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				break;
 			#endif
 
-			case CHR_m:
+			case CHR_m: {
 				pX.pc8 = strerror(errno);
 				goto commonM_S;
+			}
 
 			case CHR_n: {								// store chars to date at location.
 				pX.piX = va_arg(psXP->vaList, int *);
 				IF_myASSERT(debugTRACK, halMemorySRAM(pX.pc8));
 				*pX.piX = psXP->CurLen;
-			}	break;
+				break;
+			}
 
 			case CHR_o:									// unsigned octal "ddddd"
 			case CHR_x: psXP->ctl.bGroup = 0;			// hex as in "789abcd" UC/LC, disable grouping
@@ -1390,12 +1401,14 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 					X64.u64 &= BIT_MASK64(0, Width);
 					vPrintX64(psXP, X64.u64);
 				}
-			}	break;
+				break;
+			}
 
 			case CHR_p: {
 				pX.pv = va_arg(psXP->vaList, void *);
 				vPrintPointer(psXP, pX);
-			}	break;
+				break;
+			}
 
 			case CHR_s: {
 				pX.pc8 = va_arg(psXP->vaList, char *);
@@ -1404,7 +1417,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
 				pX.pc8 = halMemoryANY(pX.pc8) ? pX.pc8 : pX.pc8 ? strOOR : strNULL;
 				vPrintStringJustified(psXP, pX.pc8);
-			}	break;
+				break;
+			}
 
 			default:
 				/* At this stage we have handled the '%' as assumed, but the next character found is invalid.
