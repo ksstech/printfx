@@ -1384,13 +1384,12 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				/* FALLTHRU */ /* no break */
 			case CHR_u: {								// unsigned decimal "ddddd"
 				//IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0);
-				psXP->ctl.uBase = (cFmt == CHR_x) ? BASE16 : 
-								 (cFmt == CHR_u) ? BASE10 : BASE08;
-			#if (xpfSUPPORT_ARRAYS > 0)
- 				if (psXP->ctl.bArray) {
-					vPrintX64array(psXP);
-				} else
-			#endif
+				psXP->ctl.uBase = (cFmt == CHR_x) ? BASE16 : (cFmt == CHR_u) ? BASE10 : BASE08;
+				#if (xpfSUPPORT_ARRAYS > 0)
+ 					if (psXP->ctl.bArray) {
+						vPrintX64array(psXP);
+					} else
+				#endif
 				{
 					// Ensure sign-extended bits removed
 					int Width = (psXP->ctl.uSize == S_hh) ? 7 :
