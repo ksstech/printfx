@@ -708,7 +708,7 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 	if (psXP->ctl.bMinWid && INRANGE(8, psXP->ctl.MinWid, 64)) {
 		iWidth = psXP->ctl.MinWid;
 	} else {
-		iWidth = xTermGetMaxColX();
+		iWidth = stdio_get_max_colX(&sTI);
 		if (psXP->ctl.bLeft && iWidth <= (32+6)) {
 			psXP->ctl.bLeft = 0;						// little space, disable addr
 		} else { 
