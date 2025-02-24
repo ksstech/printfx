@@ -64,10 +64,13 @@
 
 const u8_t S_bytes[S_XXX] = { sizeof(int), sizeof(char), sizeof(short), sizeof(long), sizeof(long long),
 							sizeof(intmax_t), sizeof(size_t), sizeof(ptrdiff_t), sizeof(long double) };
+const u8_t S_bits[5] = { (BITS_IN_BYTE * sizeof(int))-1, 7, 15, 31, 63};
+
 const char Delim0[2] = { '-', '/' };					// "-/"
 const char Delim1[2] = { 'T', ' ' };					// "T "
 const char Delim2[2] = { ':', 'h' };					// ":h"
 const char Delim3[2] = { ':', 'm' };					// ":m"
+
 const char hexchars[] = "0123456789ABCDEF";
 const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 	'B',							// Binary formatted, prepend "0b" or "0B"
@@ -1392,12 +1395,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				#endif
 				{
 					// Ensure sign-extended bits removed
-					int Width = (psXP->ctl.uSize == S_hh) ? 7 :
-								(psXP->ctl.uSize == S_h) ? 15 :
-								(psXP->ctl.uSize == S_l) ? 31 :
-								(psXP->ctl.uSize == S_ll) ? 63 : (BITS_IN_BYTE * sizeof(int)) - 1;
 					X64 = x64PrintGetValue(psXP);
-					X64.u64 &= BIT_MASK64(0, Width);
+					X64.u64 &= BIT_MASK64(0, S_bits[psXP->ctl.uSize]);
 					vPrintX64(psXP, X64.u64);
 				}
 				break;
