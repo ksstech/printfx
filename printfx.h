@@ -187,12 +187,6 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 	.s0=s0, .s1=s1, .fEcho=echo, .fNoLock=nolock, .uSGR=sgr,		\
 	.dDebug=debug, .size=Size, .col1 = 0, .col2 = 0, .spare = 0, }
 
-#define repFLAG_TST(psR,Mem) 		((psR && (psR->Mem != 0) ? 1 : 0))
-#define repFLAG_SET(psR,Mem,Val)	{ if (psR) psR->Mem = Val; }
-#define repFORM_TST(psR,Mem) 		(psR && psR->sFM.Mem)
-#define repFORM_GET(psR,Mem)		(psR ? psR->sFM.Mem : 0)			// read a field value
-#define repFORM_SET(psR,Mem,Val)	{ if (psR) psR->sFM.Mem = Val; }	// restore a field value
-
 #define fmSAVE()					fm_t sFM = { .u32Val = psR->sFM.u32Val };
 #define fmREST()					psR->sFM.u32Val = sFM.u32Val;
 #define fmBACK(Mem)					psR->sFM.Mem = sFM.Mem;
