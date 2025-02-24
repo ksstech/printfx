@@ -1,8 +1,8 @@
 // printfx_arduino.cpp - Copyright (c) 2024 Andre M. Maree / KSS Technologies (Pty) Ltd.
 
-#if (buildGUI == 2)					// LCDGFX
+#if (appGUI == 2)					// LCDGFX
 	#include "gui_lcdgfx.hpp"
-#elif (buildGUI == 3)				// LGFX
+#elif (appGUI == 3)					// LGFX
 	#include "gui_lovyan.hpp"
 #endif
 #include "printfx.h"
