@@ -1302,8 +1302,8 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			 * '#'	change prepended "0b" to "0B"
 			 * '''	Group digits using '|' (bytes) and '-' (nibbles)
 			 */
-			case CHR_b:
-			{	//IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0 && psXP->ctl.bPad0 == 0);
+			case CHR_b: {
+				//IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0 && psXP->ctl.bPad0 == 0);
 				X64 = x64PrintGetValue(psXP);
 				X32.iX = S_bytes[psXP->ctl.uSize] * BITS_IN_BYTE;
 				if (psXP->ctl.MinWid)
