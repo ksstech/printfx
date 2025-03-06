@@ -1386,7 +1386,7 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			case CHR_x: psXP->ctl.bGroup = 0;			// hex as in "789abcd" UC/LC, disable grouping
 				/* FALLTHRU */ /* no break */
 			case CHR_u: {								// unsigned decimal "ddddd"
-				//IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0);
+				IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0);
 				psXP->ctl.uBase = (cFmt == CHR_x) ? BASE16 : (cFmt == CHR_u) ? BASE10 : BASE08;
 				#if (xpfSUPPORT_ARRAYS > 0)
  					if (psXP->ctl.bArray) {
