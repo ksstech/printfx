@@ -267,8 +267,8 @@ typedef	union  __attribute__((packed)) fm_t {
 		u32_t	aLev3:1;
 		u32_t	aLev2:1;
 		u32_t	aLev1:1;
-		u32_t	aNL:1;
 		u32_t	aRT:1;
+		u32_t	aNL:1;
 	};
 	struct __attribute__((packed)) {// 8:24 (fs) filesystem
 		u32_t	fsCount:24;			// Counter
@@ -278,8 +278,8 @@ typedef	union  __attribute__((packed)) fm_t {
 		u32_t	fsLev3:1;			// File extended info
 		u32_t	fsLev2:1;			// Directory & file info
 		u32_t	fsLev1:1;			// system info
-		u32_t	fsNL:1;
 		u32_t	fsRT:1;
+		u32_t	fsNL:1;
 	};
 	struct __attribute__((packed)) {// 9:23 Printing tasks
 		u32_t	uCount:23;			// Task # mask
@@ -290,8 +290,8 @@ typedef	union  __attribute__((packed)) fm_t {
 		u32_t	bStack:1;			// Low Stack value
 		u32_t	bCore:1;			// MCU 01X
 		u32_t	bXtras:1;
-		u32_t	bNL:1;				// NewLine
 		u32_t	bRT:1;				// RunTime
+		u32_t	bNL:1;				// NewLine
 	};
 	struct __attribute__((packed)) {// 9:23 Sensors reporting
 		u32_t	senFree:23;
@@ -302,8 +302,8 @@ typedef	union  __attribute__((packed)) fm_t {
 		u32_t 	senSum:1;
 		u32_t 	senMMP:1;
 		u32_t	senUnit:1;
-		u32_t	senNL:1;			// 0= no CRLF, 1= single CRLF
 		u32_t	senURI:1;
+		u32_t	senNL:1;			// 0= no CRLF, 1= single CRLF
 	};
 	struct __attribute__((packed)) {// 12:20 Memory reporting
 		u32_t	rmCAPS:20;
