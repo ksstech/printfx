@@ -1568,9 +1568,10 @@ int	dprintfx(int fd, const char * pcFmt, ...) {
  */
 
 int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
-	report_t sRprt = { 0 };
+	report_t sRprt;
 	int iRV = 0;
 	if (psR == NULL) {
+		memset(&sRprt, 0, sizeof(report_t));
 		psR = &sRprt;
 		psR->uSGR = sgrANSI;
 	}
