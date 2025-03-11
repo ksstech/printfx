@@ -406,9 +406,9 @@ DUMB_STATIC_ASSERT(sizeof(xp_t) == (sizeof(int *) + sizeof(void *) + sizeof(u32_
 typedef struct __attribute__((packed)) report_t {
 	void * pvAlloc;
 	char * pcBuf;
-	int (* putc)(struct xp_t *, int);		// alternative character output handler
+	int (* putc)(struct xp_t *, int);					/* alternative character output handler */
 	void * pvArg;
-	union __attribute__((packed)) {
+	union __attribute__((packed)) {						/* Size as value and/or structure */
 		u32_t Size;
 		struct __attribute__((packed)) {
 			u32_t size : xpfMAXLEN_BITS;
