@@ -1,6 +1,6 @@
 /*
  * <snf>printfx -  set of routines to replace equivalent printf functionality
- * Copyright (c) 2014-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
+ * Copyright (c) 2014-25 Andre M. Maree / KSS Technologies (Pty) Ltd.
  *
  * https://codereview.stackexchange.com/questions/219994/register-b-conversion-specifier
  *
