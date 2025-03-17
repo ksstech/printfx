@@ -241,10 +241,10 @@ void vPrintStringJustified(xp_t * psXP, char * pStr) {
 		}
 	}
 	u8_t Cpad = psXP->ctl.bPad0 ? CHR_0 : CHR_SPACE;
-	for (;Lpad--; xPrintChar(psXP, Cpad));
+	for (;Lpad--; xPrintChar(psXP, Cpad));				/* output Left pad characters */
 	for (;uLen-- && *pStr; ++pStr)
 		xPrintChar(psXP, psXP->ctl.bGT ? tolower(*pStr) : psXP->ctl.bLT ? toupper(*pStr) : *pStr);
-	for (;Rpad--; xPrintChar(psXP, Cpad));
+	for (;Rpad--; xPrintChar(psXP, Cpad));				/* output Right pad characters */
 }
 
 /**
@@ -299,7 +299,7 @@ int	xPrintValueJustified(xp_t * psXP, u64_t u64Val, char * pBuffer, int BufSize)
 			else if (u64Val >= T1)	{ F = u64Val % T1; I = u64Val / T1; ScaleChr = CHR_T; }
 			else if (u64Val >= B1)	{ F = u64Val % B1; I = u64Val / B1; ScaleChr = CHR_B; }
 			else if (u64Val >= M1)	{ F = u64Val % M1; I = u64Val / M1; ScaleChr = CHR_M; }
-			else if (u64Val >= K1)	{ F = u64Val % K1;		  I = u64Val / K1; ScaleChr = CHR_K; }
+			else if (u64Val >= K1)	{ F = u64Val % K1; I = u64Val / K1; ScaleChr = CHR_K; }
 			else { ScaleChr = 0; }
 			if (ScaleChr) {
 				if (psXP->ctl.bGroup == 0) {
@@ -1585,7 +1585,7 @@ int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
 			psR->size -= iRV;							/* available size */
 		}
 	} else {
-		if (psR->putc == NULL) {
+		if (psR->putc == NULL) {						/* Set default output handler */
 			psR->putc = xPrintToHandle;					/* alt: xPrintToFile */
 			psR->pvArg = (void *)STDOUT_FILENO;			/* alt: stdout */
 		}
