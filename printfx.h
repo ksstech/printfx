@@ -473,8 +473,8 @@ int wprintfx(report_t * psRprt, const char * pcFormat, ...);
 
 // ############################## LOW LEVEL DIRECT formatted output ################################
 
-//int vcprintfx(const char *, va_list);
-//int cprintfx(const char *, ...);
+int vcprintfx(const char *, va_list);
+int cprintfx(const char *, ...);
 
 // ################################### Destination = FILE PTR ######################################
 

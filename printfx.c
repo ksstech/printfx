@@ -1616,9 +1616,9 @@ int	wprintfx(report_t * psR, const char * pcFmt, ...) {
 static int xPrintToConsole(xp_t * psXP, int cChr) { return putchar(cChr); }
 
 int vcprintfx(const char * pcFmt, va_list vaList) {
-	halUartLock(WPFX_TIMEOUT);
+//	halUartLock(WPFX_TIMEOUT);
 	int iRV = xPrintF(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, pcFmt, vaList);
-	halUartUnLock();
+//	halUartUnLock();
 	return iRV;
 }
 
