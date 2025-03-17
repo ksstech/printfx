@@ -64,7 +64,7 @@
 
 const u8_t S_bytes[S_XXX] = { sizeof(int), sizeof(char), sizeof(short), sizeof(long), sizeof(long long),
 							sizeof(intmax_t), sizeof(size_t), sizeof(ptrdiff_t), sizeof(long double) };
-const u8_t S_bits[S_XXX] = { (BITS_IN_BYTE * sizeof(int))-1, 7, 15, 31, 63, 63, 31, 31, 127};
+const u8_t S_bits[S_XXX] = { (u8_t)(BITS_IN_BYTE * sizeof(int))-1,(u8_t)7,(u8_t)15,(u8_t)31,(u8_t)63,(u8_t)63,(u8_t)31,(u8_t)31,(u8_t)127};
 
 const char Delim0[2] = { '-', '/' };					// "-/"
 const char Delim1[2] = { 'T', ' ' };					// "T "
@@ -141,11 +141,11 @@ x64_t x64PrintGetValue(xp_t * psXP) {
 		IF_myASSERT(debugTRACK, 0);
 		X64.u64 = 0ULL;
 	}
-	if (psXP->ctl.bSigned == 0) {						// unsigned requested?
-		X64.u64 &= BIT_MASK64(0, S_bits[psXP->ctl.uSize]);	// Ensure sign-extended bits removed
-	} else if (X64.i64 < 0LL) {							// if signed value requested and -Neg value provided
+	if (psXP->ctl.bSigned && X64.i64 < 0LL) {			// signed value requested ?
 		psXP->ctl.bNegVal = 1;							// and value is negative, set the flag
 		X64.i64 *= -1; 									// and convert to unsigned
+	} else if (psXP->ctl.bSigned == 0) {				// unsigned requested ?
+		X64.u64 &= BIT_MASK64(0, S_bits[psXP->ctl.uSize]);	// Ensure sign-extended bits removed
 	}
 	return X64;
 }
