@@ -20,10 +20,10 @@ extern "C" {
 #define	_T_(f)						"%!.3R " f, halTIMER_ReadRunTime()
 #define	_TL_(f)						"%!.3R [%s:%d] " f, halTIMER_ReadRunTime() , __FUNCTION__, __LINE__
 
-#define	CP(f, ...)					printfx(f, ##__VA_ARGS__)
-#define	CPL(f, ...)					printfx(_L_(f), ##__VA_ARGS__)
-#define	CPT(f, ...)					printfx(_T_(f), ##__VA_ARGS__)
-#define	CPTL(f, ...)				printfx(_TL_(f), ##__VA_ARGS__)
+#define	CP(f, ...)					cprintfx(f, ##__VA_ARGS__)
+#define	CPL(f, ...)					cprintfx(_L_(f), ##__VA_ARGS__)
+#define	CPT(f, ...)					cprintfx(_T_(f), ##__VA_ARGS__)
+#define	CPTL(f, ...)				cprintfx(_TL_(f), ##__VA_ARGS__)
 
 #define	PX(f, ...)					wprintfx(NULL, f, ##__VA_ARGS__)
 #define	PXL(f, ...)					wprintfx(NULL, _L_(f), ##__VA_ARGS__)
