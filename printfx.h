@@ -55,8 +55,6 @@ extern "C" {
 #define	IF_RPT(T, f, ...)			if (T) RPT(f, ##__VA_ARGS__)
 #define	IF_RPTL(T, f, ...)			if (T) RPTL(f, ##__VA_ARGS__)
 
-#define CNTR(T,V)					{ static u32_t V=0; if (T) ++V; else { PT(toSTR(V) "=%lu" strNL, V); V=0; } }
-
 // ################################## public build definitions #####################################
 
 #define	xpfMAXIMUM_DECIMALS			15
