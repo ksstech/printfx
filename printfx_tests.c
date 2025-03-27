@@ -22,7 +22,7 @@
 #define		TEST_HEXDUMP	0
 #define		TEST_WIDTH_PREC	0
 
-#define TESTP(f,...) wprintfx(NULL, f, ##__VA_ARGS__)
+#define TESTP(f,...) printfx(f, ##__VA_ARGS__)
 
 void vPrintfUnitTest(void) {
 	#if	(TEST_INTEGER == 1)
