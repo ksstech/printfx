@@ -743,16 +743,17 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 			while (Count--) xPrintChar(psXP, CHR_SPACE);// handle space padding for ASCII dump to line up
 			for (Count = 0; Count < Width; ++Count) {	// values as ASCII characters
 				int cChr = *(pStr + Now + Count);
-			#if (xpfSUPPORT_CHAR8BIT == 1)
-				// theoretically support up to 0xFF, but loses some characters idp.py and Serial
-				xPrintChar(psXP, (cChr < 0x20 || cChr == 0x7F || cChr == 0xFF) ? CHR_FULLSTOP : cChr);
-			#else
-				// Only support range 0x20 to 0x7E, rest mapped to '.'
-				xPrintChar(psXP, (cChr < 0x20 || cChr > 0x7E) ? CHR_FULLSTOP : cChr);
-			#endif
+				#if (xpfSUPPORT_CHAR8BIT == 1)
+					// theoretically support up to 0xFF, but loses some characters idp.py and Serial
+					xPrintChar(psXP, (cChr < 0x20 || cChr == 0x7F || cChr == 0xFF) ? CHR_FULLSTOP : cChr);
+				#else
+					// Only support range 0x20 to 0x7E, rest mapped to '.'
+					xPrintChar(psXP, (cChr < 0x20 || cChr >= 0x7F) ? CHR_FULLSTOP : cChr);
+				#endif
 			}
 		}
-		if ((Now < xLen) && (xLen > iWidth)) vPrintString(psXP, strNL);
+		if ((Now < xLen) && (xLen > iWidth))			// data left to be dumped & 1+ lines of output
+			vPrintString(psXP, strNL);					// do NL for this line.
 	}
 	vPrintString(psXP, strNL);
 }
@@ -1444,7 +1445,7 @@ int	xPrintF(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pcF
 	sXP.vaList = vaList;
 	// [v]wprintfx() ONLY!! Move flags mapped onto MSByte of Size into xp_t structure MSByte
 	if (Size > xpfMAXLEN_MAXVAL) {
-		sXP.ctl.flg2 = Size >> (32 - reportXPC_BITS);
+		sXP.ctl.flg2 = Size >> (32 - XPC_BITS_XFER);
 		Size &= BIT_MASK32(0, xpfMAXLEN_BITS - 1);
 	}
 	sXP.MaxLen = Size;
@@ -1454,13 +1455,13 @@ int	xPrintF(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pcF
 
 // ################################### Destination = FILE PTR ######################################
 
-static int xPrintToFile(xp_t * psXP, int cChr) { return fputc(cChr, psXP->stream); }
+int xPrintToFile(xp_t * psXP, int cChr) { return fputc(cChr, psXP->stream); }
 
 int vfprintfx(FILE * stream, const char * pcFmt, va_list vaList) {
 	return xPrintF(xPrintToFile, stream, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 }
 
-int fprintfx(FILE * stream, const char * pcFmt, ...) {
+int fprintfx(FILE * stream, const char * pcFmt, ...) {		
 	va_list vaList;
 	va_start(vaList, pcFmt);
 	int count = xPrintF(xPrintToFile, stream, xpfMAXLEN_MAXVAL, pcFmt, vaList);
@@ -1540,7 +1541,7 @@ int sprintfx(char * pBuf, const char * pcFmt, ...) {
 
 // ################################### Destination = HANDLE ########################################
 
-static int xPrintToHandle(xp_t * psXP, int cChr) {
+int xPrintToHandle(xp_t * psXP, int cChr) {
 	char cChar = cChr;
 	int size = write(psXP->fd, &cChar, sizeof(cChar));
 	return (size == 1) ? cChr : size;
@@ -1556,57 +1557,6 @@ int	dprintfx(int fd, const char * pcFmt, ...) {
 	int count = xPrintF(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	va_end(vaList);
 	return count;
-}
-
-/* ############################ Walking, Talking, Singing and Dancing ##############################
- * * Based on the values (pre) initialised for buffer start and size
- * a) walk through the buffer on successive calls, concatenating output; or
- * b) output directly to stdout if buffer pointer/size not initialized.
- * Because the intent in this function is to provide a streamlined method for
- * keeping track of buffer usage over a series of successive printf() type calls,
- * the calling function has control un/lock activities using the nolock flag provided.
- */
-
-int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
-	report_t sRprt;
-	int iRV = 0;
-	if (psR == NULL) {
-		memset(&sRprt, 0, sizeof(report_t));
-		psR = &sRprt;
-		psR->uSGR = sgrANSI;
-	}
-	IF_myASSERT(debugPARAM, halMemoryRAM(psR));
-	if (psR->pcBuf && psR->size) {						/* pointer & size supplied, output to buffer */
-		IF_myASSERT(debugTRACK, halMemoryRAM(psR->pcBuf));		/* verify buffer is in RAM */
-		iRV = vsnprintfx(psR->pcBuf, psR->Size, pcFmt, vaList);	/* generate output to buffer */
-		if (iRV > 0) {									/* if anything written */
-			IF_myASSERT(debugRESULT, iRV <= psR->size);
-			psR->pcBuf += iRV;							/* update buffer pointer */
-			psR->size -= iRV;							/* available size */
-		}
-	} else {
-		if (psR->putc == NULL) {						/* Set default output handler */
-			psR->putc = xPrintToHandle;					/* alt: xPrintToFile */
-			psR->pvArg = (void *)STDOUT_FILENO;			/* alt: stdout */
-		}
-		if (psR->size == 0)
-			psR->size = xpfMAXLEN_MAXVAL;
-		BaseType_t btRV = pdFALSE;
-		if (psR->fNoLock == 0)							/* lock requested? */
-			btRV = halUartLock(WPFX_TIMEOUT);			/* yes, lock */
-		iRV = xPrintF(psR->putc, psR->pvArg, psR->Size, pcFmt, vaList);
-		if (psR->fNoLock == 0 && btRV == pdTRUE)		/* lock requested & was successful*/
-			halUartUnLock();							/* yes, unlock */
-	}
-	return iRV;
-}
-
-int	wprintfx(report_t * psR, const char * pcFmt, ...) {
-	va_list vaList;
-	va_start(vaList, pcFmt);
-	int iRV = wvprintfx(psR, pcFmt, vaList);
-	va_end(vaList);
-	return iRV;
 }
 
 /* ################################### Destination = CONSOLE #######################################

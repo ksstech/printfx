@@ -1,7 +1,7 @@
 # PRINTFX
 
 if( ESP_PLATFORM )
-	set( srcs "printfx.c" "printfx_tests.c" )
+	set( srcs "printfx.c" "report.c" "printfx_tests.c" )
 	set( include_dirs "." )
 	set( priv_include_dirs )
 	set( requires "main" )
@@ -16,7 +16,7 @@ if( ESP_PLATFORM )
 	)
 else( )
 	project( printfx )
-	add_library( printfx "printfx.c" )
+	add_library( printfx "printfx.c" "report.c" )
 	target_include_directories( printfx PUBLIC "." )
 	target_link_libraries( printfx common )
 endif()
