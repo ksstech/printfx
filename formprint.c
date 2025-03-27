@@ -38,12 +38,14 @@ void vLogPostPend(u32_t flag) {
 }
 
 void vLogPrintf(u32_t flag, const char * format, ...) {
-	if (flag) vLogPrePend(flag);
+	if (flag)
+		vLogPrePend(flag);
 	va_list args;
     va_start(args, format);
     vprintfx(format, args);
     va_end(args);
-    if (flag) vLogPostPend(flag);
+    if (flag)
+		vLogPostPend(flag);
 }
 
 int xI8ArrayPrint(const char * pHeader, u8_t * pArray, int ArraySize) {
