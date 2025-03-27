@@ -37,7 +37,8 @@ inline __attribute__((always_inline)) BaseType_t xPrintFxRestoreUnLock(report_t 
 /* ############################ Walking, Talking, Singing and Dancing ##############################
  * * Based on the values (pre) initialised for buffer start and size
  * a) walk through the buffer on successive calls, concatenating output; or
- * b) output directly to stdout if buffer pointer/size not initialized.
+ * b) output directly to stdout if buffer pointer/size not initialized; or
+ * c) output on character basis using specified handler function.
  * Because the intent in this function is to provide a streamlined method for
  * keeping track of buffer usage over a series of successive printf() type calls,
  * the calling function has control un/lock activities using the nolock flag provided.
