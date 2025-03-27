@@ -204,8 +204,8 @@ DUMB_STATIC_ASSERT(sizeof(report_t) == ((4 * sizeof(void *)) + 8));
 BaseType_t xPrintFxSaveLock(report_t * psR);
 BaseType_t xPrintFxRestoreUnLock(report_t * psR);
 
-int	wvprintfx(report_t * psRprt, const char * pcFormat, va_list vaList);
-int wprintfx(report_t * psRprt, const char * pcFormat, ...);
+int	vreport(report_t * psRprt, const char * pcFormat, va_list vaList);
+int report(report_t * psRprt, const char * pcFormat, ...);
 
 #ifdef __cplusplus
 }

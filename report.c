@@ -43,7 +43,7 @@ inline __attribute__((always_inline)) BaseType_t xPrintFxRestoreUnLock(report_t 
  * the calling function has control un/lock activities using the nolock flag provided.
  */
 
-int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
+int	vreport(report_t * psR, const char * pcFmt, va_list vaList) {
 	report_t sRprt;
 	int iRV = 0;
 	if (psR == NULL) {
@@ -76,10 +76,10 @@ int	wvprintfx(report_t * psR, const char * pcFmt, va_list vaList) {
 	return iRV;
 }
 
-int	wprintfx(report_t * psR, const char * pcFmt, ...) {
+int	report(report_t * psR, const char * pcFmt, ...) {
 	va_list vaList;
 	va_start(vaList, pcFmt);
-	int iRV = wvprintfx(psR, pcFmt, vaList);
+	int iRV = vreport(psR, pcFmt, vaList);
 	va_end(vaList);
 	return iRV;
 }
