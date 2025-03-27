@@ -25,10 +25,10 @@ extern "C" {
 #define	CPT(f, ...)					cprintfx(_T_(f), ##__VA_ARGS__)
 #define	CPTL(f, ...)				cprintfx(_TL_(f), ##__VA_ARGS__)
 
-#define	PX(f, ...)					wprintfx(NULL, f, ##__VA_ARGS__)
-#define	PXL(f, ...)					wprintfx(NULL, _L_(f), ##__VA_ARGS__)
-#define	PXT(f, ...)					wprintfx(NULL, _T_(f), ##__VA_ARGS__)
-#define	PXTL(f, ...)				wprintfx(NULL, _TL_(f), ##__VA_ARGS__)
+#define	PX(f, ...)					printfx(f, ##__VA_ARGS__)
+#define	PXL(f, ...)					printfx(_L_(f), ##__VA_ARGS__)
+#define	PXT(f, ...)					printfx(_T_(f), ##__VA_ARGS__)
+#define	PXTL(f, ...)				printfx(_TL_(f), ##__VA_ARGS__)
 
 #define	IF_CP(T, f, ...)			if (T) CP(f, ##__VA_ARGS__)
 #define	IF_CPL(T, f, ...)			if (T) CPL(f, ##__VA_ARGS__)
