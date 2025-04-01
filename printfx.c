@@ -1479,14 +1479,6 @@ int vnprintfx(size_t szLen, const char * pcFmt, va_list vaList) {
 
 int vprintfx(const char * pcFmt, va_list vaList) { return vnprintfx(xpfMAXLEN_MAXVAL, pcFmt, vaList); }
 
-int nprintfx(size_t szLen, const char * pcFmt, ...) {
-	va_list vaList;
-	va_start(vaList, pcFmt);
-	int iRV = vnprintfx(szLen, pcFmt, vaList);
-	va_end(vaList);
-	return iRV;
-}
-
 int printfx(const char * pcFmt, ...) {
 	va_list vaList;
 	va_start(vaList, pcFmt);
