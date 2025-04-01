@@ -241,8 +241,7 @@ DUMB_STATIC_ASSERT(sizeof(xp_t) == (sizeof(int *) + sizeof(void *) + sizeof(u32_
 
 // ################################### Public functions ############################################
 
-int xPrintFX(xp_t * psXPC, const char * format);
-int xPrintF(int (handler)(xp_t *, int), void *, size_t, const char *, va_list);
+int xPrintFX(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pcFmt, va_list vaList);
 
 /* Public function prototypes for extended functionality version of stdio supplied functions
  * These names MUST be used if any of the extended functionality is used in a format string */

@@ -1457,15 +1457,15 @@ out_lbl:
 int xPrintToFile(xp_t * psXP, int cChr) { return fputc(cChr, psXP->stream); }
 
 int vfprintfx(FILE * stream, const char * pcFmt, va_list vaList) {
-	return xPrintF(xPrintToFile, stream, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	return xPrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 }
 
 int fprintfx(FILE * stream, const char * pcFmt, ...) {		
 	va_list vaList;
 	va_start(vaList, pcFmt);
-	int count = xPrintF(xPrintToFile, stream, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	int iRV = xPrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	va_end(vaList);
-	return count;
+	return iRV;
 }
 
 // ################################### Destination = STDOUT ########################################
@@ -1503,19 +1503,15 @@ static int xPrintToString(xp_t * psXP, int cChr) {
 }
 
 int vsnprintfx(char * pBuf, size_t Size, const char * pcFmt, va_list vaList) {
-	size_t size = Size & xpfMAXLEN_MAXVAL;				// remove ANDed flags...
-	if (size == 1) {									// any "real" space ?
-		if (pBuf)										// no, buffer supplied
-			*pBuf = 0;									// yes, terminate string in buffer
-		return 0; 										// and return
-	}
-	int iRV = xPrintF(xPrintToString, pBuf, Size, pcFmt, vaList);
-	if (pBuf) {											// buffer specified ?
-		if (iRV == size)								// yes, if full ...
-			--iRV;										// make space for terminator
-		pBuf[iRV] = 0;									// terminate
-	}
+	int iRV = xPrintFX(xPrintToString, pBuf, Size, pcFmt, vaList);
+	if (iRV == Size)									// buffer full ...
+		--iRV;											// make space for terminator
+	pBuf[iRV] = 0;										// terminate
 	return iRV;
+}
+
+int vsprintfx(char * pBuf, const char * pcFmt, va_list vaList) {
+	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 }
 
 int snprintfx(char * pBuf, size_t Size, const char * pcFmt, ...) {
@@ -1524,10 +1520,6 @@ int snprintfx(char * pBuf, size_t Size, const char * pcFmt, ...) {
 	int iRV = vsnprintfx(pBuf, Size, pcFmt, vaList);
 	va_end(vaList);
 	return iRV;
-}
-
-int vsprintfx(char * pBuf, const char * pcFmt, va_list vaList) {
-	return vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 }
 
 int sprintfx(char * pBuf, const char * pcFmt, ...) {
@@ -1547,15 +1539,15 @@ int xPrintToHandle(xp_t * psXP, int cChr) {
 }
 
 int	vdprintfx(int fd, const char * pcFmt, va_list vaList) {
-	return xPrintF(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	return xPrintFX(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 }
 
 int	dprintfx(int fd, const char * pcFmt, ...) {
 	va_list	vaList;
 	va_start(vaList, pcFmt);
-	int count = xPrintF(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	int iRV = xPrintFX(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	va_end(vaList);
-	return count;
+	return iRV;
 }
 
 /* ################################### Destination = CONSOLE #######################################
@@ -1566,7 +1558,7 @@ static int xPrintToConsole(xp_t * psXP, int cChr) { return putchar(cChr); }
 
 int vcprintfx(const char * pcFmt, va_list vaList) {
 	halUartLock(WPFX_TIMEOUT);
-	int iRV = xPrintF(xPrintToConsole, NULL, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	int iRV = xPrintFX(xPrintToConsole, 0, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	halUartUnLock();
 	return iRV;
 }
@@ -1574,7 +1566,7 @@ int vcprintfx(const char * pcFmt, va_list vaList) {
 int cprintfx(const char * pcFmt, ...) {
 	va_list vaList;
 	va_start(vaList, pcFmt);
-	int iRV = vcprintfx(pcFmt, vaList);
+	int iRV = xPrintFX(xPrintToConsole, 0, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	va_end(vaList);
 	return iRV;
 }
@@ -1584,13 +1576,13 @@ int cprintfx(const char * pcFmt, ...) {
 static int xPrintToDevice(xp_t * psXP, int cChr) { return psXP->DevPutc(cChr); }
 
 int vdevprintfx(int (* Hdlr)(int ), const char * pcFmt, va_list vaList) {
-	return xPrintF(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	return xPrintFX(xPrintToDevice, (void *) Hdlr, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 }
 
 int devprintfx(int (* Hdlr)(int ), const char * pcFmt, ...) {
 	va_list vaList;
 	va_start(vaList, pcFmt);
-	int iRV = xPrintF(xPrintToDevice, Hdlr, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	int iRV = xPrintFX(xPrintToDevice, (void *) Hdlr, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	va_end(vaList);
 	return iRV;
 }
@@ -1630,15 +1622,15 @@ int socprintfx(netx_t * psSock, const char * pcFmt, ...) {
 static int xPrintToUBuf(xp_t * psXP, int cChr) { return xUBufPutC(psXP->psUBuf, cChr); }
 
 int	vuprintfx(ubuf_t * psUBuf, const char * pcFmt, va_list vaList) {
-	return xPrintF(xPrintToUBuf, psUBuf, xUBufGetSpace(psUBuf), pcFmt, vaList);
+	return xPrintFX(xPrintToUBuf, (void *) psUBuf, xUBufGetSpace(psUBuf), pcFmt, vaList);
 }
 
 int	uprintfx(ubuf_t * psUBuf, const char * pcFmt, ...) {
 	va_list	vaList;
 	va_start(vaList, pcFmt);
-	int count = xPrintF(xPrintToUBuf, psUBuf, xUBufGetSpace(psUBuf), pcFmt, vaList);
+	int iRV = xPrintFX(xPrintToUBuf, (void *) psUBuf, xUBufGetSpace(psUBuf), pcFmt, vaList);
 	va_end(vaList);
-	return count;
+	return iRV;
 }
 
 // #################################### Destination : CRC32 ########################################
@@ -1654,15 +1646,15 @@ static int xPrintToCRC32(xp_t * psXP, int cChr) {
 }
 
 int	vcrcprintfx(u32_t * pU32, const char * pcFmt, va_list vaList) {
-	return xPrintF(xPrintToCRC32, pU32, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	return xPrintFX(xPrintToCRC32, (void *) pU32, 0, pcFmt, vaList);
 }
 
 int	crcprintfx(u32_t * pU32, const char * pcFmt, ...) {
 	va_list	vaList;
 	va_start(vaList, pcFmt);
-	int count = xPrintF(xPrintToCRC32, pU32, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	int iRV = xPrintFX(xPrintToCRC32, (void *) pU32, 0, pcFmt, vaList);
 	va_end(vaList);
-	return count;
+	return iRV;
 }
 
 // ############################# Aliases for NEW/STDLIB supplied functions #########################
