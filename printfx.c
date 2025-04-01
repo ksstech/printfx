@@ -58,6 +58,12 @@
 #define	q1		1000000000000000ULL
 #define	Q1		1000000000000000000ULL
 
+// ####################################### xpc_t macros ############################################
+
+#define XPC_SAVE(XP)			xpc_t sXPC = { .u64Val = ((xp_t *)XP)->ctl.u64Val };	// save xpc_t structure
+#define XPC_REST(XP)			((xp_t *)XP)->ctl.u64Val = sXPC.u64Val;					// restore xpc_t structure
+#define XPC_FLAG(XP,M)			((xp_t *)XP)->ctl.M = sXPC.M		// restore specifc member from saved structure
+
 // ####################################### Enumerations ############################################
 
 // ######################## Character and value translation & rounding tables ######################
@@ -412,7 +418,7 @@ void vPrintF64(xp_t * psXP, double F64) {
 	}
 	psXP->ctl.bNegVal = F64 < 0.0 ? 1 : 0;				// set bNegVal if < 0.0
 	F64 *= psXP->ctl.bNegVal ? -1.0 : 1.0;				// convert to positive number
-	XPC_SAVE();
+	XPC_SAVE(psXP);
 	x64_t X64  = { 0 };
 
 	int	Exp = 0;										// if exponential format requested, calculate the exponent
@@ -484,10 +490,10 @@ void vPrintF64(xp_t * psXP, double F64) {
 
 	X64.u64	= F64;										// extract and convert the whole number portions
 	// adjust MinWid to do padding (if required) based on string length after adding whole number
-	XPC_REST();
+	XPC_REST(psXP);
 	psXP->ctl.MinWid = psXP->ctl.MinWid > Len ? psXP->ctl.MinWid - Len : 0;
 	Len += xPrintValueJustified(psXP, X64.u64, Buffer, xpfMAX_LEN_F64 - 1 - Len);
-	XPC_REST();
+	XPC_REST(psXP);
 	psXP->ctl.bPrecis = 1;
 	psXP->ctl.Precis = Len;
 	vPrintStringJustified(psXP, Buffer + (xpfMAX_LEN_F64 - 1 - Len));
@@ -528,7 +534,7 @@ void vPrintX64array(xp_t * psXP) {
 	cvi_e cvI = xFormSize2Index(eVF, eVS);
 	x32_t X32; X32.iX = va_arg(psXP->vaList, int);	// array size
 	px_t pX; pX.pv = va_arg(psXP->vaList, void *);	// pointer to 1st element of array
-	XPC_SAVE();
+	XPC_SAVE(psXP);
 	while (X32.iX) {
 		x64_t X64 = x64ValueFetch(pX, cvI);
 		if (eVF == vfIXX && X64.i64 < 0LL) {
@@ -540,7 +546,7 @@ void vPrintX64array(xp_t * psXP) {
 		} else {
 			vPrintX64(psXP, X64.u64);
 		}
-		XPC_REST();
+		XPC_REST(psXP);
 		if (--X32.iX)
 			xPrintChar(psXP, CHR_COMMA);
 		pX = pxAddrNextWithIndex(pX, cvI);
@@ -560,7 +566,7 @@ void vPrintX64array(xp_t * psXP) {
 void vPrintPointer(xp_t * psXP, px_t pX) {
 	char caBuf[xpfMAX_LEN_PNTR];
 	caBuf[xpfMAX_LEN_PNTR-1] = CHR_NUL;
-	XPC_SAVE();
+	XPC_SAVE(psXP);
 	psXP->ctl.uBase = BASE16;
 	psXP->ctl.bPad0 = 1;
 	psXP->ctl.bNegVal = 0;
@@ -587,7 +593,7 @@ void vPrintPointer(xp_t * psXP, px_t pX) {
 	psXP->ctl.MinWid += 2;
 	psXP->ctl.Precis += 2;
 	vPrintStringJustified(psXP, &caBuf[xpfMAX_LEN_PNTR - Len - 1]);
-	XPC_REST();
+	XPC_REST(psXP);
 }
 
 // ############################# Proprietary extension: hexdump ####################################
@@ -882,7 +888,7 @@ void vPrintDate(xp_t * psXP, struct tm * psTM) {
 void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	char Buffer[xpfMAX_LEN_TIME];
 	int	Len;
-	XPC_SAVE();
+	XPC_SAVE(psXP);
 	// Part 1: hours
 	if (psTM->tm_mday || psTM->tm_hour || psXP->ctl.bPad0) {
 		Len = xPrintValueJustified(psXP, (u64_t) psTM->tm_hour, Buffer, xPrintTimeCalcSize(psXP, psTM->tm_hour));
@@ -919,7 +925,7 @@ void vPrintTime(xp_t * psXP, struct tm * psTM, u32_t uSecs) {
 	if (sXPC.bGroup) Buffer[Len++] = CHR_s;
 	Buffer[Len] = 0;
 
-	XPC_REST();
+	XPC_REST(psXP);
 	// if MinWid specified and value smaller than string length override MinWid to enable full string
 	if (psXP->ctl.bMinWid && psXP->ctl.MinWid < Len)	psXP->ctl.MinWid = Len;
 	psXP->ctl.Precis = 0;								// Remove limit on max string length
@@ -1229,18 +1235,18 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 					X32.u32 += psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
 				xTimeGMTime(X32.u32, &sTM, psXP->ctl.bRelVal);				// Convert to component values
 				psXP->ctl.bPad0 = 1;					// Need 0 on date & time, want to restore same
-				XPC_SAVE();
 				psXP->ctl.bPlus = 0;					// only for DTZone, need to restore status later..
+				XPC_SAVE(&sXP);
 				if (cFmt == CHR_D || cFmt == CHR_Z) {
 					vPrintDate(psXP, &sTM);									// bPad0=1, bPlus=0
-					XPC_REST();												// bAltF changed
+					XPC_REST(&sXP);						// bAltF changed
 				}
 				if (cFmt == CHR_T || cFmt == CHR_Z) {
 					vPrintTime(psXP, &sTM, (u32_t)(psTSZ->usecs % MICROS_IN_SECOND));
 				}
 				if (cFmt == CHR_Z) {
-					XPC_REST();
 					vPrintZone(psXP, psTSZ);
+					XPC_REST(&sXP);
 				}
 			}
 			break;
@@ -1255,11 +1261,11 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				if (psXP->ctl.bRelVal == 0)				// absolute (not relative) value
 					psXP->ctl.bPad0 = 1;				// must pad
 				if (psXP->ctl.bRelVal == 0 || sTM.tm_mday) {
-					XPC_SAVE();
 					vPrintDate(psXP, &sTM);
-                    XPC_FLAG(flg1);
-                    XPC_FLAG(Precis);
 					psXP->ctl.bNegVal = 0;				// disable possible second '-'
+					XPC_SAVE(&sXP);
+                    XPC_FLAG(&sXP,flg1);
+                    XPC_FLAG(&sXP,Precis);
 				}
 				X32.u32 = psXP->ctl.bCase ? X64.u64 % MICROS_IN_SECOND : 0;
 				vPrintTime(psXP, &sTM, X32.u32);

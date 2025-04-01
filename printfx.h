@@ -147,12 +147,6 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 
 #define WPFX_TIMEOUT			pdMS_TO_TICKS(1000)
 
-// save & restore ALL flags + limits
-#define XPC_SAVE()				xpc_t sXPC = { .u64Val = psXP->ctl.u64Val };
-#define XPC_REST()				psXP->ctl.u64Val = sXPC.u64Val;
-// restore specifc member from  previously saved value
-#define XPC_FLAG(M)			    psXP->ctl.M = sXPC.M
-
 // ####################################### enumerations ############################################
 
 enum {			//	F64		Hex		Other
