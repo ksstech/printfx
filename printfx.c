@@ -1470,14 +1470,12 @@ int fprintfx(FILE * stream, const char * pcFmt, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-int vnprintfx(size_t szLen, const char * pcFmt, va_list vaList) {
+int vprintfx(const char * pcFmt, va_list vaList) {
 	halUartLock(WPFX_TIMEOUT);
 	int iRV = xPrintFX(xPrintToFile, stdout, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	halUartUnLock();
 	return iRV;
 }
-
-int vprintfx(const char * pcFmt, va_list vaList) { return vnprintfx(xpfMAXLEN_MAXVAL, pcFmt, vaList); }
 
 int printfx(const char * pcFmt, ...) {
 	va_list vaList;
