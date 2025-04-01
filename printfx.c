@@ -1449,23 +1449,7 @@ out_lbl:
 			xPrintChar(&sXP, *pcFmt);
 		}
 	}
-exit:
-	return psXP->CurLen;
-}
-
-int	xPrintF(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pcFmt, va_list vaList) {
-	xp_t sXP;
-	sXP.handler = Hdlr;
-	sXP.pVoid = pVoid;
-	sXP.vaList = vaList;
-	// [v]wprintfx() ONLY!! Move flags mapped onto MSByte of Size into xp_t structure MSByte
-	if (Size > xpfMAXLEN_MAXVAL) {
-		sXP.ctl.flg2 = Size >> (32 - XPC_BITS_XFER);
-		Size &= BIT_MASK32(0, xpfMAXLEN_BITS - 1);
-	}
-	sXP.MaxLen = Size;
-	sXP.CurLen = 0;
-	return xPrintFX(&sXP, pcFmt);
+	return sXP.CurLen;
 }
 
 // ################################### Destination = FILE PTR ######################################
