@@ -1472,7 +1472,7 @@ int fprintfx(FILE * stream, const char * pcFmt, ...) {
 
 int vnprintfx(size_t szLen, const char * pcFmt, va_list vaList) {
 	halUartLock(WPFX_TIMEOUT);
-	int iRV = xPrintF(xPrintToFile, stdout, szLen, pcFmt, vaList);
+	int iRV = xPrintFX(xPrintToFile, stdout, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	halUartUnLock();
 	return iRV;
 }
@@ -1482,7 +1482,7 @@ int vprintfx(const char * pcFmt, va_list vaList) { return vnprintfx(xpfMAXLEN_MA
 int printfx(const char * pcFmt, ...) {
 	va_list vaList;
 	va_start(vaList, pcFmt);
-	int iRV = vnprintfx(xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	int iRV = xPrintFX(xPrintToFile, stdout, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	va_end(vaList);
 	return iRV;
 }
@@ -1594,7 +1594,7 @@ static int xPrintToSocket(xp_t * psXP, int cChr) {
 int vsocprintfx(netx_t * psSock, const char * pcFmt, va_list vaList) {
 	int	Fsav = psSock->flags;							// save the current socket flags
 	psSock->flags |= MSG_MORE;
-	int iRV = xPrintF(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, pcFmt, vaList);
+	int iRV = xPrintFX(xPrintToSocket, (void *) psSock, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	psSock->flags = Fsav;								// restore socket flags
 	return (psSock->error == 0) ? iRV : erFAILURE;
 }
@@ -1602,9 +1602,9 @@ int vsocprintfx(netx_t * psSock, const char * pcFmt, va_list vaList) {
 int socprintfx(netx_t * psSock, const char * pcFmt, ...) {
 	va_list vaList;
 	va_start(vaList, pcFmt);
-	int iRV = xPrintF(xPrintToSocket, psSock, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	int	Fsav = psSock->flags;							// save the current socket flags
 	psSock->flags |= MSG_MORE;
+	int iRV = xPrintFX(xPrintToSocket, (void *) psSock, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	va_end(vaList);
 	psSock->flags = Fsav;								// restore socket flags
 	return (psSock->error == 0) ? iRV : erFAILURE;
