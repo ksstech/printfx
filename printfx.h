@@ -248,19 +248,16 @@ int xPrintFX(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pc
 
 // ##################################### Destination = STDOUT ######################################
 
-int vnprintfx(size_t, const char *, va_list) _ATTRIBUTE ((__format__ (__printf__, 2, 0)));
-//int vprintfx(const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
-//int nprintfx(size_t, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 2, 3)));
-//int printfx(const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 1, 2)));
-int printfx(const char *, ...);
+int vprintfx(const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
+int printfx(const char *, ...); //_ATTRIBUTE ((__format__ (__printf__, 1, 2)));
 
 // ##################################### Destination = STRING ######################################
 
-int vsnprintfx(char *, size_t, const char *, va_list) _ATTRIBUTE ((__format__ (__printf__, 3, 0)));
-int vsprintfx(char *, const char *, va_list) _ATTRIBUTE ((__format__ (__printf__, 2, 0)));
-//int snprintfx(char *, size_t, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 3, 4)));
-int snprintfx(char *, size_t, const char *, ...);
-//int sprintfx(char *, const char *, ...) _ATTRIBUTE ((__format__ (__printf__, 2, 3)));
+int xPrintToString(xp_t * psXP, int cChr);
+int vsnprintfx(char *, size_t, const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 3, 0)));
+int vsprintfx(char *, const char *, va_list)			_ATTRIBUTE ((__format__ (__printf__, 2, 0)));
+int snprintfx(char *, size_t, const char *, ...);		//_ATTRIBUTE ((__format__ (__printf__, 3, 2)));
+int sprintfx(char *, const char *, ...);				//_ATTRIBUTE ((__format__ (__printf__, 3, 2)));
 
 // ############################## LOW LEVEL DIRECT formatted output ################################
 
