@@ -1452,9 +1452,47 @@ out_lbl:
 	return sXP.CurLen;
 }
 
-// ################################### Destination = FILE PTR ######################################
+// #################################### Destination handlers #######################################
 
 int xPrintToFile(xp_t * psXP, int cChr) { return fputc(cChr, psXP->stream); }
+
+int xPrintToString(xp_t * psXP, int cChr) {
+	if (psXP->pStr)
+		*psXP->pStr++ = cChr;
+	return cChr;
+}
+
+int xPrintToHandle(xp_t * psXP, int cChr) {
+	char cChar = cChr;
+	int size = write(psXP->fd, &cChar, sizeof(cChar));
+	return (size == 1) ? cChr : size;
+}
+
+static int xPrintToConsole(xp_t * psXP, int cChr) { return putchar(cChr); }
+
+static int xPrintToDevice(xp_t * psXP, int cChr) { return psXP->DevPutc(cChr); }
+
+static int xPrintToSocket(xp_t * psXP, int cChr) {
+	u8_t cBuf = cChr;
+	int iRV = xNetSend(psXP->psSock, &cBuf, sizeof(cBuf));
+	if (iRV != sizeof(cBuf))
+		return iRV;
+	return cChr;
+}
+
+static int xPrintToUBuf(xp_t * psXP, int cChr) { return xUBufPutC(psXP->psUBuf, cChr); }
+
+static int xPrintToCRC32(xp_t * psXP, int cChr) {
+	#if defined(ESP_PLATFORM)							// use ROM based CRC lookup table
+		u8_t cBuf = cChr;
+		*psXP->pU32 = esp_rom_crc32_le(*psXP->pU32, &cBuf, sizeof(cBuf));
+	#else												// use fastest of external libraries
+		u32_t MsgCRC = crcSlow((u8_t *) pBuf, iRV);
+	#endif
+		return cChr;
+	}
+	
+// ################################### Destination = FILE PTR ######################################
 
 int vfprintfx(FILE * stream, const char * pcFmt, va_list vaList) {
 	return xPrintFX(xPrintToFile, stream, xpfMAXLEN_MAXVAL, pcFmt, vaList);
@@ -1489,12 +1527,6 @@ int printfx(const char * pcFmt, ...) {
 
 // ##################################### Destination = STRING ######################################
 
-int xPrintToString(xp_t * psXP, int cChr) {
-	if (psXP->pStr)
-		*psXP->pStr++ = cChr;
-	return cChr;
-}
-
 int vsnprintfx(char * pBuf, size_t Size, const char * pcFmt, va_list vaList) {
 	int iRV = xPrintFX(xPrintToString, pBuf, Size, pcFmt, vaList);
 	if (iRV == Size)									// buffer full ...
@@ -1525,12 +1557,6 @@ int sprintfx(char * pBuf, const char * pcFmt, ...) {
 
 // ################################### Destination = HANDLE ########################################
 
-int xPrintToHandle(xp_t * psXP, int cChr) {
-	char cChar = cChr;
-	int size = write(psXP->fd, &cChar, sizeof(cChar));
-	return (size == 1) ? cChr : size;
-}
-
 int	vdprintfx(int fd, const char * pcFmt, va_list vaList) {
 	return xPrintFX(xPrintToHandle, (void *) fd, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 }
@@ -1546,8 +1572,6 @@ int	dprintfx(int fd, const char * pcFmt, ...) {
 /* ################################### Destination = CONSOLE #######################################
  * Output directly to the [possibly redirected] stdout/UART channel
  */
-
-static int xPrintToConsole(xp_t * psXP, int cChr) { return putchar(cChr); }
 
 int vcprintfx(const char * pcFmt, va_list vaList) {
 	halUartLock(WPFX_TIMEOUT);
@@ -1566,8 +1590,6 @@ int cprintfx(const char * pcFmt, ...) {
 
 // ################################### Destination = DEVICE ########################################
 
-static int xPrintToDevice(xp_t * psXP, int cChr) { return psXP->DevPutc(cChr); }
-
 int vdevprintfx(int (* Hdlr)(int ), const char * pcFmt, va_list vaList) {
 	return xPrintFX(xPrintToDevice, (void *) Hdlr, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 }
@@ -1583,13 +1605,6 @@ int devprintfx(int (* Hdlr)(int ), const char * pcFmt, ...) {
 /* #################################### Destination : SOCKET #######################################
  * SOCKET directed formatted print support. Problem here is that MSG_MORE is primarily supported on
  * TCP sockets, UDP support officially in LwIP 2.6 but has not been included into ESP-IDF yet. */
-
-static int xPrintToSocket(xp_t * psXP, int cChr) {
-	u8_t cBuf = cChr;
-	int iRV = xNetSend(psXP->psSock, &cBuf, sizeof(cBuf));
-	if (iRV != sizeof(cBuf)) return iRV;
-	return cChr;
-}
 
 int vsocprintfx(netx_t * psSock, const char * pcFmt, va_list vaList) {
 	int	Fsav = psSock->flags;							// save the current socket flags
@@ -1612,8 +1627,6 @@ int socprintfx(netx_t * psSock, const char * pcFmt, ...) {
 
 // #################################### Destination : UBUF #########################################
 
-static int xPrintToUBuf(xp_t * psXP, int cChr) { return xUBufPutC(psXP->psUBuf, cChr); }
-
 int	vuprintfx(ubuf_t * psUBuf, const char * pcFmt, va_list vaList) {
 	return xPrintFX(xPrintToUBuf, (void *) psUBuf, xUBufGetSpace(psUBuf), pcFmt, vaList);
 }
@@ -1627,16 +1640,6 @@ int	uprintfx(ubuf_t * psUBuf, const char * pcFmt, ...) {
 }
 
 // #################################### Destination : CRC32 ########################################
-
-static int xPrintToCRC32(xp_t * psXP, int cChr) {
-#if defined(ESP_PLATFORM)							// use ROM based CRC lookup table
-	u8_t cBuf = cChr;
-	*psXP->pU32 = esp_rom_crc32_le(*psXP->pU32, &cBuf, sizeof(cBuf));
-#else												// use fastest of external libraries
-	u32_t MsgCRC = crcSlow((u8_t *) pBuf, iRV);
-#endif
-	return cChr;
-}
 
 int	vcrcprintfx(u32_t * pU32, const char * pcFmt, va_list vaList) {
 	return xPrintFX(xPrintToCRC32, (void *) pU32, 0, pcFmt, vaList);
