@@ -1039,9 +1039,18 @@ void vPrintURL(xp_t * psXP, char * pStr) {
  * @return	void (other than updated info in the original structure passed by reference
  */
 
-int	xPrintFX(xp_t * psXP, const char * pcFmt) {
-	if (pcFmt == NULL)
-		goto exit;
+int	xPrintFX(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pcFmt, va_list vaList) {
+	if (pcFmt == NULL || (Size & 0x0000FFFF) == 1)
+		return 0;
+	xp_t sXP = { 0 };
+	sXP.handler = Hdlr;
+	sXP.pVoid = pVoid;
+	sXP.vaList = vaList;
+	if (Size > xpfMAXLEN_MAXVAL) {
+		sXP.ctl.flg2 = Size >> (32 - XPC_BITS_XFER);
+		Size &= BIT_MASK32(0, xpfMAXLEN_BITS - 1);
+	}
+	sXP.MaxLen = Size;
 	for (; *pcFmt != CHR_NUL; ++pcFmt) {
 		if (*pcFmt == CHR_PERCENT) {					// start by expecting format indicator
 			++pcFmt;
@@ -1049,30 +1058,30 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				break;
 			if (*pcFmt == CHR_PERCENT)
 				goto out_lbl;
-			psXP->ctl.limits = 0;						// reset field specific limits
-			psXP->ctl.flg1 = 0;							// reset internal/dynamic flags
-			psXP->ctl.uBase = BASE10;					// default number base
+			sXP.ctl.limits = 0;						// reset field specific limits
+			sXP.ctl.flg1 = 0;							// reset internal/dynamic flags
+			sXP.ctl.uBase = BASE10;					// default number base
 			int	cFmt;
 			x32_t X32 = { 0 };
 			// Optional FLAGS must be in correct sequence of interpretation
 			while ((cFmt = strchr_i("!#&'*+-0><", *pcFmt)) != erFAILURE) {
 				switch (cFmt) {
-				case 0:	psXP->ctl.bRelVal = 1; break;	// !	HEXDUMP/DTZ abs->rel address/time, MAC use ':' separator
-				case 1:	psXP->ctl.bAltF = 1; break;		// #	DTZ=GMT format, HEXDUMP/IP swop endian, STRING centre
-				case 2: psXP->ctl.bArray = 1; break;	// &	Array size & address provided
-				case 3: psXP->ctl.bGroup = 1; break;	// '	"diu" add 3 digit grouping, DTZ, MAC, DUMP select separator set
+				case 0:	sXP.ctl.bRelVal = 1; break;	// !	HEXDUMP/DTZ abs->rel address/time, MAC use ':' separator
+				case 1:	sXP.ctl.bAltF = 1; break;		// #	DTZ=GMT format, HEXDUMP/IP swop endian, STRING centre
+				case 2: sXP.ctl.bArray = 1; break;	// &	Array size & address provided
+				case 3: sXP.ctl.bGroup = 1; break;	// '	"diu" add 3 digit grouping, DTZ, MAC, DUMP select separator set
 				case 4:									// *	indicate argument will supply field width
-					X32.iX	= va_arg(psXP->vaList, int);
-					IF_myASSERT(debugTRACK, psXP->ctl.bMinWid == 0 && X32.iX <= xpfMINWID_MAXVAL);
-					psXP->ctl.MinWid = X32.iX;
-					psXP->ctl.bMinWid = 1;
+					X32.iX	= va_arg(sXP.vaList, int);
+					IF_myASSERT(debugTRACK, sXP.ctl.bMinWid == 0 && X32.iX <= xpfMINWID_MAXVAL);
+					sXP.ctl.MinWid = X32.iX;
+					sXP.ctl.bMinWid = 1;
 					X32.i32 = 0;
 					break;
-				case 5: psXP->ctl.bPlus = 1; break;		// +	force +/-, HEXDUMP add ASCII, TIME add TZ info
-				case 6: psXP->ctl.bLeft = 1; break;		// -	Left justify, HEXDUMP remove address pointer
-				case 7:	psXP->ctl.bPad0 = 1; break;		// 0	force leading '0's
-				case 8: psXP->ctl.bGT = 1; break;		// >	to LC
-				case 9: psXP->ctl.bLT = 1; break;		// >	to UC
+				case 5: sXP.ctl.bPlus = 1; break;		// +	force +/-, HEXDUMP add ASCII, TIME add TZ info
+				case 6: sXP.ctl.bLeft = 1; break;		// -	Left justify, HEXDUMP remove address pointer
+				case 7:	sXP.ctl.bPad0 = 1; break;		// 0	force leading '0's
+				case 8: sXP.ctl.bGT = 1; break;		// >	to LC
+				case 9: sXP.ctl.bLT = 1; break;		// >	to UC
 				default: assert(0);
 				}
 				++pcFmt;
@@ -1086,19 +1095,19 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 						X32.u32 += *pcFmt - CHR_0;
 					} else if (*pcFmt == CHR_FULLSTOP) {
 						if (X32.u32 > 0) {				// save value if previously parsed
-							IF_myASSERT(debugTRACK, psXP->ctl.bMinWid == 0 && X32.u32 <= xpfMINWID_MAXVAL);
-							psXP->ctl.MinWid = X32.u32;
-							psXP->ctl.bMinWid = 1;
+							IF_myASSERT(debugTRACK, sXP.ctl.bMinWid == 0 && X32.u32 <= xpfMINWID_MAXVAL);
+							sXP.ctl.MinWid = X32.u32;
+							sXP.ctl.bMinWid = 1;
 							X32.u32 = 0;
 						}
-						IF_myASSERT(debugTRACK, psXP->ctl.bRadix == 0);	// 2x bRadix not allowed
-						psXP->ctl.bRadix = 1;
+						IF_myASSERT(debugTRACK, sXP.ctl.bRadix == 0);	// 2x bRadix not allowed
+						sXP.ctl.bRadix = 1;
 					} else if (*pcFmt == CHR_ASTERISK) {
-						IF_myASSERT(debugTRACK, psXP->ctl.bRadix == 1 && X32.u32 == 0);
-						X32.u32 = va_arg(psXP->vaList, unsigned int);
+						IF_myASSERT(debugTRACK, sXP.ctl.bRadix == 1 && X32.u32 == 0);
+						X32.u32 = va_arg(sXP.vaList, unsigned int);
 						IF_myASSERT(debugTRACK, X32.u32 <= xpfPRECIS_MAXVAL);
-						psXP->ctl.Precis = X32.u32;
-						psXP->ctl.bPrecis = 1;
+						sXP.ctl.Precis = X32.u32;
+						sXP.ctl.bPrecis = 1;
 						X32.u32 = 0;
 					} else {
 						break;
@@ -1107,14 +1116,14 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				}
 				// Save possible parsed value
 				if (X32.u32 > 0) {						// if a number was parsed...
-					if (psXP->ctl.bRadix == 0 && psXP->ctl.bMinWid == 0) {			// no '.' nor width
+					if (sXP.ctl.bRadix == 0 && sXP.ctl.bMinWid == 0) {			// no '.' nor width
 						IF_myASSERT(debugTRACK, X32.u32 <= xpfMINWID_MAXVAL);
-						psXP->ctl.MinWid = X32.u32;		// save value as MinWid
-						psXP->ctl.bMinWid = 1;			// set MinWid flag
-					} else if (psXP->ctl.bRadix == 1 && psXP->ctl.bPrecis == 0) {	// '.' but no Precis
+						sXP.ctl.MinWid = X32.u32;		// save value as MinWid
+						sXP.ctl.bMinWid = 1;			// set MinWid flag
+					} else if (sXP.ctl.bRadix == 1 && sXP.ctl.bPrecis == 0) {	// '.' but no Precis
 						IF_myASSERT(debugTRACK, X32.u32 <= xpfPRECIS_MAXVAL);
-						psXP->ctl.Precis = X32.u32;		// save value as precision
-						psXP->ctl.bPrecis = 1;			// set precision flag
+						sXP.ctl.Precis = X32.u32;		// save value as precision
+						sXP.ctl.bPrecis = 1;			// set precision flag
 					} else {
 						assert(0);
 					}
@@ -1128,36 +1137,36 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				switch(cFmt) {
 				case 0: {
 					if (*pcFmt == CHR_h) {				// "hh"
-						psXP->ctl.uSize = S_hh;
+						sXP.ctl.uSize = S_hh;
 						++pcFmt;
 					} else {							// 'h'
-						psXP->ctl.uSize = S_h;
+						sXP.ctl.uSize = S_h;
 					}
 					break;
 				}
 				case 1: {
 					if (*pcFmt != CHR_l) {
-						psXP->ctl.uSize = S_l;			// 'l'
+						sXP.ctl.uSize = S_l;			// 'l'
 					} else {
-						psXP->ctl.uSize = S_ll;			// "ll"
+						sXP.ctl.uSize = S_ll;			// "ll"
 						++pcFmt;
 					}
 					break;
 				}
-				case 2: psXP->ctl.uSize = S_j; break;	// [u]intmax_t[*]
-				case 3: psXP->ctl.uSize = S_z; break;	// [s]size_t[*]
-				case 4: psXP->ctl.uSize = S_t; break;	// ptrdiff[*]
-				case 5: psXP->ctl.uSize = S_L; break;	// long double float (F128)
+				case 2: sXP.ctl.uSize = S_j; break;	// [u]intmax_t[*]
+				case 3: sXP.ctl.uSize = S_z; break;	// [s]size_t[*]
+				case 4: sXP.ctl.uSize = S_t; break;	// ptrdiff[*]
+				case 5: sXP.ctl.uSize = S_L; break;	// long double float (F128)
 				default: assert(0);
 				}
 			}
-			IF_myASSERT(debugTRACK, psXP->ctl.uSize < S_XXX);	// rest not yet supported
+			IF_myASSERT(debugTRACK, sXP.ctl.uSize < S_XXX);	// rest not yet supported
 			
 			// Check if format character where UC/lc same character control the case of the output
 			cFmt = *pcFmt;
 			if (strchr_i(vPrintStr1, cFmt) != erFAILURE) {
 				cFmt |= 0x20;							// convert to lower case, but ...
-				psXP->ctl.bCase = 1;					// indicate as UPPER case requested
+				sXP.ctl.bCase = 1;					// indicate as UPPER case requested
 			}
 
 			x64_t X64;									// default x64 variable
@@ -1171,38 +1180,38 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			#if	(xpfSUPPORT_SGR == 1)
 			case CHR_C: {
 				char Buffer[xpfMAX_LEN_SGR];
-				sgr_info_t sSGR; sSGR.u32 = va_arg(psXP->vaList, u32_t);	// ensure removed from stack
-				if (psXP->ctl.uSGR == sgrANSI) {
+				sgr_info_t sSGR; sSGR.u32 = va_arg(sXP.vaList, u32_t);	// ensure removed from stack
+				if (sXP.ctl.uSGR == sgrANSI) {
 					if (sSGR.rowcol && pcTermLocate(Buffer, sSGR.r, sSGR.c) != Buffer)
-						vPrintString(psXP, Buffer);		// cursor location, 1 relative row & column
+						vPrintString(&sXP, Buffer);		// cursor location, 1 relative row & column
 					if (pcTermAttrib(Buffer, sSGR.a1, sSGR.a2) != Buffer)
-						vPrintString(psXP, Buffer);		// attribute[s]
+						vPrintString(&sXP, Buffer);		// attribute[s]
 				}
 			}	break;
 			#endif
 
 			#if	(xpfSUPPORT_IP_ADDR == 1)				// IP address
 			case CHR_I: {
-				IF_myASSERT(debugTRACK, !psXP->ctl.bPrecis && !psXP->ctl.Precis && !psXP->ctl.bPlus);
-				psXP->ctl.MinWid = psXP->ctl.bLeft ? 0 : 3;
-				X32.u32 = va_arg(psXP->vaList, u32_t);
+				IF_myASSERT(debugTRACK, !sXP.ctl.bPrecis && !sXP.ctl.Precis && !sXP.ctl.bPlus);
+				sXP.ctl.MinWid = sXP.ctl.bLeft ? 0 : 3;
+				X32.u32 = va_arg(sXP.vaList, u32_t);
 				u8_t temp;
 				u8_t * pChr = (u8_t *) &X32;
-				if (psXP->ctl.bAltF) {					// '#' specified to invert order ?
+				if (sXP.ctl.bAltF) {					// '#' specified to invert order ?
 					temp = *pChr;		*pChr = *(pChr+3);		*(pChr+3) = temp;
 					temp = *(pChr+1);	*(pChr+1) = *(pChr+2);	*(pChr+2) = temp;
-					psXP->ctl.bAltF = 0;				// clear so not to confuse xPrintValueJustified()
+					sXP.ctl.bAltF = 0;				// clear so not to confuse xPrintValueJustified()
 				}
 				char Buffer[xpfMAX_LEN_IP];
 				Buffer[xpfMAX_LEN_IP - 1] = 0;			// building R to L, ensure buffer NULL-term
 				int	Idx, Len;
 				for (Idx = 0, Len = 0; Idx < sizeof(u32_t); ++Idx) {	// then convert the IP address, LSB first
 					X64.u64 = (u8_t) pChr[Idx];
-					Len += xPrintValueJustified(psXP, X64.u64, Buffer + xpfMAX_LEN_IP - 5 - Len, 4);
+					Len += xPrintValueJustified(&sXP, X64.u64, Buffer + xpfMAX_LEN_IP - 5 - Len, 4);
 					if (Idx < 3) Buffer[xpfMAX_LEN_IP - 1 - ++Len] = CHR_FULLSTOP;
 				}
 				// then send the formatted output to the correct stream
-				vPrintStringJustified(psXP, Buffer + (xpfMAX_LEN_IP - 1 - Len));
+				vPrintStringJustified(&sXP, Buffer + (xpfMAX_LEN_IP - 1 - Len));
 			}	break;
 			#endif
 
@@ -1227,57 +1236,57 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			case CHR_D:				// Local TZ date
 			case CHR_T:				// Local TZ time
 			case CHR_Z: {			// Local TZ DATE+TIME+ZONE
-				IF_myASSERT(debugTRACK, psXP->ctl.bRelVal == 0);
-				psTSZ = va_arg(psXP->vaList, tsz_t *);	// retrieve TSX pointer parameter
+				IF_myASSERT(debugTRACK, sXP.ctl.bRelVal == 0);
+				psTSZ = va_arg(sXP.vaList, tsz_t *);	// retrieve TSX pointer parameter
 				IF_myASSERT(debugTRACK, halMemoryRAM(psTSZ));
 				X32.u32 = xTimeStampSeconds(psTSZ->usecs);				// convert to u32_t epoch value
-				if (psXP->ctl.bPlus && psTSZ->pTZ)		// If full local time required, add TZ and DST offsets
+				if (sXP.ctl.bPlus && psTSZ->pTZ)		// If full local time required, add TZ and DST offsets
 					X32.u32 += psTSZ->pTZ->timezone + (int) psTSZ->pTZ->daylight;
-				xTimeGMTime(X32.u32, &sTM, psXP->ctl.bRelVal);				// Convert to component values
-				psXP->ctl.bPad0 = 1;					// Need 0 on date & time, want to restore same
-				psXP->ctl.bPlus = 0;					// only for DTZone, need to restore status later..
+				xTimeGMTime(X32.u32, &sTM, sXP.ctl.bRelVal);				// Convert to component values
+				sXP.ctl.bPad0 = 1;						// Need 0 on date & time, want to restore same
 				XPC_SAVE(&sXP);
+				sXP.ctl.bPlus = 0;						// only for DTZone, need to restore status later..
 				if (cFmt == CHR_D || cFmt == CHR_Z) {
-					vPrintDate(psXP, &sTM);									// bPad0=1, bPlus=0
+					vPrintDate(&sXP, &sTM);				// bPad0=1, bPlus=0
 					XPC_REST(&sXP);						// bAltF changed
 				}
 				if (cFmt == CHR_T || cFmt == CHR_Z) {
-					vPrintTime(psXP, &sTM, (u32_t)(psTSZ->usecs % MICROS_IN_SECOND));
+					vPrintTime(&sXP, &sTM, (u32_t)(psTSZ->usecs % MICROS_IN_SECOND));
 				}
 				if (cFmt == CHR_Z) {
-					vPrintZone(psXP, psTSZ);
 					XPC_REST(&sXP);
+					vPrintZone(&sXP, psTSZ);
 				}
 			}
 			break;
 
 			case CHR_r: {			// U32 epoch (yr+mth+day) OR relative (days) + TIME
-				IF_myASSERT(debugTRACK, psXP->ctl.bPlus == 0);
-				psXP->ctl.bSigned = psXP->ctl.bRelVal ? 1 : 0;		// Relative values signed
-				psXP->ctl.uSize = psXP->ctl.bCase ? S_ll : S_l;		// 'R' = 64bit, 'r' = 32bit
-				X64 = x64PrintGetValue(psXP);
-				X32.u32 = (u32_t) psXP->ctl.bCase ? (X64.u64 / MICROS_IN_SECOND) : X64.u64;
-				xTimeGMTime(X32.u32, &sTM, psXP->ctl.bRelVal);
-				if (psXP->ctl.bRelVal == 0)				// absolute (not relative) value
-					psXP->ctl.bPad0 = 1;				// must pad
-				if (psXP->ctl.bRelVal == 0 || sTM.tm_mday) {
-					vPrintDate(psXP, &sTM);
-					psXP->ctl.bNegVal = 0;				// disable possible second '-'
+				IF_myASSERT(debugTRACK, sXP.ctl.bPlus == 0);
+				sXP.ctl.bSigned = sXP.ctl.bRelVal ? 1 : 0;		// Relative values signed
+				sXP.ctl.uSize = sXP.ctl.bCase ? S_ll : S_l;		// 'R' = 64bit, 'r' = 32bit
+				X64 = x64PrintGetValue(&sXP);
+				X32.u32 = (u32_t) sXP.ctl.bCase ? (X64.u64 / MICROS_IN_SECOND) : X64.u64;
+				xTimeGMTime(X32.u32, &sTM, sXP.ctl.bRelVal);
+				if (sXP.ctl.bRelVal == 0)				// absolute (not relative) value
+					sXP.ctl.bPad0 = 1;				// must pad
+				if (sXP.ctl.bRelVal == 0 || sTM.tm_mday) {
 					XPC_SAVE(&sXP);
+					vPrintDate(&sXP, &sTM);
                     XPC_FLAG(&sXP,flg1);
                     XPC_FLAG(&sXP,Precis);
+					sXP.ctl.bNegVal = 0;				// disable possible second '-'
 				}
-				X32.u32 = psXP->ctl.bCase ? X64.u64 % MICROS_IN_SECOND : 0;
-				vPrintTime(psXP, &sTM, X32.u32);
+				X32.u32 = sXP.ctl.bCase ? X64.u64 % MICROS_IN_SECOND : 0;
+				vPrintTime(&sXP, &sTM, X32.u32);
 			}
 			break;
 			#endif
 
 			#if	(xpfSUPPORT_URL == 1)					// para = pointer to string to be encoded
 			case CHR_U:
-				pX.pc8 = va_arg(psXP->vaList, char *);
+				pX.pc8 = va_arg(sXP.vaList, char *);
 				IF_myASSERT(debugTRACK, halMemoryANY(pX.pc8));
-				vPrintURL(psXP, pX.pc8);
+				vPrintURL(&sXP, pX.pc8);
 				break;
 			#endif
 
@@ -1289,22 +1298,22 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			 *  '!'	select ':' separator between digits
 			 */
 			case CHR_M:									// MAC address ??:??:??:??:??:??
-				IF_myASSERT(debugTRACK, !psXP->ctl.bMinWid && !psXP->ctl.bPrecis);
-				psXP->ctl.uSize = S_hh;					// force interpretation as sequence of U8 values
-				pX.pc8 = va_arg(psXP->vaList, char *);
+				IF_myASSERT(debugTRACK, sXP.ctl.bMinWid == 0 && sXP.ctl.bPrecis == 0);
+				sXP.ctl.uSize = S_hh;					// force interpretation as sequence of U8 values
+				pX.pc8 = va_arg(sXP.vaList, char *);
 				IF_myASSERT(debugTRACK, halMemoryANY(pX.pc8));
-				vPrintHexValues(psXP, lenMAC_ADDRESS, pX.pc8);
+				vPrintHexValues(&sXP, lenMAC_ADDRESS, pX.pc8);
 				break;
 			#endif
 
 			#if	(xpfSUPPORT_HEXDUMP == 1)
 			case CHR_Y:									// HEXDUMP
 				// retrieve implied/hidden size parameter if not specified...
-				X32.iX = psXP->ctl.bPrecis ? psXP->ctl.Precis : va_arg(psXP->vaList, int);
-				pX.pc8 = va_arg(psXP->vaList, char *);	// retrieve the pointer to data
+				X32.iX = sXP.ctl.bPrecis ? sXP.ctl.Precis : va_arg(sXP.vaList, int);
+				pX.pc8 = va_arg(sXP.vaList, char *);	// retrieve the pointer to data
 				IF_myASSERT(debugTRACK, halMemoryANY(pX.pc8));
-				psXP->ctl.uForm = form3X;
-				vPrintHexDump(psXP, X32.iX, pX.pc8);
+				sXP.ctl.uForm = form3X;
+				vPrintHexDump(&sXP, X32.iX, pX.pc8);
 				break;
 			#endif
 
@@ -1314,20 +1323,20 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			 * '''	Group digits using '|' (bytes) and '-' (nibbles)
 			 */
 			case CHR_b: {
-				//IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0 && psXP->ctl.bPad0 == 0);
-				X64 = x64PrintGetValue(psXP);
-				X32.iX = S_bytes[psXP->ctl.uSize] * BITS_IN_BYTE;
-				if (psXP->ctl.MinWid)
-					X32.iX = (psXP->ctl.MinWid > X32.iX) ? X32.iX : psXP->ctl.MinWid;
+				//IF_myASSERT(debugTRACK, sXP.ctl.bSigned == 0 && sXP.ctl.bPad0 == 0);
+				X64 = x64PrintGetValue(&sXP);
+				X32.iX = S_bytes[sXP.ctl.uSize] * BITS_IN_BYTE;
+				if (sXP.ctl.MinWid)
+					X32.iX = (sXP.ctl.MinWid > X32.iX) ? X32.iX : sXP.ctl.MinWid;
 				u64_t mask = 1ULL << (X32.iX - 1);
-				vPrintString(psXP, psXP->ctl.bCase ? "0B" : "0b");
+				vPrintString(&sXP, sXP.ctl.bCase ? "0B" : "0b");
 				
 				while (mask) {
-					xPrintChar(psXP, (X64.u64 & mask) ? CHR_1 : CHR_0);
+					xPrintChar(&sXP, (X64.u64 & mask) ? CHR_1 : CHR_0);
 					mask >>= 1;
 					// handle the complex grouping separator(s) boundary 8 use '|' or 4 use '-'
-					if (--X32.iX && psXP->ctl.bGroup && (X32.iX % 4) == 0) {
-						xPrintChar(psXP, X32.iX % 32 == 0 ? CHR_VERT_BAR :			// word
+					if (--X32.iX && sXP.ctl.bGroup && (X32.iX % 4) == 0) {
+						xPrintChar(&sXP, X32.iX % 32 == 0 ? CHR_VERT_BAR :			// word
 										  X32.iX % 16 == 0 ? CHR_COLON :			// short
 									  	  X32.iX % 8 == 0 ? CHR_SPACE : CHR_MINUS);	// byte or nibble
 					}
@@ -1335,48 +1344,48 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 				break;
 			}
 
-			case CHR_c: xPrintChar(psXP, va_arg(psXP->vaList, int)); break;
+			case CHR_c: xPrintChar(&sXP, va_arg(sXP.vaList, int)); break;
 
 			case CHR_d:									// signed decimal "[-]ddddd"
 			case CHR_i: {								// signed integer (same as decimal ?)
-				psXP->ctl.bSigned = 1;
+				sXP.ctl.bSigned = 1;
 			#if (xpfSUPPORT_ARRAYS > 0)
-				if (psXP->ctl.bArray) {
-					IF_EXEC_1(xpfSUPPORT_ARRAYS, vPrintX64array, psXP);
+				if (sXP.ctl.bArray) {
+					IF_EXEC_1(xpfSUPPORT_ARRAYS, vPrintX64array, &sXP);
 				} else
 			#endif
 				{
-					X64 = x64PrintGetValue(psXP);
+					X64 = x64PrintGetValue(&sXP);
 					if (X64.i64 < 0LL) {
-						psXP->ctl.bNegVal = 1;
+						sXP.ctl.bNegVal = 1;
 						X64.i64 *= -1; 					// convert the value to unsigned
 					}
-					vPrintX64(psXP, X64.u64);
+					vPrintX64(&sXP, X64.u64);
 				}
 				break;
 			}
 		
 			#if	(xpfSUPPORT_IEEE754 == 1)
 //			case CHR_a:									// HEX format not yet supported
-			case CHR_e: ++psXP->ctl.uForm;				// form = 2
+			case CHR_e: ++sXP.ctl.uForm;				// form = 2
 				/* FALLTHRU */ /* no break */
-			case CHR_f: ++psXP->ctl.uForm;				// form = 1
+			case CHR_f: ++sXP.ctl.uForm;				// form = 1
 				/* FALLTHRU */ /* no break */
 			case CHR_g:									// form = 0 (or 1 or 2)
-				psXP->ctl.bSigned = 1;					// float always signed value.
-				if (psXP->ctl.bPrecis) {				// explicit precision specified ?
-					psXP->ctl.Precis = psXP->ctl.Precis > xpfMAXIMUM_DECIMALS ? xpfMAXIMUM_DECIMALS : psXP->ctl.Precis;
+				sXP.ctl.bSigned = 1;					// float always signed value.
+				if (sXP.ctl.bPrecis) {				// explicit precision specified ?
+					sXP.ctl.Precis = sXP.ctl.Precis > xpfMAXIMUM_DECIMALS ? xpfMAXIMUM_DECIMALS : sXP.ctl.Precis;
 				} else {
-					psXP->ctl.Precis = xpfDEFAULT_DECIMALS;
+					sXP.ctl.Precis = xpfDEFAULT_DECIMALS;
 				}
 			#if (xpfSUPPORT_ARRAYS > 0)
-				if (psXP->ctl.bArray) {
-					psXP->ctl.bFloat = 1;
-					vPrintX64array(psXP);
+				if (sXP.ctl.bArray) {
+					sXP.ctl.bFloat = 1;
+					vPrintX64array(&sXP);
 				} else
 			#endif
 				{
-					vPrintF64(psXP, va_arg(psXP->vaList, f64_t));
+					vPrintF64(&sXP, va_arg(sXP.vaList, f64_t));
 				}
 				break;
 			#endif
@@ -1387,57 +1396,57 @@ int	xPrintFX(xp_t * psXP, const char * pcFmt) {
 			}
 
 			case CHR_n: {								// store chars to date at location.
-				pX.piX = va_arg(psXP->vaList, int *);
+				pX.piX = va_arg(sXP.vaList, int *);
 				IF_myASSERT(debugTRACK, halMemorySRAM(pX.pc8));
-				*pX.piX = psXP->CurLen;
+				*pX.piX = sXP.CurLen;
 				break;
 			}
 
 			case CHR_o:									// unsigned octal "ddddd"
-			case CHR_x: psXP->ctl.bGroup = 0;			// hex as in "789abcd" UC/LC, disable grouping
+			case CHR_x: sXP.ctl.bGroup = 0;			// hex as in "789abcd" UC/LC, disable grouping
 				/* FALLTHRU */ /* no break */
 			case CHR_u: {								// unsigned decimal "ddddd"
-				IF_myASSERT(debugTRACK, psXP->ctl.bSigned == 0);
-				psXP->ctl.uBase = (cFmt == CHR_x) ? BASE16 : (cFmt == CHR_u) ? BASE10 : BASE08;
+				IF_myASSERT(debugTRACK, sXP.ctl.bSigned == 0);
+				sXP.ctl.uBase = (cFmt == CHR_x) ? BASE16 : (cFmt == CHR_u) ? BASE10 : BASE08;
 				#if (xpfSUPPORT_ARRAYS > 0)
- 					if (psXP->ctl.bArray) {
-						vPrintX64array(psXP);
+ 					if (sXP.ctl.bArray) {
+						vPrintX64array(&sXP);
 					} else
 				#endif
 				{
-					X64 = x64PrintGetValue(psXP);
-					vPrintX64(psXP, X64.u64);
+					X64 = x64PrintGetValue(&sXP);
+					vPrintX64(&sXP, X64.u64);
 				}
 				break;
 			}
 
 			case CHR_p: {
-				pX.pv = va_arg(psXP->vaList, void *);
-				vPrintPointer(psXP, pX);
+				pX.pv = va_arg(sXP.vaList, void *);
+				vPrintPointer(&sXP, pX);
 				break;
 			}
 
 			case CHR_s: {
-				pX.pc8 = va_arg(psXP->vaList, char *);
+				pX.pc8 = va_arg(sXP.vaList, char *);
 			commonM_S:
 				// Required to avoid crash when wifi message is intercepted and a string pointer parameter
 				// is evaluated as out of valid memory address (0xFFFFFFE6). Replace string with "pOOR"
 				pX.pc8 = halMemoryANY(pX.pc8) ? pX.pc8 : pX.pc8 ? strOOR : strNULL;
-				vPrintStringJustified(psXP, pX.pc8);
+				vPrintStringJustified(&sXP, pX.pc8);
 				break;
 			}
 
 			default:
 				/* At this stage we have handled the '%' as assumed, but the next character found is invalid.
 				 * Show the '%' we swallowed and then the extra, invalid, character as well */
-				xPrintChar(psXP, CHR_PERCENT);
-				xPrintChar(psXP, *pcFmt);
+				xPrintChar(&sXP, CHR_PERCENT);
+				xPrintChar(&sXP, *pcFmt);
 				break;
 			}
-			psXP->ctl.bPlus = 0;							// reset this form after printing one value
+			sXP.ctl.bPlus = 0;							// reset this form after printing one value
 		} else {
 out_lbl:
-			xPrintChar(psXP, *pcFmt);
+			xPrintChar(&sXP, *pcFmt);
 		}
 	}
 exit:
