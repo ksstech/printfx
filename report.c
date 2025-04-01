@@ -51,28 +51,33 @@ int	vreport(report_t * psR, const char * pcFmt, va_list vaList) {
 		memset(&sRprt, 0, sizeof(report_t));
 		psR = &sRprt;
 		psR->uSGR = sgrANSI;
-	}
-	IF_myASSERT(debugPARAM, halMemoryRAM(psR));
-	if (psR->pcBuf && psR->size) {						/* pointer & size supplied, output to buffer */
-		IF_myASSERT(debugTRACK, halMemoryRAM(psR->pcBuf));		/* verify buffer is in RAM */
-		iRV = vsnprintfx(psR->pcBuf, psR->Size, pcFmt, vaList);	/* generate output to buffer */
-		if (iRV > 0) {									/* if anything written */
-			IF_myASSERT(debugRESULT, iRV <= psR->size);
-			psR->pcBuf += iRV;							/* update buffer pointer */
-			psR->size -= iRV;							/* available size */
-		}
 	} else {
-		/* Set default output handler */
-		if (psR->putc == NULL) { psR->putc = xPrintToHandle; psR->pvArg = (void *)STDOUT_FILENO; }
-//		if (psR->putc == NULL) { psR->putc = xPrintToFile; psR->pvArg = (void *) stdout; }
-		if (psR->size == 0)
-			psR->size = xpfMAXLEN_MAXVAL;
-		BaseType_t btRV = pdFALSE;
-		if (psR->fNoLock == 0)							/* lock requested? */
-			btRV = halUartLock(WPFX_TIMEOUT);			/* yes, lock */
-		iRV = xPrintF(psR->putc, psR->pvArg, psR->Size, pcFmt, vaList);
-		if (psR->fNoLock == 0 && btRV == pdTRUE)		/* lock requested & was successful*/
-			halUartUnLock();							/* yes, unlock */
+		IF_myASSERT(debugPARAM, halMemoryRAM(psR));
+	}
+
+	psR->bStrOut = 0;									// ensure internal use flag cleared
+	if (psR->bHdlr == 0) {								// handler information NOT supplied?
+		if (psR->pvArg && psR->size) {					// pointer & size supplied, output to buffer
+			IF_myASSERT(debugTRACK, halMemoryRAM(psR->pvArg));	// verify buffer is in RAM
+			psR->putc = xPrintToString;
+			psR->bStrOut = 1;							// string output, set internal use flag
+		} else {										// default
+			psR->putc = xPrintToFile; 					// xPrintToHandle -or- xPrintToFile
+			psR->pvArg = (void *)stdout;				// STDOUT_FILENO -or- stdout
+		}
+	}
+	BaseType_t btRV = pdFALSE;
+	if (psR->bStrOut == 0 && psR->fNoLock == 0)			/* lock requested? */
+		btRV = halUartLock(WPFX_TIMEOUT);				/* yes, lock */
+	iRV = xPrintFX(psR->putc, psR->pvArg, psR->Size, pcFmt, vaList);
+	if (psR->bStrOut) {
+		if (iRV == psR->size)							// Buffer full?
+			--iRV;										// step back to make space for terminator
+		psR->pcBuf[iRV] = 0;							// add terminator
+		psR->pcBuf += iRV;								/* update buffer pointer */
+		psR->size -= iRV;								/* available size */
+	} else if (psR->fNoLock == 0 && btRV == pdTRUE) {	/* lock requested & was successful*/
+		halUartUnLock();								/* yes, unlock */
 	}
 	return iRV;
 }

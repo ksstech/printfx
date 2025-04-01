@@ -175,9 +175,11 @@ DUMB_STATIC_ASSERT(sizeof(fm_t) == sizeof(u32_t));
 
 typedef struct __attribute__((packed)) report_t {
 	void * pvAlloc;
-	char * pcBuf;
 	int (* putc)(struct xp_t *, int);					/* alternative character output handler */
-	void * pvArg;
+	union {
+		void * pvArg;
+		char * pcBuf;
+	};
 	union __attribute__((packed)) {						/* Size as value and/or structure */
 		u32_t Size;
 		struct __attribute__((packed)) {
@@ -188,8 +190,8 @@ typedef struct __attribute__((packed)) report_t {
 			u8_t sNoLock : 1;		/* saved fNoLock */
 			u8_t fNoLock : 1;		/* Do not lock/unlock */
 			u8_t fEcho : 1;			// enable command character(s) echo
-			u8_t s0 : 1;
-			u8_t s1 : 1;
+			u8_t bHdlr : 1;			// indicate handler specified
+			u8_t bStrOut : 1;		// String buffer output
 			// flags passed on to xPrintF()
 			u8_t bDebug : 1;		// Enable debug output where placed
 			u8_t uSGR : 2;
@@ -197,7 +199,7 @@ typedef struct __attribute__((packed)) report_t {
 	};
 	fm_t sFM;
 } report_t;
-DUMB_STATIC_ASSERT(sizeof(report_t) == ((4 * sizeof(void *)) + 8));
+DUMB_STATIC_ASSERT(sizeof(report_t) == ((3 * sizeof(void *)) + 8));
 
 // ################################### Public functions ############################################
 
