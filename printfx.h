@@ -248,8 +248,8 @@ int xPrintFX(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pc
 
 // ##################################### Destination = STDOUT ######################################
 
-int vprintfx(const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
-int printfx(const char *, ...); //_ATTRIBUTE ((__format__ (__printf__, 1, 2)));
+int vprintfx(const char *, va_list)		_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
+int printfx(const char *, ...);			//_ATTRIBUTE ((__format__ (__printf__, 1, 2)));
 
 // ##################################### Destination = STRING ######################################
 
