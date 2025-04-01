@@ -1497,8 +1497,9 @@ int printfx(const char * pcFmt, ...) {
 
 // ##################################### Destination = STRING ######################################
 
-static int xPrintToString(xp_t * psXP, int cChr) {
-	if (psXP->pStr) *psXP->pStr++ = cChr;
+int xPrintToString(xp_t * psXP, int cChr) {
+	if (psXP->pStr)
+		*psXP->pStr++ = cChr;
 	return cChr;
 }
 
@@ -1523,7 +1524,7 @@ int snprintfx(char * pBuf, size_t Size, const char * pcFmt, ...) {
 }
 
 int sprintfx(char * pBuf, const char * pcFmt, ...) {
-	va_list	vaList;
+	va_list vaList;
 	va_start(vaList, pcFmt);
 	int iRV = vsnprintfx(pBuf, xpfMAXLEN_MAXVAL, pcFmt, vaList);
 	va_end(vaList);
