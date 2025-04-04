@@ -1518,9 +1518,7 @@ int vprintfx(const char * pcFmt, va_list vaList) {
 int printfx(const char * pcFmt, ...) {
 	va_list vaList;
 	va_start(vaList, pcFmt);
-	halUartLock(WPFX_TIMEOUT);
 	int iRV = vprintfx(pcFmt, vaList);
-	halUartUnLock();
 	va_end(vaList);
 	return iRV;
 }
