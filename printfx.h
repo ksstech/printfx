@@ -6,6 +6,7 @@
 #include "hal_stdio.h"
 #include "hal_timer.h"
 #include "hal_usart.h"
+#include "x_ubuf.h"
 
 #include <stdarg.h>
 #include <stdint.h>

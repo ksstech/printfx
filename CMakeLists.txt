@@ -4,7 +4,7 @@ if( ESP_PLATFORM )
 	set( srcs "printfx.c" "report.c" "printfx_tests.c" )
 	set( include_dirs "." )
 	set( priv_include_dirs )
-	set( requires "main" )
+	set( requires "buffers socketsX" )
 	set( priv_requires )
 
 	idf_component_register(
