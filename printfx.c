@@ -733,6 +733,8 @@ void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 		}
 		iWidth -= iWidth % 8;
 	}
+	if (iWidth > xpfMAXWIDTH_HEXDUMP)
+		iWidth = xpfMAXWIDTH_HEXDUMP;
 	for (int Now = 0; Now < xLen; Now += iWidth) {
 		if (psXP->ctl.bLeft == 0) {						// display address (absolute/relative)
 			vPrintPointer(psXP, (px_t) (psXP->ctl.bRelVal ? (void *) Now : (void *) (pStr + Now)));

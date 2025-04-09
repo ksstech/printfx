@@ -63,6 +63,8 @@ extern "C" {
 #define	xpfMAX_TIME_FRAC			6		// control resolution mS/uS/nS
 #define	xpfDEF_TIME_FRAC			3
 
+#define xpfMAXWIDTH_HEXDUMP			32
+
 // ################################## C11 Pointer size determination ###############################
 
 _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determine pointer size");
