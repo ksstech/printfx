@@ -1,7 +1,7 @@
 # PRINTFX
 
 if( ESP_PLATFORM )
-	set( srcs "printfx.c" "report.c" "printfx_tests.c" )
+	set( srcs "printfx_v0.c" "report.c" "printfx_tests.c" )
 	set( include_dirs "." )
 	set( priv_include_dirs )
 	set( requires "buffers socketsX" )
