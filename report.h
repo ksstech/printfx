@@ -10,6 +10,8 @@ extern "C" {
 
 // ########################################### Macros ##############################################
 
+#define	controlSIZE_FLAGS_BUF		256					// approx 24*10
+
 #define	makeMASK08_3x8(A,B,C,D,E,F,G,H,I,J,K)		\
 	((u32_t) (A<<31|B<<30|C<<29|D<<28|E<<27|F<<26|G<<25|H<<24|(I&0xFF)<<16|(J&0xFF)<<8|(K&0xFF)))
 #define	makeMASK08x24(A,B,C,D,E,F,G,H,I)			\
@@ -25,43 +27,44 @@ extern "C" {
 
 #define repBIT_SGR				30						// width = 2
 #define repBIT_DEBUG			29						// width = 1
-#define repBIT_FORCE			28
-#define repBIT_FLAGS			27
-#define repBIT_ECHO				26
-#define repBIT_NOLOCK			25
+#define repBIT_XLOCK			26						// width = 3
 
-#define repSIZE_SET(s0,s1,echo,nolock,sgr,debug,size) (u32_t) ( \
-	((sgr & 3) << repBIT_SGR) 		|	\
-	((debug & 1) << repBIT_DEBUG)	|	\
-	((s0 & 1) << repBIT_FORCE)		|	\
-	((s1 & 1) << repBIT_FLAGS)		|	\
-	((echo & 1) << repBIT_ECHO)		|	\
-	((nolock & 1) << repBIT_NOLOCK) |	\
-	(size & 0xFFFF))
-
-#define repSIZE_SETX(s0,s1,echo,nolock,sgr,debug,Size)	(u32_t) { 	\
-	.s0=s0, .s1=s1, .fEcho=echo, .fNoLock=nolock, .uSGR=sgr,		\
-	.dDebug=debug, .size=Size, .col1 = 0, .col2 = 0, .spare = 0, }
+#define repSIZE_SET(xlock,sgr,debug,size)	\
+	(u32_t)(((sgr & 3) << 30) 	|			\
+			((debug & 1) << 29)	|			\
+			((xlock & 7) << 26)	|			\
+			(size & 0x0000FFFF))
 
 #define fmSAVE()					fm_t sFM = { .u32Val = psR->sFM.u32Val };
 #define fmREST()					psR->sFM.u32Val = sFM.u32Val;
 #define fmBACK(Mem)					psR->sFM.Mem = sFM.Mem;
-
 #define fmSET(Mem,Val)				{ if (psR) psR->sFM.Mem = Val; }
 #define fmTST(Mem)					(psR && psR->sFM.Mem)
+
+#define repSET(Mem,Val)				{ if (psR) psR->Mem = Val; }
 
 #define REP_LVGL(a,b,c,d,e,f,g,h,i) (fm_t){ .lvPart=i, .lv07=h, .lv06=g, .lv05=f, .lvStyle=e, .lvScroll=d, .lvClick=c, .lvContent=b, .lvNL=a }
 
 // ####################################### enumerations ############################################
 
+/*			S0		S1		S2		S3		S4		S5		S6		S7
+Lock	|	0	|	1	|	0	|	1	|	0	|	1	|	0	|	1	|
+UnLock	|	0	|	0	|	1	|	1	|	0	|	0	|	1	|	1	|
+NoLock	|	0	|	0	|	0	|	0	|	1	|	1	|	1	|	1	|
+		| None	| 	LO	|	UL	| LO+UL	|	NL	|Invalid|Invalid|BUFFER	|
+Before	|		| S1->4 |		|	 	|		|		|		|		|
+After	|		|		| S2->0 |		|		|		|		|		| */
+
+typedef enum { sNONE, sLO, sUL, sLO_UL, sNL, sINV5, sINV6, sBUFFER } e_lock_t;
+
 // #################################### Public structures ##########################################
 
 /**
- * structures used with wprintfx() and wvprintfx() functions used to facilitate 
+ * structures used with xReport() and xvReport() functions used to facilitate 
  * the transparent transfer of selected flags from the report_t structure into 
  * the flags member of the xpc_t structure.
 */
-typedef	union  __attribute__((packed)) fm_t {
+typedef	union __attribute__((packed)) fm_t {
 	struct __attribute__((packed)) {// 8:24 Generic
 		union {
 			struct __attribute__((packed)) { u32_t z00:1, z01:1, z02:1, z03:1, zv04:1, z05:1, z06:1, z07:1, z08:1, z09:1, z10:1, z11:1, z12:1, z13:1, z14:1, z15:1, z16:1, z17:1, z18:1, z19:1, z20:1, z21:1, z22:1, z23:1; };
@@ -174,40 +177,50 @@ typedef	union  __attribute__((packed)) fm_t {
 DUMB_STATIC_ASSERT(sizeof(fm_t) == sizeof(u32_t));
 
 typedef struct __attribute__((packed)) report_t {
-	void * pvAlloc;
-	int (* putc)(struct xp_t *, int);					/* alternative character output handler */
-	union {
-		void * pvArg;
-		char * pcBuf;
-	};
-	union __attribute__((packed)) {						/* Size as value and/or structure */
-		u32_t Size;
+#if defined(printfxVER0)
+	int (*hdlr)(struct xp_t *, int);
+#elif defined(printfxVER1)
+	int (*hdlr)(struct xp_t *, const char *, size_t);
+#endif
+	char * pcAlloc;
+	char * pcBuf;
+	union __attribute__((packed)) {						
 		struct __attribute__((packed)) {
-			u32_t size : xpfMAXLEN_BITS;
+			u32_t size : xpfMAXLEN_BITS;				// Buffer size
 			/* flags NOT passed onto xPrintF() only used in in higher level formatting */
-			u8_t col1 : 4;
-			u8_t col2 : 4;
-			u8_t sNoLock : 1;		/* saved fNoLock */
-			u8_t fNoLock : 1;		/* Do not lock/unlock */
-			u8_t fEcho : 1;			// enable command character(s) echo
-			u8_t bHdlr : 1;			// indicate handler specified
-			u8_t bStrOut : 1;		// String buffer output
+			u16_t s0 : 9;
+			u8_t bHdlr : 1;								// 25: indicate required handler specified
+			u8_t XLock : 3;								// 26~8: locking requirement
 			// flags passed on to xPrintF()
-			u8_t bDebug : 1;		// Enable debug output where placed
-			u8_t uSGR : 2;
+			u8_t bDebug : 1;							// 29: Enable debug output where placed
+			u8_t uSGR : 2;								// 3x: Select Graphics Rendition option	
 		};
+		u32_t Size;										// size and flags as a single value
 	};
 	fm_t sFM;
 } report_t;
 DUMB_STATIC_ASSERT(sizeof(report_t) == ((3 * sizeof(void *)) + 8));
 
+// ###################################### Public variables #########################################
+
+extern SemaphoreHandle_t shReport;
+
 // ################################### Public functions ############################################
 
-BaseType_t xPrintFxSaveLock(report_t * psR);
-BaseType_t xPrintFxRestoreUnLock(report_t * psR);
+int	xvReport(report_t * psRprt, const char * pcFormat, va_list vaList);
 
-int	vreport(report_t * psRprt, const char * pcFormat, va_list vaList);
-int report(report_t * psRprt, const char * pcFormat, ...);
+int xReport(report_t * psRprt, const char * pcFormat, ...);
+
+/**
+ * @brief	report bit-level changes in variable
+ * @param	psR - pointer to report buffer/flag structure
+ * @param	V1 - old bit-mapped flag value
+ * @param	V2 - new bit-mapped flag value
+ * @param	Mask - mask controlling bit positions to report
+ * @param	paM - pointer to array of message pointers
+ * @return	number of characters stored in array or error (< 0)
+ */
+int	xReportBitMap(report_t * psR, u32_t V1, u32_t V2, u32_t Mask, const char * const paM[]);
 
 #ifdef __cplusplus
 }
