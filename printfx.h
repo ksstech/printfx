@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "FreeRTOS_Support.h"
 #include "hal_stdio.h"
 #include "hal_timer.h"
-#include "hal_usart.h"
 #include "x_ubuf.h"
+
+#include "common-vars.h"
 
 #include <stdarg.h>
 #include <stdint.h>
@@ -56,7 +56,10 @@ extern "C" {
 #define	IF_RPT(T, f, ...)			if (T) RPT(f, ##__VA_ARGS__)
 #define	IF_RPTL(T, f, ...)			if (T) RPTL(f, ##__VA_ARGS__)
 
+
 // ################################## public build definitions #####################################
+
+#define printfxVER0
 
 #define	xpfMAXIMUM_DECIMALS			15
 #define	xpfDEFAULT_DECIMALS			6
@@ -146,117 +149,122 @@ _Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determi
 #define xpfSGR_LVGL_Ha(val)			(val >> 8)
 #define xpfSGR_LVGL_Lb(val)			(val &0xFF)
 
-#define	XPC_BITS_XFER			4						// bBit8, bDebug:1, sgr:2
+#define	XPC_BITS_XFER				3					// bDebug:1, sgr:2
 
-#define WPFX_TIMEOUT			pdMS_TO_TICKS(1000)
+#define WPFX_TIMEOUT				pdMS_TO_TICKS(1000)
 
 // ####################################### enumerations ############################################
-
-enum {			//	F64		Hex		Other
-	form0G,		//	Gg		None	None
-	form1F,		//	Ff		:		!
-	form2E,		//	Ee		-		None
-	form3X		//	None	Complex	'
-};
-
-enum { S_none, S_hh, S_h, S_l, S_ll, S_j, S_z, S_t, S_L, S_XXX };
 
 enum { sgrNONE, sgrANSI, sgrAGFX, sgrLVGL };
 
 // #################################### Public structures ##########################################
 
-typedef union {
+typedef union sgr_info_t {
 	struct __attribute__((packed)) { u8_t a2, a1, c, r; };
-	u16_t rowcol, attrib;
+	struct __attribute__((packed)) { u16_t attrib, rowcol; };
 	u32_t u32;
 } sgr_info_t;
 DUMB_STATIC_ASSERT(sizeof(sgr_info_t) == 4);
 
-typedef	union __attribute__((packed)) xpc_t {
-	struct __attribute__((packed)) {
-		u32_t limits;				// Combined MinWid & Precis
-/*b4*/	u8_t bAltF : 1;				// # alternative form
-		u8_t bLeft : 1;				// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
-		u8_t bCase : 1;				// true = 'a' or false = 'A'
-		u8_t bPlus : 1;				// true = force use of '+' or '-' signed
-		u8_t bSigned : 1;			// true = content is signed value
-		u8_t bNegVal : 1;			// if value < 0
-		u8_t bRelVal : 1;			// relative address / elapsed time
-		u8_t bRadix : 1;			// '.' specified
-/*b5*/	u32_t uBase : 5;			// 2, 8, 10 or 16
-		u8_t uForm : 2;				// format specifier FLOAT, MAC & HEXDUMP
-		u8_t bGroup : 1;			// ' SI group digits or select separator
-/*b6*/	u8_t uSize : 4;				// size override
-		u8_t bMinWid : 1;			// MinWid specified
-		u8_t bPrecis : 1;			// Precis specified
-		u8_t bPad0 : 1;				// 0 = ' ' 1 = '0'
-		u8_t bArray : 1;			// array pointer as parameter
-/*b7*/	u8_t bFloat : 1;			// array printing FLOAT values
-		u8_t bGT:1;					// convert to LC
-		u8_t bLT:1;					// convert to UC 
-		u8_t uSpare : 2;
-		// end flg1. start flg2, sum of bit widths below = XPC_BITS_XFER
-		u8_t bDebug : 1;			// debug flag from wprintfx
-		u8_t uSGR : 2;				// check to align with report_t size struct
-	};
-	struct __attribute__((packed)) {
-		u32_t MinWid : xpfMINWID_BITS;			// min field width
-		u32_t Precis : xpfPRECIS_BITS;			// float precision or max string length
-		u32_t flg1 : (32-XPC_BITS_XFER);		// flags to be reset
-		u32_t flg2 : XPC_BITS_XFER;			// flags to be retained
-	};
-	u64_t u64Val;
-} xpc_t;
-DUMB_STATIC_ASSERT(sizeof(xpc_t) == 8);
+typedef struct __attribute__((packed)) xpc_flg_t {
+	u16_t MinWid : xpfMINWID_BITS;		// min field width
+	u16_t Precis : xpfPRECIS_BITS;		// float precision or max string length
+/*b4*/							// start flg1
+	u8_t bAltF : 1;				// # alternative form
+	u8_t bLeft : 1;				// if "%-[0][1-9]{diouxX}" then justify LEFT ie pad on right
+	u8_t bCase : 1;				// true = 'a' or false = 'A'
+	u8_t bPlus : 1;				// true = force use of '+' or '-' signed
+	u8_t bSigned : 1;			// true = content is signed value
+	u8_t bNegVal : 1;			// if value < 0
+	u8_t bRelVal : 1;			// relative address / elapsed time
+	u8_t bRadix : 1;			// '.' specified
+/*b5*/
+	u32_t uBase : 5;			// 2, 8, 10 or 16
+	u8_t uForm : 2;				// format specifier FLOAT, MAC & HEXDUMP
+	u8_t bGroup : 1;			// ' SI group digits or select separator
+/*b6*/
+	u8_t uSize : 4;				// size override
+	u8_t bMinWid : 1;			// MinWid specified
+	u8_t bPrecis : 1;			// Precis specified
+	u8_t bPad0 : 1;				// 0 = ' ' 1 = '0'
+	u8_t bArray : 1;			// array pointer as parameter
+/*b7*/
+	u8_t bFloat : 1;			// array printing FLOAT values
+	u8_t bGT:1;					// convert to LC
+	u8_t bLT:1;					// convert to UC 
+	u8_t uSpare : 2;
+	// start flg2, sum of bit widths below = XPC_BITS_XFER
+	u8_t bDebug : 1;			// debug flag from xvReport
+	u8_t uSGR : 2;				// check to align with report_t size struct
+} xpc_flg_t;
 
-/**
- * @brief	Example of bDebug flag usage
+typedef struct __attribute__((packed)) xpc_val_t {
+	u32_t limits;						// Combined MinWid & Precis
+	u32_t flg1 : (32-XPC_BITS_XFER);	// flags to be reset
+	u32_t flg2 : XPC_BITS_XFER;			// flags to be retained
+} xpc_val_t;
+
+typedef	union __attribute__((packed)) xpc_t {
+	xpc_flg_t flg;
+	xpc_val_t val;
+	u64_t u64XPC;					// used by XPC_SAVE & XPC_REST
+} xpc_t;
+
+/* Example of bDebug flag usage
  * IF_PX(psXP->ctl.bDebug, "[%.*s", Len, Buffer);
  * IF_PX(psXP->ctl.bDebug, " %.*s", Len, Buffer);
  * IF_PX(psXP->ctl.bDebug, " %.*s]", Len, Buffer);
  * To set the bDebug flag use reportSIZE(a,b,c,d,e,) 
 */
 typedef	struct xp_t {
-	int (*handler)(struct xp_t *, int);
-	union {							// parameter->buffer/stream/socket/ubuf/handle/driver/pCRC 
-		void * pVoid;
-		char * pStr;				// string buffer
-		FILE * stream;				// file stream
-		struct netx_t *	psSock;		// socket context
-		struct ubuf_t *	psUBuf;		// ubuf
-		int fd;						// file descriptor/handle
-		int (*DevPutc)(int);		// custom device driver
-		unsigned int * pU32;		// Address of running CRC32 value
+#if defined(printfxVER0)
+	int (*hdlr)(struct xp_t *, int);
+#elif defined(printfxVER1)
+	int (*hdlr)(struct xp_t *, const char *, size_t);
+#endif
+	void * pvPara;									// buffer/stream/socket/ubuf/handle/driver/pCRC 
+	u32_t MaxLen : xpfMAXLEN_BITS;					// max chars to output 0 = unlimited
+	u32_t CurLen : xpfMAXLEN_BITS;					// number of chars output so far
+	union __attribute__((packed)) {
+		xpc_flg_t flg;
+		xpc_val_t val;
+		u64_t u64XPC;								// used by XPC_SAVE & XPC_REST
 	};
-	union {							// maxlen & curlen, outside xpc_t not to save/restore
-		u32_t lengths;				// single member used to clear both
-		struct __attribute__((packed)) {				// current and maximum length
-			u16_t MaxLen : xpfMAXLEN_BITS;				// max chars to output 0 = unlimited
-			u16_t CurLen : xpfMAXLEN_BITS;				// number of chars output so far
-		};
-	};
-	xpc_t ctl;
 	va_list vaList;
 } xp_t;
-DUMB_STATIC_ASSERT(sizeof(xp_t) == (sizeof(int *) + sizeof(void *) + sizeof(u32_t) + sizeof(xpc_t) + sizeof(va_list)));
+DUMB_STATIC_ASSERT(sizeof(xp_t) == (2 * sizeof(void *)) + sizeof(u32_t) + sizeof(u64_t) + sizeof(va_list));
 
 // ################################### Public variables ############################################
 
 // ################################### Public functions ############################################
 
-int xPrintFX(int (Hdlr)(xp_t *, int), void * pVoid, size_t Size, const char * pcFmt, va_list vaList);
+#if defined(printfxVER0)
+	int xPrintFX(int (Hdlr)(xp_t *, int), void * pvPara, size_t Size, const char * pcFmt, va_list vaList);
+#elif defined(printfxVER1)
+	int xPrintFX(int (Hdlr)(xp_t *, const char *, size_t), void * pvPara, size_t Size, const char * pcFmt, va_list vaList);
+#endif
+
 
 /* Public function prototypes for extended functionality version of stdio supplied functions
  * These names MUST be used if any of the extended functionality is used in a format string */
 
-// ##################################### Destination = STDOUT ######################################
+ // #################################### Destination handlers #######################################
+
+#if defined(printfxVER0)
+	int xPrintToString(xp_t *, int);
+	int xPrintToStdOut(xp_t *, int);
+#elif defined(printfxVER1)
+	int xPrintToString(xp_t *, const char *, size_t);
+	int xPrintToStdOut(xp_t *, const char *, size_t);
+#endif
+
+ // ##################################### Destination = STDOUT ######################################
 
 int vprintfx(const char *, va_list)		_ATTRIBUTE ((__format__ (__printf__, 1, 0)));
 int printfx(const char *, ...);			//_ATTRIBUTE ((__format__ (__printf__, 1, 2)));
 
 // ##################################### Destination = STRING ######################################
 
-int xPrintToString(xp_t * psXP, int cChr);
 int vsnprintfx(char *, size_t, const char *, va_list)	_ATTRIBUTE ((__format__ (__printf__, 3, 0)));
 int vsprintfx(char *, const char *, va_list)			_ATTRIBUTE ((__format__ (__printf__, 2, 0)));
 int snprintfx(char *, size_t, const char *, ...);		//_ATTRIBUTE ((__format__ (__printf__, 3, 2)));
@@ -269,23 +277,22 @@ int cprintfx(const char *, ...);
 
 // ################################### Destination = FILE PTR ######################################
 
-int xPrintToFile(xp_t * psXP, int cChr);
 int vfprintfx(FILE *, const char *, va_list );
 int fprintfx(FILE *, const char *, ...);
 
 // ################################### Destination = HANDLE ########################################
 
-int xPrintToHandle(xp_t * psXP, int cChr);
 int vdprintfx(int, const char *, va_list );
 int dprintfx(int, const char *, ...);
 
 // ################################### Destination = DEVICE ########################################
 
-int vdevprintfx(int (* handler)(int ), const char *, va_list);
-int devprintfx(int (* handler)(int), const char *, ...);
+int vdevprintfx(int (*)(int ), const char *, va_list);
+int devprintfx(int (*)(int), const char *, ...);
 
 // #################################### Destination : SOCKET #######################################
 
+struct netx_t;
 int vsocprintfx(struct netx_t *, const char *, va_list);
 int socprintfx(struct netx_t *, const char *, ...);
 
