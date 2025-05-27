@@ -1497,10 +1497,10 @@ int xPrintToFile(xp_t * psXP, int cChr) { return fputc(cChr, ((FILE *)psXP->pvPa
 
 int xPrintToStdOut(xp_t * psXP, int cChr) { return fputc(cChr, stdout); }
 
-int xPrintToConsole(xp_t * psXP, int cChr) {
-	const char C8 = cChr;
-	cChr = uart_tx_chars(stdioCONSOLE_DEV, &C8, 1);
-	return (cChr == 1) ? C8 : cChr;
+int xPrintToConsole(xp_t * psXP, int iChr) {
+	const char cChr = iChr;
+	iChr = uart_tx_chars(stdioCONSOLE_DEV, &cChr, 1);
+	return (iChr == 1) ? cChr : iChr;
 }
 
 int xPrintToHandle(xp_t * psXP, int cChr) {
