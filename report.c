@@ -45,6 +45,12 @@ void vReportDebug(report_t * psR) {
 
 int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 	int iRV = 0;
+	report_t sRprt = { 0 };
+	if (psR == NULL) {
+		sRprt.uSGR = sgrANSI;
+		sRprt.bDirect = 1;
+		psR = &sRprt;
+	}
 	IF_myASSERT(debugPARAM, halMemoryRAM(psR));
 	if (psR->bHdlr) {									// handler information supplied?
 		IF_myASSERT(debugTRACK, halMemoryEXE(psR->hdlr));
@@ -55,6 +61,10 @@ int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 		psR->XLock = sBUFFER;							// no un/lock required or done
 	} else {											// string buffer not configured
 		psR->hdlr = xPrintToStdOut;						// default to STDOUT
+		if (psR->bDirect) {
+			psR->bSaved = serial_get_console_status();
+			serial_set_console_status(1);
+		}
 		IF_myASSERT(debugTRACK, psR->pcBuf == 0 && psR->size == 0);
 	}
 
@@ -82,7 +92,11 @@ int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 		psR->pcBuf += iRV;								// update buffer pointer
 		psR->size -= iRV;								// update available size
 		*psR->pcBuf = 0;								// add terminator
+	} else {
+		// sNONE / sNL. [sLO_UL & sBUFFER handled, sLO->sNL, sUL->sNONE, sINV5 & sINV6 asserted]
 	}
+	if (psR->bHdlr == 0 && (psR->pcBuf == NULL || psR->size == 0) && psR->bDirect)
+		serial_set_console_status(psR->bSaved);
 	return iRV;
 }
 

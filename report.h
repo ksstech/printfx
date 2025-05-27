@@ -188,7 +188,9 @@ typedef struct __attribute__((packed)) report_t {
 		struct __attribute__((packed)) {
 			u32_t size : xpfMAXLEN_BITS;				// Buffer size
 			/* flags NOT passed onto xPrintF() only used in in higher level formatting */
-			u16_t s0 : 9;
+			u8_t s0 : 7;
+			u8_t bSaved : 1;							// 23: UART/USB saved status
+			u8_t bDirect : 1;							// 24: UART/USB direct output (unbuffered)
 			u8_t bHdlr : 1;								// 25: indicate required handler specified
 			u8_t XLock : 3;								// 26~8: locking requirement
 			// flags passed on to xPrintF()
