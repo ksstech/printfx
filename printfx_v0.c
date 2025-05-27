@@ -1589,13 +1589,7 @@ int printfx(const char * pcFmt, ...) {
 
 // ################################### Destination = CONSOLE #######################################
 
- int vcprintfx(const char * pcFmt, va_list vaList) {
-	BaseType_t btRV = halUartLock(WPFX_TIMEOUT);
-	int iRV = xPrintFX(xPrintToStdOut, 0, 0, pcFmt, vaList);
-	if (btRV == pdTRUE)
-		halUartUnLock();
-	return iRV;
-}
+ int vcprintfx(const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToConsole, 0, 0, pcFmt, vaList); }
 
 int cprintfx(const char * pcFmt, ...) {
 	va_list vaList;
