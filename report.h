@@ -10,6 +10,9 @@ extern "C" {
 
 // ########################################### Macros ##############################################
 
+#define	REP(f, ...)					xReport(NULL, f, ##__VA_ARGS__)
+#define	IF_REP(T, f, ...)			if (T) REP(f, ##__VA_ARGS__)
+
 #define	controlSIZE_FLAGS_BUF		256					// approx 24*10
 
 #define	makeMASK08_3x8(A,B,C,D,E,F,G,H,I,J,K)		\
@@ -29,10 +32,11 @@ extern "C" {
 #define repBIT_DEBUG			29						// width = 1
 #define repBIT_XLOCK			26						// width = 3
 
-#define repSIZE_SET(xlock,sgr,debug,size)	\
-	(u32_t)(((sgr & 3) << 30) 	|			\
-			((debug & 1) << 29)	|			\
-			((xlock & 7) << 26)	|			\
+#define repSIZE_SET(xlock,sgr,debug,direct,size)	\
+	(u32_t)(((sgr & 3) << 30) 	|					\
+			((debug & 1) << 29)	|					\
+			((xlock & 7) << 26)	|					\
+			((direct & 1) << 24)|					\
 			(size & 0x0000FFFF))
 
 #define fmSAVE()					fm_t sFM = { .u32Val = psR->sFM.u32Val };
