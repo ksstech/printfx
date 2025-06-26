@@ -45,12 +45,9 @@ void vReportDebug(report_t * psR) {
 
 int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 	int iRV = 0;
-	report_t sRprt = { 0 };
-	if (psR == NULL) {
-		sRprt.uSGR = sgrANSI;
-		sRprt.bDirect = 1;
+	report_t sRprt = { .uSGR = sgrANSI, .XLock = sLO_UL };		// remove .bDirect = 1, 
+	if (psR == NULL)
 		psR = &sRprt;
-	}
 	IF_myASSERT(debugPARAM, halMemoryRAM(psR));
 	if (psR->bHdlr) {									// handler information supplied?
 		IF_myASSERT(debugTRACK, halMemoryEXE(psR->hdlr));
@@ -67,7 +64,7 @@ int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 		}
 		IF_myASSERT(debugTRACK, psR->pcBuf == 0 && psR->size == 0);
 	}
-
+	// verify xlock values, handle semaphore accordingly
 	BaseType_t btRV = pdFALSE;
 	if (psR->XLock == sLO || psR->XLock == sLO_UL) {	// handle sLO & sLO_UL
 		if (psR->XLock == sLO)							// sLO is transient
@@ -80,7 +77,9 @@ int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 	} else {
 		// sNONE, sUL, sNL, sBUFFER are OK
 	}
+	// generate formatted output to specified channel
 	iRV = xPrintFX(psR->hdlr, psR->pcBuf, psR->Size, pcFmt, vaList);
+	// act on Xlock value, unlock semaphore if required, update pointers if output to buffer
 	if (psR->XLock == sUL || psR->XLock == sLO_UL) {
 		if (btRV == pdTRUE)								// earlier lock was successful?
 			xRtosSemaphoreGive(&ReportLock);			// then unlock
@@ -95,6 +94,7 @@ int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 	} else {
 		// sNONE / sNL. [sLO_UL & sBUFFER handled, sLO->sNL, sUL->sNONE, sINV5 & sINV6 asserted]
 	}
+	// restore serial console status if required 
 	if (psR->bHdlr == 0 && (psR->pcBuf == NULL || psR->size == 0) && psR->bDirect)
 		serial_set_console_status(psR->bSaved);
 	return iRV;
