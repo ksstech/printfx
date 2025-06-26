@@ -118,6 +118,7 @@ int	xReportBitMap(report_t * psR, u32_t V1, u32_t V2, u32_t Mask, const char * c
 	char caTmp[16];
 	int iRV = 0;
 	u32_t Col, CurMask;
+	repSET(XLock, sLO);									// will be changed to sNL automatically
 	for (pos = iFS, idx = iFS, CurMask = (1<<iFS); pos >= 0; CurMask >>= 1, --pos, --idx) {
 		if (Mask & CurMask) {
 			B1 = V1 & CurMask ? 1 : 0;
@@ -142,10 +143,11 @@ int	xReportBitMap(report_t * psR, u32_t V1, u32_t V2, u32_t Mask, const char * c
 			}
 		}
 	}
-	if (iRV) {
-		iRV += xReport(psR, "(x%0.*X)", iFS+2, V2);		// append hex value at end of string
-		if (fmTST(aNL))
-			iRV += xReport(psR, strNL);
+	repSET(XLock, sUL);
+	if (iRV) {											// if any output generated append hex value
+		iRV += xReport(psR, "(x%0.*X)%s", iFS+2, V2, fmTST(aNL) ? strNL : strNUL);
+	} else {
+		iRV += xReport(psR, strNUL);					// no output, just unlock
 	}
 	return iRV;
 }
