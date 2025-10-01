@@ -1530,7 +1530,7 @@ int xPrintToSocket(xp_t * psXP, int iChr) {
 
 int xPrintToUBuf(xp_t * psXP, int iChr) { return xUBufPutC(((ubuf_t *)psXP->pvPara), iChr); }
 
-int xPrintToCRC32(xp_t * psXP, int cChr) {
+int xPrintToCRC32(xp_t * psXP, int iChr) {
 #if defined(ESP_PLATFORM)								// use ROM based CRC lookup table
 	u8_t cChr = iChr;
 	*(u32_t *)psXP->pvPara = esp_rom_crc32_le(*(u32_t *)psXP->pvPara, &cChr, sizeof(cChr));
