@@ -10,15 +10,15 @@
 #include "printfx.h"
 
 #include "common-vars.h"
+#include "errors_events.h"
 #include "FreeRTOS_Support.h"
 #include "hal_memory.h"
 #include "hal_usart.h"
 #include "hal_stdio.h"
+#include "stdioX.h"
 #include "socketsX.h"
 #include "struct_union.h"
 #include "string_general.h"		// xinstring function
-#include "errors_events.h"
-#include "terminalX.h"
 #include "utilitiesX.h"
 
 #include <math.h>					// isnan()
@@ -189,7 +189,7 @@ static char cPrintNibbleToChar(xp_t * psXP, u8_t Val) {
 
 int xPrintToString(xp_t * psXP, const char * pcSrc, size_t sSrc) {
 	if (halMemoryRAM(psXP->pvPara)) {
-		memcpy(psXP->pvPara, pcSrc, sSrc);
+		memcpy(psXP->pvPara, pcSrc, sSrc);		// RISKY if insufficient space left in buffer...!!!
 		psXP->pvPara += sSrc;
 	}
 	return sSrc;
@@ -1680,8 +1680,7 @@ int	crcprintfx(u32_t * pU32, const char * pcFmt, ...) {
 /* To make this work for esp-idf and newlib, the following modules must be removed:
  *		lib_a-[s[sn[fi]]]printf.o
  *		lib_a-v[f[i]]printf.o
- *		lib_a-putchar.o
- *		lib_a-getchar.o
+ *		lib_a-??tchar.o (put & get)
  * using command line
  * 		ar -d /c/Dropbox/devs/ws/z-sdk\libc.a {name}
  *
