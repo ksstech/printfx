@@ -1,11 +1,12 @@
 # PRINTFX
 
 if( ESP_PLATFORM )
-	set( srcs "printfx_v0.c" "report.c" "printfx_tests.c" )
+	set( srcs "printfx.c" "report.c" "printfx_tests.c" )
 	set( include_dirs "." )
 	set( priv_include_dirs )
-	set( requires "buffers socketsX" )
+	set( requires "" )
 	set( priv_requires )
+	#set( priv_requires "buffers common hal_esp32 rtos-support socketsX stringsX" )
 
 	idf_component_register(
 		SRCS ${srcs}
