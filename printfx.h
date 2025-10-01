@@ -252,10 +252,10 @@ DUMB_STATIC_ASSERT(sizeof(xp_t) == (2 * sizeof(void *)) + sizeof(u32_t) + sizeof
 
 #if defined(printfxVER0)
 	int xPrintToString(xp_t *, int);
-	int xPrintToStdOut(xp_t *, int);
+	int xPrintToHandle(xp_t *, int);
 #elif defined(printfxVER1)
 	int xPrintToString(xp_t *, const char *, size_t);
-	int xPrintToStdOut(xp_t *, const char *, size_t);
+	int xPrintToHandle(xp_t *, const char *, size_t);
 #endif
 
  // ##################################### Destination = STDOUT ######################################

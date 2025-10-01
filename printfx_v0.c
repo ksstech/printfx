@@ -1495,7 +1495,7 @@ int xPrintToString(xp_t * psXP, int cChr) {
 
 int xPrintToFile(xp_t * psXP, int cChr) { return fputc(cChr, ((FILE *)psXP->pvPara));	}
 
-int xPrintToStdOut(xp_t * psXP, int cChr) { return fputc(cChr, stdout); }
+int xPrintToHandle(xp_t * psXP, int iChr) { return xStdioPutC((int)psXP->pvPara, iChr); }
 
 int xPrintToConsole(xp_t * psXP, int iChr) {
 	const char cChr = iChr;
@@ -1565,7 +1565,7 @@ int sprintfx(char * pBuf, const char * pcFmt, ...) {
 
 // ################################### Destination = FILE PTR ######################################
 
-int vfprintfx(FILE * stream, const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToFile, stream, 0, pcFmt, vaList); }
+int vfprintfx(FILE * stream, const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToHandle, (void *) fileno(stream), 0, pcFmt, vaList); }
 
 int fprintfx(FILE * stream, const char * pcFmt, ...) {		
 	va_list vaList;
@@ -1577,7 +1577,7 @@ int fprintfx(FILE * stream, const char * pcFmt, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-int vprintfx(const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToFile, stdout, 0, pcFmt, vaList); }
+int vprintfx(const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToHandle, (void *) STDOUT_FILENO, 0, pcFmt, vaList); }
 
 int printfx(const char * pcFmt, ...) {
 	va_list vaList;
