@@ -776,7 +776,6 @@ static void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 		if ((Now < xLen) && (xLen > iWidth))			// data left to be dumped & 1+ lines of output
 			vPrintString(psXP, strNL);					// do NL for this line.
 	}
-//	vPrintString(psXP, strNL);
 }
 #endif
 
