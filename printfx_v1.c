@@ -201,7 +201,7 @@ int xPrintToDevice(xp_t * psXP, const char * pcSrc, size_t sSrc) { return ((int 
 
 static int xPrintToFile(xp_t * psXP, const char * pcSrc, size_t sSrc) { return fwrite(pcSrc, sSrc, 1, (FILE *)psXP->pvPara); }
 
-static int xPrintToConsole(xp_t * psXP, const char * pcSrc, size_t sSrc) {
+int xPrintToConsole(xp_t * psXP, const char * pcSrc, size_t sSrc) {
 	int iRV, Count = 0;
 	while (Count < sSrc) {
 		iRV = uart_tx_chars(configCONSOLE_UART, pcSrc, sSrc);
@@ -214,11 +214,11 @@ static int xPrintToConsole(xp_t * psXP, const char * pcSrc, size_t sSrc) {
 
 static int xPrintToHandle(xp_t * psXP, const char * pcSrc, size_t sSrc) { return write((int) psXP->pvPara, pcSrc, sSrc); }
 
-static int xPrintToSocket(xp_t * psXP, const char * pcSrc, size_t sSrc) { return xNetSend((netx_t *)psXP->pvPara, (u8_t *)pcSrc, sSrc); }
+int xPrintToSocket(xp_t * psXP, const char * pcSrc, size_t sSrc) { return xNetSend((netx_t *)psXP->pvPara, (u8_t *)pcSrc, sSrc); }
 
-static int xPrintToUBuf(xp_t * psXP, const char * pcSrc, size_t sSrc) { return xUBufWrite((ubuf_t *)psXP->pvPara, pcSrc, sSrc); }
+int xPrintToUBuf(xp_t * psXP, const char * pcSrc, size_t sSrc) { return xUBufWrite((ubuf_t *)psXP->pvPara, pcSrc, sSrc); }
 
-static int xPrintToCRC32(xp_t * psXP, const char * pcSrc, size_t sSrc) {
+int xPrintToCRC32(xp_t * psXP, const char * pcSrc, size_t sSrc) {
 	unsigned int * pU32 = psXP->pvPara;
 	*pU32 = esp_rom_crc32_le(*pU32, (u8_t const *)pcSrc, sSrc);
 	return sSrc;
