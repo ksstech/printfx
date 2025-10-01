@@ -44,6 +44,7 @@
 #define	xpfSUPPORT_MAC_ADDR			1
 #define	xpfSUPPORT_IP_ADDR			1
 #define	xpfSUPPORT_HEXDUMP			1
+#define	xpfSUPPORT_UUID				0
 #define	xpfSUPPORT_DATETIME			1
 #define	xpfSUPPORT_IEEE754			1					// float point support in printfx.c functions
 #define	xpfSUPPORT_SCALING			1					// scale number down by 10^[3/6/9/12/15/18]
@@ -1041,6 +1042,25 @@ static void vPrintURL(xp_t * psXP, char * pStr) {
 				xPrintChar(psXP, cPrintNibbleToChar(psXP, cIn >> 4));
 				xPrintChar(psXP, cPrintNibbleToChar(psXP, cIn & 0x0F));
 			}
+		}
+	} else {
+		vPrintStringJustified(psXP, pStr);						// "null" or "pOOR"
+	}
+}
+#endif
+
+// ################################# Proprietary extension: UUID ###################################
+#if	(xpfSUPPORT_UUID == 1)
+/**
+ * @brief	generate UUID 
+ * @param	psXP
+ * @param	pString
+ * @note	Uses vPrintStringJustified
+ */
+static void vPrintUUID(xp_t * psXP, char * pStr) {
+	if (halMemoryANY(pStr)) {
+		char cIn;
+		while ((cIn = *pStr++) != 0) {
 		}
 	} else {
 		vPrintStringJustified(psXP, pStr);						// "null" or "pOOR"
