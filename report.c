@@ -24,7 +24,7 @@
 
 // ###################################### Public variables #########################################
 
-SemaphoreHandle_t ReportLock;
+SemaphoreHandle_t ReportLock = NULL;
 
 // ##################################### Public functions ##########################################
 
@@ -45,7 +45,7 @@ void vReportDebug(report_t * psR) {
 
 int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 	int iRV = 0;
-	report_t sRprt = { .uSGR = sgrANSI, .XLock = sLO_UL };		// remove .bDirect = 1, 
+	report_t sRprt = { .uSGR=sgrANSI, .XLock=sLO_UL };	// remove .bDirect = 1, 
 	if (psR == NULL)
 		psR = &sRprt;
 	IF_myASSERT(debugPARAM, halMemoryRAM(psR));
