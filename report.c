@@ -57,12 +57,13 @@ int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 		psR->hdlr = xPrintToString;
 		psR->XLock = sBUFFER;							// no un/lock required or done
 	} else {											// string buffer not configured
-		psR->hdlr = xPrintToStdOut;						// default to STDOUT
+		psR->hdlr = xPrintToHandle;
+		psR->pcBuf = (char *)STDOUT_FILENO;				// set parameter to STDOUT
 		if (psR->bDirect) {
 			psR->bSaved = serial_get_console_status();
 			serial_set_console_status(1);
 		}
-		IF_myASSERT(debugTRACK, psR->pcBuf == 0 && psR->size == 0);
+		IF_myASSERT(debugTRACK, psR->size == 0);
 	}
 	// verify xlock values, handle semaphore accordingly
 	BaseType_t btRV = pdFALSE;
@@ -95,7 +96,7 @@ int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 		// sNONE / sNL. [sLO_UL & sBUFFER handled, sLO->sNL, sUL->sNONE, sINV5 & sINV6 asserted]
 	}
 	// restore serial console status if required 
-	if (psR->bHdlr == 0 && (psR->pcBuf == NULL || psR->size == 0) && psR->bDirect)
+	if (psR->bHdlr == 0 && psR->size == 0 && psR->bDirect)
 		serial_set_console_status(psR->bSaved);
 	return iRV;
 }
