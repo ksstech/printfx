@@ -195,11 +195,7 @@ int xPrintToString(xp_t * psXP, const char * pcSrc, size_t sSrc) {
 	return sSrc;
 }
 
-int xPrintToStdOut(xp_t * psXP, const char * pcSrc, size_t sSrc) { return write(STDOUT_FILENO, pcSrc, sSrc); }
-
-int xPrintToDevice(xp_t * psXP, const char * pcSrc, size_t sSrc) { return ((int (*)(const char *, size_t))psXP->pvPara)(pcSrc, sSrc); }
-
-static int xPrintToFile(xp_t * psXP, const char * pcSrc, size_t sSrc) { return fwrite(pcSrc, sSrc, 1, (FILE *)psXP->pvPara); }
+int xPrintToHandle(xp_t * psXP, const char * pcSrc, size_t sSrc) { return write((int) psXP->pvPara, pcSrc, sSrc); }
 
 int xPrintToConsole(xp_t * psXP, const char * pcSrc, size_t sSrc) {
 	int iRV, Count = 0;
@@ -212,7 +208,7 @@ int xPrintToConsole(xp_t * psXP, const char * pcSrc, size_t sSrc) {
 	return (iRV < 0) ? iRV : sSrc;
 }
 
-static int xPrintToHandle(xp_t * psXP, const char * pcSrc, size_t sSrc) { return write((int) psXP->pvPara, pcSrc, sSrc); }
+int xPrintToDevice(xp_t * psXP, const char * pcSrc, size_t sSrc) { return ((int (*)(const char *, size_t))psXP->pvPara)(pcSrc, sSrc); }
 
 int xPrintToSocket(xp_t * psXP, const char * pcSrc, size_t sSrc) { return xNetSend((netx_t *)psXP->pvPara, (u8_t *)pcSrc, sSrc); }
 
@@ -1567,7 +1563,7 @@ int sprintfx(char * pBuf, const char * pcFmt, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-int vprintfx(const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToFile, stdout, 0, pcFmt, vaList); }
+int vprintfx(const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToHandle, (void *) STDOUT_FILENO, 0, pcFmt, vaList); }
 
 int printfx(const char * pcFmt, ...) {
 	va_list vaList;
@@ -1579,7 +1575,7 @@ int printfx(const char * pcFmt, ...) {
 
 // ################################### Destination = FILE PTR ######################################
 
-int vfprintfx(FILE * stream, const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToFile, stream, 0, pcFmt, vaList); }
+int vfprintfx(FILE * stream, const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToHandle, (void *) fileno(stream), 0, pcFmt, vaList); }
 
 int fprintfx(FILE * stream, const char * pcFmt, ...) {		
 	va_list vaList;
