@@ -51,7 +51,6 @@
 #define	xpfSUPPORT_URL				1					// URL encoding
 #define	xpfSUPPORT_ALIASES			1
 #define	xpfSUPPORT_FILTER_NUL		1
-#define	xpfSUPPORT_CHAR8BIT			0
 #define xpfSUPPORT_ARRAYS			1					// uses complex vars to achieve
 
 // ###################################### Scaling factors ##########################################
@@ -768,14 +767,9 @@ static void vPrintHexDump(xp_t * psXP, int xLen, char * pStr) {
 			while (Count--)
 				xPrintChar(psXP, CHR_SPACE);			// handle space padding for ASCII dump to line up
 			for (Count = 0; Count < Width; ++Count) {	// values as ASCII characters
-				int cChr = *(pStr + Now + Count);
-				#if (xpfSUPPORT_CHAR8BIT == 1)
-					// theoretically support up to 0xFF, but loses some characters idp.py and Serial
-					xPrintChar(psXP, (cChr < 0x20 || cChr == 0x7F || cChr == 0xFF) ? CHR_FULLSTOP : cChr);
-				#else
-					// Only support range 0x20 to 0x7E, rest mapped to '.'
-					xPrintChar(psXP, (cChr < 0x20 || cChr >= 0x7F) ? CHR_FULLSTOP : cChr);
-				#endif
+				char cChr = *(pStr + Now + Count);
+				// theoretically support up to 0xFF, but loses some characters idp.py and Serial
+				xPrintChar(psXP, (cChr < 0x20 || cChr == 0x7F || cChr == 0xFF) ? CHR_FULLSTOP : cChr);
 			}
 		}
 		if ((Now < xLen) && (xLen > iWidth))			// data left to be dumped & 1+ lines of output
