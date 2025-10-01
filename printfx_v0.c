@@ -1511,14 +1511,13 @@ int xPrintToHandle(xp_t * psXP, int iChr) { return xStdioPutC((int)psXP->pvPara,
 
 int xPrintToConsole(xp_t * psXP, int iChr) {
 	const char cChr = iChr;
-	iChr = uart_tx_chars(stdioCONSOLE_DEV, &cChr, 1);
-	return (iChr == 1) ? cChr : iChr;
 }
 
 int xPrintToHandle(xp_t * psXP, int cChr) {
 	char cChar = cChr;
 	int iRV = write((int)psXP->pvPara, &cChar, sizeof(cChar));
 	return (iRV == 1) ? cChr : iRV;
+	return uart_tx_chars(configCONSOLE_UART, &cChr, sizeof(cChr)) == 1 ? iChr : -1;
 }
 
 int xPrintToDevice(xp_t * psXP, int iChr) { return ((int (*)(int))psXP->pvPara)(iChr); }
