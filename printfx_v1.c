@@ -239,12 +239,12 @@ static int xPrintChars(xp_t * psXP, const char * pcSrc, size_t sSrc) {
 		if (sMax > 0)									// if successful
 			psXP->CurLen += sMax;						// adjust count
 //		RP("[%.*s/%d] ", psXP->CurLen, psXP->pvPara - psXP->CurLen, psXP->CurLen);
-		RP("%.*s", sSrc, pcSrc);
+//		RP("%.*s", sSrc, pcSrc);
 	}
 	if (sMax != sSrc) {
 		if (halMemoryRAM(psXP->pvPara))
 			RP("'%.*s' ", psXP->CurLen, psXP->pvPara - psXP->CurLen);
-		RP("Partial/error '%.*s' (%d vs %d)", sSrc, pcSrc, sMax, sSrc);
+		RP("Partial/error (%d vs %d) '%.*s'", sMax, sSrc, sSrc, pcSrc);
 		esp_backtrace_print(8);
 		vShowSpinWait();
 	}
