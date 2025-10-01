@@ -70,7 +70,7 @@ int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 	if (psR->XLock == sLO || psR->XLock == sLO_UL) {	// handle sLO & sLO_UL
 		if (psR->XLock == sLO)							// sLO is transient
 			psR->XLock = sNL;							// mark special sNL stage
-		btRV = xRtosSemaphoreTake(&ReportLock, WPFX_TIMEOUT);
+		btRV = xRtosSemaphoreCheckCurrent(&ReportLock) ? pdFALSE : xRtosSemaphoreTake(&ReportLock, WPFX_TIMEOUT);
 	} else if (psR->XLock == sINV5 || psR->XLock == sINV6) {
 		RP("Xlock=%d" strNL, psR->XLock);
 		esp_backtrace_print(6);
