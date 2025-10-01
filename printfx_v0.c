@@ -16,7 +16,7 @@
 #include "hal_stdio.h"
 #include "socketsX.h"
 #include "struct_union.h"
-#include "string_general.h"		// xinstring function
+#include "string_general.h"			// xinstring function
 #include "errors_events.h"
 #include "terminalX.h"
 #include "utilitiesX.h"
