@@ -1033,8 +1033,7 @@ static void vPrintURL(xp_t * psXP, char * pStr) {
 	if (halMemoryANY(pStr)) {
 		char cIn;
 		while ((cIn = *pStr++) != 0) {
-//			if (INRANGE(CHR_A, cIn, CHR_Z) || INRANGE(CHR_a, cIn, CHR_z) || INRANGE(CHR_0, cIn, CHR_9) ||
-//				cIn == CHR_MINUS || cIn == CHR_FULLSTOP || cIn == CHR_UNDERSCORE || cIn == CHR_TILDE) {
+//			if (INRANGE(CHR_A, cIn, CHR_Z) || INRANGE(CHR_a, cIn, CHR_z) || INRANGE(CHR_0, cIn, CHR_9) || cIn == CHR_MINUS || cIn == CHR_FULLSTOP || cIn == CHR_UNDERSCORE || cIn == CHR_TILDE) {
 			if (isalnum(cIn) || strchr_i("-._~", cIn)) {
 				xPrintChar(psXP, cIn);
 			} else {
@@ -1663,8 +1662,7 @@ int	crcprintfx(u32_t * pU32, const char * pcFmt, ...) {
 /* To make this work for esp-idf and newlib, the following modules must be removed:
  *		lib_a-[s[sn[fi]]]printf.o
  *		lib_a-v[f[i]]printf.o
- *		lib_a-putchar.o
- *		lib_a-getchar.o
+ *		lib_a-??tchar.o (put & get)
  * using command line
  * 		ar -d /c/Dropbox/devs/ws/z-sdk\libc.a {name}
  *
