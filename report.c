@@ -5,6 +5,7 @@
 
 #include "hal_memory.h"
 #include "hal_usart.h"
+#include "stdioX.h"
 #include "struct_union.h"
 #include "string_general.h"		// xinstring function
 #include "errors_events.h"
@@ -61,8 +62,8 @@ int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 		psR->hdlr = xPrintToHandle;
 		psR->pcBuf = (char *)STDOUT_FILENO;				// set parameter to STDOUT
 		if (psR->bDirect) {
-			psR->bSaved = serial_get_console_status();
-			serial_set_console_status(1);
+			psR->bSaved = bStdioConsoleGetStatus();
+			vStdioConsoleSetStatus(1);
 		}
 		IF_myASSERT(debugTRACK, psR->size == 0);
 	}
@@ -98,7 +99,7 @@ int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 	}
 	// restore serial console status if required 
 	if (psR->bHdlr == 0 && psR->size == 0 && psR->bDirect)
-		serial_set_console_status(psR->bSaved);
+		vStdioConsoleSetStatus(psR->bSaved);
 	return iRV;
 }
 
