@@ -204,7 +204,7 @@ static int xPrintToFile(xp_t * psXP, const char * pcSrc, size_t sSrc) { return f
 static int xPrintToConsole(xp_t * psXP, const char * pcSrc, size_t sSrc) {
 	int iRV, Count = 0;
 	while (Count < sSrc) {
-		iRV = uart_tx_chars(stdioCONSOLE_DEV, pcSrc, sSrc);
+		iRV = uart_tx_chars(configCONSOLE_UART, pcSrc, sSrc);
 		if (iRV < 0)
 			return iRV;
 		Count += iRV;
