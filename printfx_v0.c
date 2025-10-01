@@ -224,11 +224,11 @@ static int xPrintChar(xp_t * psXP, char cChr) {
  * @return	number of ACTUAL characters output.
  */
 static int vPrintString(xp_t * psXP, char * pStr) {
-	int iRV = 0, cChr;
+	int iRV = 0, iChr;
 	while (*pStr) {
-		cChr = xPrintChar(psXP, *pStr);
-		if (cChr != *pStr++)
-			return cChr;
+		iChr = xPrintChar(psXP, *pStr);
+		if (iChr != *pStr++)
+			return iChr;
 		++iRV;
 	}
 	return iRV;
@@ -1481,10 +1481,10 @@ out_lbl:
 
 // #################################### Destination handlers #######################################
 
-int xPrintToString(xp_t * psXP, int cChr) {
+int xPrintToString(xp_t * psXP, int iChr) {
 	if (psXP->pvPara)
-		*((char*)psXP->pvPara++) = cChr;
-	return cChr;
+		*((char*)psXP->pvPara++) = iChr;
+	return iChr;
 }
 
 int xPrintToFile(xp_t * psXP, int cChr) { return fputc(cChr, ((FILE *)psXP->pvPara));	}
@@ -1503,27 +1503,24 @@ int xPrintToHandle(xp_t * psXP, int cChr) {
 	return (iRV == 1) ? cChr : iRV;
 }
 
-int xPrintToDevice(xp_t * psXP, int cChr) { return ((int (*)(int))psXP->pvPara)(cChr); }
+int xPrintToDevice(xp_t * psXP, int iChr) { return ((int (*)(int))psXP->pvPara)(iChr); }
 
-int xPrintToSocket(xp_t * psXP, int cChr) {
-	u8_t cBuf = cChr;
-	int iRV = xNetSend((netx_t *)psXP->pvPara, &cBuf, sizeof(cBuf));
-	if (iRV != sizeof(cBuf))
-		return iRV;
-	return cChr;
+int xPrintToSocket(xp_t * psXP, int iChr) {
+	u8_t cChr = iChr;
+	return xNetSend((netx_t *)psXP->pvPara, &cChr, sizeof(cChr)) == 1 ? iChr : -1;
 }
 
-int xPrintToUBuf(xp_t * psXP, int cChr) { return xUBufPutC(((ubuf_t *)psXP->pvPara), cChr); }
+int xPrintToUBuf(xp_t * psXP, int iChr) { return xUBufPutC(((ubuf_t *)psXP->pvPara), iChr); }
 
 int xPrintToCRC32(xp_t * psXP, int cChr) {
 	#if defined(ESP_PLATFORM)							// use ROM based CRC lookup table
-		u8_t cBuf = cChr;
-		*(u32_t *)psXP->pvPara = esp_rom_crc32_le(*(u32_t *)psXP->pvPara, &cBuf, sizeof(cBuf));
 	#else												// use fastest of external libraries
 		u32_t MsgCRC = crcSlow((u8_t *) pBuf, iRV);
 	#endif
-		return cChr;
 	}
+	u8_t cChr = iChr;
+	*(u32_t *)psXP->pvPara = esp_rom_crc32_le(*(u32_t *)psXP->pvPara, &cChr, sizeof(cChr));
+	return iChr;
 	
 // ##################################### Destination = STRING ######################################
 
