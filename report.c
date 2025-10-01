@@ -11,6 +11,7 @@
 #include "utilitiesX.h"
 
 #include "esp_debug_helpers.h"
+#include <unistd.h>
 
 // ########################################### Macros ##############################################
 
