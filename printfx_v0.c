@@ -1505,18 +1505,10 @@ int xPrintToString(xp_t * psXP, int iChr) {
 	return iChr;
 }
 
-int xPrintToFile(xp_t * psXP, int cChr) { return fputc(cChr, ((FILE *)psXP->pvPara));	}
-
 int xPrintToHandle(xp_t * psXP, int iChr) { return xStdioPutC((int)psXP->pvPara, iChr); }
 
 int xPrintToConsole(xp_t * psXP, int iChr) {
 	const char cChr = iChr;
-}
-
-int xPrintToHandle(xp_t * psXP, int cChr) {
-	char cChar = cChr;
-	int iRV = write((int)psXP->pvPara, &cChar, sizeof(cChar));
-	return (iRV == 1) ? cChr : iRV;
 	return uart_tx_chars(configCONSOLE_UART, &cChr, sizeof(cChr)) == 1 ? iChr : -1;
 }
 
