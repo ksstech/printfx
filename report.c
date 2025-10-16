@@ -138,11 +138,11 @@ int	xReportBitMap(report_t * psR, u32_t V1, u32_t V2, u32_t Mask, const char * c
 			if (Col != 0xFFFFFFFF) {					// only show if true or changed
 				if (paM && paM[idx]) {					// pointer to string array supplied, entry avail?
 					pccTmp = paM[idx];					// yes, use that as label
-				} else {								// no,
+				} else {								// no, create a dynamic "label"
 					snprintfx(caTmp, sizeof(caTmp), "%d/x%X", idx, 1 << idx);
-					pccTmp = caTmp;						// create a dynamic "label"
+					pccTmp = caTmp;
 				}
-				iRV += xReport(psR, pFormat, Col, pccTmp, 0);	// print string (with colour/char) then reset color
+				iRV += xReport(psR, pFormat, Col, pccTmp, 0);	// print "label"" with colour/char then reset color
 			}
 		}
 	}

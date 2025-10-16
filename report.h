@@ -182,13 +182,14 @@ DUMB_STATIC_ASSERT(sizeof(fm_t) == sizeof(u32_t));
 
 typedef struct __attribute__((packed)) report_t {
 #if defined(printfxVER0)
-	int (*hdlr)(struct xp_t *, int);
+	int (*hdlr)(struct xp_t *, int);					// single character output handler
 #elif defined(printfxVER1)
-	int (*hdlr)(struct xp_t *, const char *, size_t);
+	int (*hdlr)(struct xp_t *, const char *, size_t);	// character buffer outpur handler
 #endif
-	char * pcAlloc;
-	char * pcBuf;
-	union __attribute__((packed)) {						
+	char * pcAlloc;										// pointer to allocated buffer (if any), preserved !!!
+	char * pcBuf;										// current buffer pointer, originally pcAlloc updated on each write
+	union __attribute__((packed)) {
+		u32_t Size;										// size and flags as a single value
 		struct __attribute__((packed)) {
 			u32_t size : xpfMAXLEN_BITS;				// Buffer size
 			/* flags NOT passed onto xPrintF() only used in in higher level formatting */
@@ -201,7 +202,6 @@ typedef struct __attribute__((packed)) report_t {
 			u8_t bDebug : 1;							// 29: Enable debug output where placed
 			u8_t uSGR : 2;								// 3x: Select Graphics Rendition option	
 		};
-		u32_t Size;										// size and flags as a single value
 	};
 	fm_t sFM;
 } report_t;
