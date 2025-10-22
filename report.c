@@ -146,7 +146,7 @@ int	xReportBitMap(report_t * psR, u32_t V1, u32_t V2, u32_t Mask, const char * c
 			}
 		}
 	}
-	repSET(XLock, sUL);
+	repSET(XLock, sUL);									// ensure flag is set to UNLOCK
 	if (iRV) {											// if any output generated append hex value
 		iRV += xReport(psR, "(x%0.*X)%s", iFS+2, V2, fmTST(aNL) ? strNL : strNUL);
 	} else {
