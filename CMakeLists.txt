@@ -1,12 +1,11 @@
 # PRINTFX
 
-if( ESP_PLATFORM )
-	set( srcs "printfx.c" "report.c" "printfx_tests.c" )
-	set( include_dirs "." )
+if(ESP_PLATFORM)
+	set( srcs "src/printfx.c" "src/report.c" "src/printfx_tests.c" )
+	set( include_dirs "include" )
 	set( priv_include_dirs )
-	set( requires "" )
+	set( requires )
 	set( priv_requires )
-	#set( priv_requires "buffers common hal_esp32 rtos-support socketsX stringsX" )
 
 	idf_component_register(
 		SRCS ${srcs}
@@ -15,9 +14,9 @@ if( ESP_PLATFORM )
 		REQUIRES ${requires}
 		PRIV_REQUIRES ${priv_requires}
 	)
-else( )
+else()
 	project( printfx )
-	add_library( printfx "printfx.c" "report.c" )
+	add_library( "src/printfx" "src/printfx.c" "src/report.c" )
 	target_include_directories( printfx PUBLIC "." )
 	target_link_libraries( printfx common )
 endif()

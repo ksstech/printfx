@@ -14,21 +14,24 @@
 #include "hal_memory.h"
 #include "hal_usart.h"
 #include "hal_stdio.h"
-#include "socketsX.h"
+
+#include "errors_events.h"
+#if __has_include("socketsX.h")
+	#include "socketsX.h"
+#endif
 #include "struct_union.h"
 #include "string_general.h"			// xinstring function
-#include "errors_events.h"
 #include "stdioX.h"
 #include "utilitiesX.h"
 
 #include <math.h>					// isnan()
 #include <float.h>					// DBL_MIN/MAX
 
-#ifdef ESP_PLATFORM
+#if defined(ESP_PLATFORM)
 	#include "esp_log.h"
 	#include "esp_rom_crc.h"
 #else
-	#include "crc-barr.h"						// Barr group CRC
+	#include "crc-barr.h"			// Barr group CRC
 #endif
 
 // ########################################### Macros ##############################################
@@ -1507,25 +1510,38 @@ int xPrintToString(xp_t * psXP, int iChr) {
 
 int xPrintToHandle(xp_t * psXP, int iChr) { return xStdioPutC((int)psXP->pvPara, iChr); }
 
-int xPrintToConsole(xp_t * psXP, int iChr) {
-	const char cChr = iChr;
-	return uart_tx_chars(configCONSOLE_UART, &cChr, sizeof(cChr)) == 1 ? iChr : -1;
-}
+#if defined(ESP_PLATFORM)								// only available on ESP32
+	int xPrintToConsole(xp_t * psXP, int iChr) {
+		const char cChr = iChr;
+		return uart_tx_chars(configCONSOLE_UART, &cChr, sizeof(cChr)) == 1 ? iChr : -1;
+	}
+#else
+	#warning "Not building for ESP32[x], no DIRECT console output included"
+#endif
 
 int xPrintToDevice(xp_t * psXP, int iChr) { return ((int (*)(int))psXP->pvPara)(iChr); }
 
-int xPrintToSocket(xp_t * psXP, int iChr) {
-	u8_t cChr = iChr;
-	return xNetSend((netx_t *)psXP->pvPara, &cChr, sizeof(cChr)) == 1 ? iChr : -1;
-}
+#if __has_include("socketsX.h")
+	int xPrintToSocket(xp_t * psXP, int iChr) {
+		u8_t cChr = iChr;
+		return xNetSend((netx_t *)psXP->pvPara, &cChr, sizeof(cChr)) == 1 ? iChr : -1;
+	}
+#else
+	#warning "socketsX module not available hence NO print to socket support"
+#endif
 
-int xPrintToUBuf(xp_t * psXP, int iChr) { return xUBufPutC(((ubuf_t *)psXP->pvPara), iChr); }
+#if __has_include("x_ubuf.h")
+	int xPrintToUBuf(xp_t * psXP, int iChr) { return xUBufPutC(((ubuf_t *)psXP->pvPara), iChr); }
+#else
+	#warning "x_ubuf module not available hence NO print to ubuf support"
+#endif
 
 int xPrintToCRC32(xp_t * psXP, int iChr) {
 #if defined(ESP_PLATFORM)								// use ROM based CRC lookup table
 	u8_t cChr = iChr;
 	*(u32_t *)psXP->pvPara = esp_rom_crc32_le(*(u32_t *)psXP->pvPara, &cChr, sizeof(cChr));
 #else													// use fastest of external libraries
+	#warning "Not building for ESP32[x], using external CRC library"
 	u32_t MsgCRC = crcSlow((u8_t *) pBuf, iRV);
 #endif
 	return iChr;
@@ -1589,15 +1605,17 @@ int printfx(const char * pcFmt, ...) {
 
 // ################################### Destination = CONSOLE #######################################
 
- int vcprintfx(const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToConsole, 0, 0, pcFmt, vaList); }
+#if defined(ESP_PLATFORM)								// only available on ESP32
+	int vcprintfx(const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToConsole, 0, 0, pcFmt, vaList); }
 
-int cprintfx(const char * pcFmt, ...) {
-	va_list vaList;
-	va_start(vaList, pcFmt);
-	int iRV = vcprintfx(pcFmt, vaList);
-	va_end(vaList);
-	return iRV;
-}
+	int cprintfx(const char * pcFmt, ...) {
+		va_list vaList;
+		va_start(vaList, pcFmt);
+		int iRV = vcprintfx(pcFmt, vaList);
+		va_end(vaList);
+		return iRV;
+	}
+#endif
 
 // ################################### Destination = HANDLE ########################################
 
@@ -1627,6 +1645,8 @@ int devprintfx(int (* Hdlr)(int), const char * pcFmt, ...) {
  * SOCKET directed formatted print support. Problem here is that MSG_MORE is primarily supported on
  * TCP sockets, UDP support officially in LwIP 2.6 but has not been included into ESP-IDF yet. */
 
+#if __has_include("socketsX.h")
+
 int vsocprintfx(netx_t * psSock, const char * pcFmt, va_list vaList) {
 	int	Fsav = psSock->flags;							// save the current socket flags
 	psSock->flags |= MSG_MORE;
@@ -1643,8 +1663,11 @@ int socprintfx(netx_t * psSock, const char * pcFmt, ...) {
 	return iRV;
 }
 
+#endif
+
 // #################################### Destination : UBUF #########################################
 
+#if __has_include("x_ubuf.h")
 int	vuprintfx(ubuf_t * psUBuf, const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToUBuf, (void *) psUBuf, xUBufGetSpace(psUBuf), pcFmt, vaList); }
 
 int	uprintfx(ubuf_t * psUBuf, const char * pcFmt, ...) {
@@ -1654,6 +1677,7 @@ int	uprintfx(ubuf_t * psUBuf, const char * pcFmt, ...) {
 	va_end(vaList);
 	return iRV;
 }
+#endif
 
 // #################################### Destination : CRC32 ########################################
 
