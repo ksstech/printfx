@@ -4,7 +4,7 @@ if(ESP_PLATFORM)
 	set( srcs "src/printfx.c" "src/report.c" "src/printfx_tests.c" )
 	set( include_dirs "include" )
 	set( priv_include_dirs )
-	set( requires )
+	set( requires "hal_esp32" )
 	set( priv_requires )
 
 	idf_component_register(
