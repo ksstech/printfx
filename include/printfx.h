@@ -2,6 +2,16 @@
 
 #pragma once
 
+#if __has_include("hal_platform.h")
+	#include "hal_platform.h"
+#else
+	#define debugFLAG_GLOBAL	0xFFFFFF
+#endif
+
+#if __has_include("common-vars.h")
+	#include "common-vars.h"
+#endif
+
 #if __has_include("x_ubuf.h")
 	#include "x_ubuf.h"
 #endif
@@ -13,6 +23,16 @@
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+// common-vars module not available, need these definitions
+
+#ifndef u8_t
+	typedef unsigned char u8_t;
+#endif
+
+#ifndef u32_t
+	typedef unsigned long u32_t;
 #endif
 
 // #################################################################################################
@@ -72,14 +92,14 @@ unsigned long long halTIMER_ReadRunTime(void);
 
 // ################################## C11 Pointer size determination ###############################
 
-_Static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determine pointer size");
+static_assert(sizeof (void*) == sizeof (uintptr_t), "TBD code needed to determine pointer size");
 
 // C99 or later
-#if UINTPTR_MAX == 0xFFFF
+#if (UINTPTR_MAX == 0xFFFF)
 	#define xpfSIZE_POINTER			2
-#elif UINTPTR_MAX == 0xFFFFFFFF
+#elif (UINTPTR_MAX == 0xFFFFFFFF)
 	#define xpfSIZE_POINTER			4
-#elif UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu
+#elif (UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu)
 	#define xpfSIZE_POINTER			8
 #else
 	#error "TBD pointer size!!!"
