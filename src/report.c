@@ -1,4 +1,4 @@
-// report.c - Copyright (c) 2025 Andre M. Maree / KSS Technologies (Pty) Ltd.
+// report.c - Copyright (c) 2025-26 Andre M. Maree / KSS Technologies (Pty) Ltd.
 
 #include "hal_platform.h"
 #include "report.h"
