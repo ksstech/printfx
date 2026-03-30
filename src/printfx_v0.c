@@ -6,11 +6,8 @@
  *
  */
 
-#include "hal_platform.h"
 #include "printfx.h"
 
-#include "common-vars.h"
-#include "FreeRTOS_Support.h"
 #include "hal_memory.h"
 #include "hal_usart.h"
 #include "hal_stdio.h"

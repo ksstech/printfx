@@ -1,7 +1,7 @@
 // printfx_tests.c - Copyright (c) 2021-26 Andre M. Maree / KSS Technologies (Pty) Ltd.
 
-#include "hal_platform.h"
 #include "printfx.h"
+
 #include <float.h>									// DBL_MIN/MAX
 
 #define	debugFLAG					0xF000

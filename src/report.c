@@ -1,17 +1,17 @@
 // report.c - Copyright (c) 2025-26 Andre M. Maree / KSS Technologies (Pty) Ltd.
 
-#include "hal_platform.h"
 #include "report.h"
-
+#include "errors_events.h"
+#include "FreeRTOS_Support.h"
 #include "hal_memory.h"
 #include "hal_usart.h"
 #include "stdioX.h"
 #include "struct_union.h"
 #include "string_general.h"		// xinstring function
-#include "errors_events.h"
 #include "utilitiesX.h"
 
 #include "esp_debug_helpers.h"
+
 #include <unistd.h>
 
 // ########################################### Macros ##############################################
