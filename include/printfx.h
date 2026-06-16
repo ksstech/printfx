@@ -5,7 +5,11 @@
 #if __has_include("hal_platform.h")
 	#include "hal_platform.h"
 #else
-	#define debugFLAG_GLOBAL	0xFFFFFF
+	#ifdef __cplusplus
+		extern "C" {
+			#define debugFLAG_GLOBAL	0xFFFFFF
+		}
+	#endif
 #endif
 
 #if __has_include("common-vars.h")
