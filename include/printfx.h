@@ -20,6 +20,10 @@
 	#include "x_ubuf.h"
 #endif
 
+#if __has_include("hal_timer.h")
+	#include "hal_timer.h"
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdint.h>
