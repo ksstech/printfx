@@ -40,7 +40,7 @@ extern "C" {
 #endif
 
 #ifndef u32_t
-	typedef unsigned long u32_t;
+	typedef uint32_t u32_t;
 #endif
 
 // #################################################################################################
