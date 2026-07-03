@@ -13,6 +13,7 @@
 #include "esp_debug_helpers.h"
 
 #include <unistd.h>
+#include <assert.h>
 
 // ########################################### Macros ##############################################
 
