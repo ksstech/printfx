@@ -193,7 +193,8 @@ typedef struct __attribute__((packed)) report_t {
 		struct __attribute__((packed)) {
 			u32_t size : xpfMAXLEN_BITS;				// Buffer size
 			/* flags NOT passed onto xPrintF() only used in in higher level formatting */
-			u8_t s0 : 7;
+			u8_t bLocked : 1;							// 16: THIS report_t holds the console mutex
+			u8_t s0 : 6;
 			u8_t bSaved : 1;							// 23: UART/USB saved status
 			u8_t bDirect : 1;							// 24: UART/USB direct output (unbuffered)
 			u8_t bHdlr : 1;								// 25: indicate required handler specified
@@ -206,10 +207,6 @@ typedef struct __attribute__((packed)) report_t {
 	fm_t sFM;
 } report_t;
 DUMB_STATIC_ASSERT(sizeof(report_t) == ((3 * sizeof(void *)) + 8));
-
-// ###################################### Public variables #########################################
-
-extern SemaphoreHandle_t shReport;
 
 // ################################### Public functions ############################################
 

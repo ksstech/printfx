@@ -2,7 +2,12 @@
 
 #include "printfx.h"
 
+#include "report.h"
+#include "stdioX.h"
+
 #include <float.h>									// DBL_MIN/MAX
+#include <stdatomic.h>
+#include <string.h>									// memset
 
 #define	debugFLAG					0xF000
 
@@ -238,3 +243,115 @@ void vPrintfUnitTest(void) {
 	TESTP("Float  : Specified 30.14 : %30.14f\n", F64);
 	#endif
 }
+
+// ########################### Concurrency (dual core) stress test #################################
+
+/* Reproduces the c764 field condition on the bench: two tasks, one pinned to EACH core, emitting
+ * ~110 character lines at a combined 20.8 lines/sec - the rate measured on c764 (370 DS2482 resets
+ * in 17.8 s). Before the vprintfx() serialisation the two cores shredded each other's output at
+ * character granularity because xPrintToHandle() emits ONE character per handler call.
+ *
+ * Task A uses printfx(), task B uses xReport(). Those were the two families that previously used
+ * DIFFERENT locks (printfx none, report its own ReportLock) so this pair is exactly what the fix
+ * addresses. The syslog console path is deliberately NOT exercised here: syslog sits ABOVE printfx
+ * and is still unserialised by design, and printfx must not depend on it.
+ *
+ * Each line is self-verifying by shape:
+ *
+ *   A000042 AAAA...AAAA A000042
+ *   ^tag+seq  ^filler    ^tag+seq repeated
+ *
+ * Output is CORRECT only if, on every line, the head tag/sequence matches the tail tag/sequence and
+ * the filler is a single repeated character. Any line mixing A and B, or with mismatched head/tail,
+ * was interleaved.
+ *
+ * Excluded from production images by the same appPRODUCTION guard the rest of the tree uses.
+ */
+#if (appPRODUCTION == 0)
+
+#define	prtestFILL			90						// filler chars => ~110 char line, as per ds248x
+#define	prtestPERIOD_MS		96						// per task; 2 tasks => 48 ms => 20.8 lines/sec
+#define	prtestSECONDS		30						// default duration if caller passes 0
+#define	prtestSTACK			(configMINIMAL_STACK_SIZE + 3072)
+#define	prtestPRIORITY		2
+
+// tag(1) + seq(6) + space + filler + space + tag(1) + seq(6) + newline
+#define	prtestCHARS			(1 + 6 + 1 + prtestFILL + 1 + 1 + 6 + (sizeof(strNL) - 1))
+
+#define	prtestFORMAT		"%c%06lu %s %c%06lu" strNL
+
+enum { prtestPRINTFX, prtestREPORT };
+
+typedef struct {
+	const char * pcName;
+	u32_t Count;									// lines this task will emit
+	char cTag;
+	u8_t Slot;
+	u8_t Family;
+	BaseType_t Core;
+} prtest_t;
+
+static atomic_uint prtestActive;					// tasks still running
+static u32_t prtestLines[2];						// lines emitted, per task
+static u32_t prtestShort[2];						// lines where printfx did not return prtestCHARS
+
+/**
+ * @brief	emit fixed shape, self identifying lines at a fixed rate until the count is exhausted
+ * @param	pvPara pointer to the prtest_t describing this task
+ */
+static void vPrintfStressTask(void * pvPara) {
+	const prtest_t * psP = (const prtest_t *) pvPara;
+	char caFill[prtestFILL + 1];
+	memset(caFill, psP->cTag, prtestFILL);
+	caFill[prtestFILL] = 0;
+	TickType_t tWake = xTaskGetTickCount();
+	for (u32_t Seq = 0; Seq < psP->Count; ++Seq) {
+		int iRV = (psP->Family == prtestPRINTFX)
+			? printfx(prtestFORMAT, psP->cTag, Seq, caFill, psP->cTag, Seq)
+			: xReport(NULL, prtestFORMAT, psP->cTag, Seq, caFill, psP->cTag, Seq);
+		++prtestLines[psP->Slot];
+		if (iRV != prtestCHARS)						// short write => characters were DROPPED
+			++prtestShort[psP->Slot];
+		xTaskDelayUntil(&tWake, pdMS_TO_TICKS(prtestPERIOD_MS));
+	}
+	if (atomic_fetch_sub(&prtestActive, 1) == 1) {	// last task out reports the result
+		PX(strNL "[prtest] done  A=%lu lines (%lu short)  B=%lu lines (%lu short)  expected %u chars/line" strNL,
+			prtestLines[0], prtestShort[0], prtestLines[1], prtestShort[1], prtestCHARS);
+		PX("[prtest] a line is CORRUPT if head and tail tag/seq differ, or the filler mixes A and B" strNL);
+	}
+	vTaskDelete(NULL);
+}
+
+/**
+ * @brief	launch the dual core printfx concurrency stress test, returns immediately
+ * @param	Seconds duration, 0 selects prtestSECONDS
+ * @note	Run with the console ACTIVE. While inactive all output goes to the 8 KB RTC buffer which
+ *			wraps in ~3.5 s at this rate and silently discards the oldest (O_TRUNC), so almost
+ *			nothing survives to be inspected.
+ */
+void vPrintfStressTest(u32_t Seconds) {
+	if (atomic_load(&prtestActive)) {
+		PX("[prtest] already running" strNL);
+		return;
+	}
+	static prtest_t sTask[2] = {
+		{ .pcName = "prtestA", .cTag = 'A', .Slot = 0, .Family = prtestPRINTFX, .Core = 0 },
+		{ .pcName = "prtestB", .cTag = 'B', .Slot = 1, .Family = prtestREPORT,  .Core = 1 },
+	};
+	if (Seconds == 0)
+		Seconds = prtestSECONDS;
+	u32_t Count = (Seconds * 1000) / prtestPERIOD_MS;
+	if (bStdioConsoleGetStatus() == 0)
+		PX("[prtest] WARNING console INACTIVE, output goes to the RTC buffer and will wrap" strNL);
+	PX("[prtest] %lu sec, %lu lines/task, %u chars/line, %u ms/task => %lu lines/sec combined" strNL,
+		Seconds, Count, prtestCHARS, prtestPERIOD_MS, (2UL * 1000UL) / prtestPERIOD_MS);
+	prtestLines[0] = prtestLines[1] = prtestShort[0] = prtestShort[1] = 0;
+	atomic_store(&prtestActive, 2);
+	for (int i = 0; i < 2; ++i) {
+		sTask[i].Count = Count;
+		xTaskCreatePinnedToCore(vPrintfStressTask, sTask[i].pcName, prtestSTACK, &sTask[i],
+								prtestPRIORITY, NULL, sTask[i].Core);
+	}
+}
+
+#endif	// appPRODUCTION == 0

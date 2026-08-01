@@ -105,8 +105,6 @@ const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 	'\0'
 };
 
-SemaphoreHandle_t ConsoleLock = { 0 };
-
 // ###################################### Public variables #########################################
 
 // ##################################### Private functions #########################################
@@ -1590,7 +1588,14 @@ int fprintfx(FILE * stream, const char * pcFmt, ...) {
 
 // ################################### Destination = STDOUT ########################################
 
-int vprintfx(const char * pcFmt, va_list vaList) { return xPrintFX(xPrintToHandle, (void *) STDOUT_FILENO, 0, pcFmt, vaList); }
+/* Serialised: xPrintToHandle emits ONE character per call, so without this the two cores shred
+ * each other's output. Same mutex as xvReport(), so whole messages cannot interleave. */
+int vprintfx(const char * pcFmt, va_list vaList) {
+	BaseType_t btRV = halUartLockOnce(WPFX_TIMEOUT);
+	int iRV = xPrintFX(xPrintToHandle, (void *) STDOUT_FILENO, 0, pcFmt, vaList);
+	halUartUnLockOnce(btRV);
+	return iRV;
+}
 
 int printfx(const char * pcFmt, ...) {
 	va_list vaList;

@@ -278,6 +278,16 @@ static_assert(sizeof(xp_t) == (2 * sizeof(void *)) + sizeof(unsigned long) + siz
 /* Public function prototypes for extended functionality version of stdio supplied functions
  * These names MUST be used if any of the extended functionality is used in a format string */
 
+// ######################################## Unit / stress tests ####################################
+
+void vPrintfUnitTest(void);
+
+/**
+ * @brief	launch the dual core printfx concurrency stress test, returns immediately
+ * @param	Seconds duration, 0 selects the default. Run with the console ACTIVE
+ */
+void vPrintfStressTest(u32_t Seconds);
+
  // #################################### Destination handlers #######################################
 
 #if defined(printfxVER0)

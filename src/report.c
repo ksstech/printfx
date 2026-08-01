@@ -25,10 +25,6 @@
 
 // ####################################### Enumerations ############################################
 
-// ###################################### Public variables #########################################
-
-SemaphoreHandle_t ReportLock = NULL;
-
 // ##################################### Public functions ##########################################
 
 void vReportDebug(report_t * psR) {
@@ -69,11 +65,13 @@ int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 		IF_myASSERT(debugTRACK, psR->size == 0);
 	}
 	// verify xlock values, handle semaphore accordingly
-	BaseType_t btRV = pdFALSE;
 	if (psR->XLock == sLO || psR->XLock == sLO_UL) {	// handle sLO & sLO_UL
 		if (psR->XLock == sLO)							// sLO is transient
 			psR->XLock = sNL;							// mark special sNL stage
-		btRV = xRtosSemaphoreCheckCurrent(&ReportLock) ? pdFALSE : xRtosSemaphoreTake(&ReportLock, WPFX_TIMEOUT);
+		/* The held/not-held state MUST live in the report_t, NOT on the stack: an sLO..sUL sequence
+		 * spans several calls, so a local is destroyed long before the matching sUL arrives and the
+		 * mutex would never be released. */
+		psR->bLocked = (halUartLockOnce(WPFX_TIMEOUT) == pdTRUE);
 	} else if (psR->XLock == sINV5 || psR->XLock == sINV6) {
 		RP("Xlock=%d" strNL, psR->XLock);
 		esp_backtrace_print(6);
@@ -85,8 +83,8 @@ int	xvReport(report_t * psR, const char * pcFmt, va_list vaList) {
 	iRV = xPrintFX(psR->hdlr, psR->pcBuf, psR->Size, pcFmt, vaList);
 	// act on Xlock value, unlock semaphore if required, update pointers if output to buffer
 	if (psR->XLock == sUL || psR->XLock == sLO_UL) {
-		if (btRV == pdTRUE)								// earlier lock was successful?
-			xRtosSemaphoreGive(&ReportLock);			// then unlock
+		halUartUnLockOnce(psR->bLocked ? pdTRUE : pdFALSE);	// unlock only if THIS report_t took it
+		psR->bLocked = 0;
 		if (psR->XLock == sUL)							// sUL is transient
 			psR->XLock = sNONE;							// clear
 	} else if (psR->XLock == sBUFFER) {					// output to string buffer, update members
