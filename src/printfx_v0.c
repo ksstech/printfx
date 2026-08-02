@@ -353,12 +353,35 @@ static int	xPrintValueJustified(xp_t * psXP, u64_t u64Val, char * pBuffer, int B
 		#endif
 		// convert to string starting at end of buffer from R/Least -> L/Most significant digits
 		Count = 0;
-		while (u64Val) {
+		/* SLOW portion, values above UINT32_MAX only. The LX6 has NO 64-bit divide, so each
+		 * iteration is two ROM SOFTWARE calls, __udivdi3 + __umoddi3. Measured at ~1,822 nS per
+		 * digit, of which ~1,335 nS is the division. Unchanged - correctness over speed on the
+		 * path that genuinely needs 64 bits. */
+		while (u64Val > UINT32_MAX) {
 			iTemp = u64Val % psXP->flg.uBase;			// calculate the next remainder ie digit
 			*pTemp-- = cPrintNibbleToChar(psXP, iTemp);
 			++Len;
 			u64Val /= psXP->flg.uBase;
 			if (u64Val && psXP->flg.bGroup) {			// handle digit grouping, if required
+				if ((++Count % 3) == 0) {
+					*pTemp-- = CHR_COMMA;
+					++Len;
+					Count = 0;
+				}
+			}
+		}
+		/* FAST portion, which is nearly everything this firmware prints. Identical code to the
+		 * loop above, but on a u32: the LX6 HAS a hardware 32-bit divide and remainder (quou/remu,
+		 * one instruction each), and this function already uses them elsewhere. Verified in the
+		 * disassembly - this loop emits remu + quou and calls no ROM helper at all.
+		 * Count is deliberately carried over from the loop above so grouping spans both. */
+		u32_t u32Val = (u32_t) u64Val;
+		while (u32Val) {
+			iTemp = u32Val % psXP->flg.uBase;			// remu, hardware
+			*pTemp-- = cPrintNibbleToChar(psXP, iTemp);
+			++Len;
+			u32Val /= psXP->flg.uBase;					// quou, hardware
+			if (u32Val && psXP->flg.bGroup) {			// handle digit grouping, if required
 				if ((++Count % 3) == 0) {
 					*pTemp-- = CHR_COMMA;
 					++Len;
