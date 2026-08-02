@@ -1589,10 +1589,37 @@ int fprintfx(FILE * stream, const char * pcFmt, ...) {
 // ################################### Destination = STDOUT ########################################
 
 /* Serialised: xPrintToHandle emits ONE character per call, so without this the two cores shred
- * each other's output. Same mutex as xvReport(), so whole messages cannot interleave. */
+ * each other's output. Same mutex as xvReport(), so whole messages cannot interleave.
+ *
+ * STAGED (fast) path: render into this core's staging buffer under the STAGE lock, then emit the
+ * finished block with a single xStdioWrite under the CONSOLE lock. Two benefits over rendering
+ * straight to the handle: the console lock is held for one block copy instead of a whole format,
+ * and the two cores format concurrently. Lock order is stage -> uart, never the reverse.
+ *
+ * The staged render is a dry run - nothing has been emitted when it completes - so ANY reason it
+ * cannot be used simply falls through to the original character-at-a-time path with the untouched
+ * vaList: buffer nested, buffer busy past the timeout, or output larger than the buffer. That last
+ * case is why the render uses a va_copy, and why printfx stays UNBOUNDED where syslog truncates. */
 int vprintfx(const char * pcFmt, va_list vaList) {
+	int Idx, iRV;
+	char * pcBuf = pcStdStageTake(&Idx, WPFX_TIMEOUT);
+	if (pcBuf) {
+		int Size = (int) xStdStageSize();
+		va_list vaCopy;
+		va_copy(vaCopy, vaList);
+		iRV = xPrintFX(xPrintToString, pcBuf, Size, pcFmt, vaCopy);
+		va_end(vaCopy);
+		if (iRV < Size) {								// fitted (CurLen caps AT MaxLen, so == is overflow)
+			BaseType_t btRV = halUartLockOnce(WPFX_TIMEOUT);
+			xStdioWrite(STDOUT_FILENO, pcBuf, iRV);
+			halUartUnLockOnce(btRV);
+			vStdStageGive(Idx);
+			return iRV;
+		}
+		vStdStageGive(Idx);								// too big, discard and render it properly below
+	}
 	BaseType_t btRV = halUartLockOnce(WPFX_TIMEOUT);
-	int iRV = xPrintFX(xPrintToHandle, (void *) STDOUT_FILENO, 0, pcFmt, vaList);
+	iRV = xPrintFX(xPrintToHandle, (void *) STDOUT_FILENO, 0, pcFmt, vaList);
 	halUartUnLockOnce(btRV);
 	return iRV;
 }
