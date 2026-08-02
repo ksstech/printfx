@@ -4,6 +4,7 @@
 
 #include "report.h"
 #include "stdioX.h"
+#include "hal_stdio.h"						// vStdOutBufReset()
 
 #include <float.h>									// DBL_MIN/MAX
 #include <stdatomic.h>
@@ -487,15 +488,22 @@ void vPrintfSpeedTest(u32_t Loops) {
 	prtestBench("%.3f float",           Loops, bs_flt);
 	prtestBench("full log line",        Loops, bs_line);
 
-	/* Console path. With the console INACTIVE this lands in xUBufWrite (§40); with it ACTIVE it is
-	 * a write() per character (§38A/D). Run it both ways to separate the two. */
-	PX("[speed] console path, uart_active=%d, %lu loops" strNL, bStdioConsoleGetStatus(), Loops / 10);
+	/* Console path -> xStdioWrite -> xUBufWrite, ie what §40 (memcpy) and §38A (block emit) change.
+	 * uart_active is FORCED to 0 for the duration: with it 1 every character is a write() to the
+	 * UART and the result measures 115200 baud, not the software. It also blocks the calling task
+	 * for seconds and trips the task watchdog. Restored afterwards. */
+	bool bSaved = bStdioConsoleGetStatus();
+	u32_t Cloops = Loops / 10;
+	vStdioConsoleSetStatus(0);							// force the BUFFERED path
 	u64_t tNow = halTIMER_ReadRunTime();
-	for (u32_t i = 0; i < Loops / 10; ++i)
+	for (u32_t i = 0; i < Cloops; ++i)
 		printfx("%d %s ds248xReset (%d) Success after %d retries" strNL, 0, "i2c_v2", 192, 5);
 	u64_t tElap = halTIMER_ReadRunTime() - tNow;
+	vStdioConsoleSetStatus(bSaved);						// restore before reporting
+	vStdOutBufReset();									// discard what the bench just generated
+	PX("[speed] console path via RTC buffer (uart_active forced 0), %lu loops" strNL, Cloops);
 	PX("  %-26s %6llu uS total   %5llu nS/call" strNL, "printfx full line", tElap,
-		(tElap * 1000ULL) / (Loops / 10));
+		(tElap * 1000ULL) / Cloops);
 }
 
 #endif	// appPRODUCTION == 0
