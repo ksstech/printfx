@@ -504,6 +504,38 @@ void vPrintfSpeedTest(u32_t Loops) {
 	PX("[speed] console path via RTC buffer (uart_active forced 0), %lu loops" strNL, Cloops);
 	PX("  %-26s %6llu uS total   %5llu nS/call" strNL, "printfx full line", tElap,
 		(tElap * 1000ULL) / Cloops);
+
+	/* S56: is the residual write cost per-BYTE or per-CALL? Time xStdioWrite() with no formatting
+	 * at all, at several sizes, and fit total = Intercept + Slope * N.
+	 *   flat  -> the fixed per-call cost dominates (xUBufBlockSpace + the xUBufLock/UnLock mutex
+	 *            pair + dispatch) and the next target is the lock, not the copy.
+	 *   sloped-> the memcpy still dominates and S40 has more to give.
+	 * With uart_active 0 this is xStdioWrite -> xStdOutBufWrite -> xUBufWrite, ie exactly the path
+	 * a staged printfx takes, minus the formatting. */
+	static const int aSize[] = { 1, 8, 32, 56, 128, 224 };
+	#define	prtestNSIZE		(sizeof(aSize) / sizeof(aSize[0]))
+	char caPat[224];
+	memset(caPat, 'a', sizeof(caPat));
+	u64_t auElap[prtestNSIZE];
+	vStdioConsoleSetStatus(0);							// force the BUFFERED path again
+	for (int s = 0; s < prtestNSIZE; ++s) {
+		vStdOutBufReset();								// start each size from an empty buffer
+		u64_t t0 = halTIMER_ReadRunTime();
+		for (u32_t i = 0; i < Cloops; ++i)
+			xStdioWrite(STDOUT_FILENO, caPat, aSize[s]);
+		auElap[s] = halTIMER_ReadRunTime() - t0;
+	}
+	vStdioConsoleSetStatus(bSaved);						// restore before reporting
+	vStdOutBufReset();									// discard what the bench just generated
+	PX("[speed] S56 xStdioWrite only, no formatting, %lu loops each" strNL, Cloops);
+	for (int s = 0; s < prtestNSIZE; ++s) {
+		PX("  %3d bytes                  %6llu uS total   %5llu nS/call" strNL,
+			aSize[s], auElap[s], (auElap[s] * 1000ULL) / Cloops);
+	}
+	u64_t nLo = (auElap[0] * 1000ULL) / Cloops;
+	u64_t nHi = (auElap[prtestNSIZE - 1] * 1000ULL) / Cloops;
+	int Slope = (int)(nHi - nLo) / (aSize[prtestNSIZE - 1] - aSize[0]);
+	PX("  fit: %d nS/byte slope, %d nS/call intercept" strNL, Slope, (int)nLo - (Slope * aSize[0]));
 }
 
 #endif	// appPRODUCTION == 0
