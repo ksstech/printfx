@@ -354,4 +354,148 @@ void vPrintfStressTest(u32_t Seconds) {
 	}
 }
 
+
+// ######################### Conversion correctness / boundary values ##############################
+
+/* Purpose: lock down xPrintValueJustified's output BEFORE optimising it (see
+ * analysis/uart-console-io-flow.md §42 - a 32-bit fast path for values <= UINT32_MAX).
+ * Any such change MUST be byte-identical in output, so this has to be baselined first.
+ *
+ * Two kinds of check, deliberately:
+ *   ASSERT  - unambiguous C semantics, expected value written out. A FAIL here is a real defect.
+ *   DUMP    - proprietary formats (grouping, scaling, binary, relative time) where the reference is
+ *             whatever the CURRENT code produces. Capture before, diff after. */
+
+static u32_t prtestPass, prtestFail;
+
+#define prtestASSERT(exp, fmt, ...) do {									\
+	char caBuf[128];														\
+	snprintfx(caBuf, sizeof(caBuf), fmt, ##__VA_ARGS__);					\
+	if (strcmp(caBuf, exp) == 0) {											\
+		++prtestPass;														\
+	} else {																\
+		++prtestFail;														\
+		PX("  FAIL  \"%s\" -> '%s'  expected '%s'" strNL, fmt, caBuf, exp);	\
+	}																		\
+} while (0)
+
+#define prtestDUMP(fmt, ...) do {											\
+	char caBuf[128];														\
+	int iLen = snprintfx(caBuf, sizeof(caBuf), fmt, ##__VA_ARGS__);			\
+	PX("  %-22s [%3d] '%s'" strNL, fmt, iLen, caBuf);						\
+} while (0)
+
+void vPrintfEdgeTest(void) {
+	prtestPass = prtestFail = 0;
+	PX(strNL "[edge] ASSERTED - unambiguous C semantics, a FAIL here is a real defect" strNL);
+
+	// unsigned decimal, spanning the 32/64 bit boundary the fast path will split on
+	prtestASSERT("0", "%llu", 0ULL);
+	prtestASSERT("1", "%llu", 1ULL);
+	prtestASSERT("9", "%llu", 9ULL);
+	prtestASSERT("10", "%llu", 10ULL);
+	prtestASSERT("4294967295", "%llu", (u64_t) UINT32_MAX);			// last 32-bit value
+	prtestASSERT("4294967296", "%llu", (u64_t) UINT32_MAX + 1ULL);	// FIRST value needing 64 bits
+	prtestASSERT("18446744073709551615", "%llu", UINT64_MAX);		// widest possible
+	prtestASSERT("4294967295", "%lu", UINT32_MAX);
+	prtestASSERT("65535", "%u", (unsigned) UINT16_MAX);
+
+	// signed - the *= -1 negation at printfx_v0.c:171/598/1403 is a NO-OP for the MIN values
+	prtestASSERT("-1", "%d", -1);
+	prtestASSERT("2147483647", "%d", INT32_MAX);
+	prtestASSERT("-2147483648", "%d", INT32_MIN);					// negation edge, 32 bit
+	prtestASSERT("9223372036854775807", "%lld", INT64_MAX);
+	prtestASSERT("-9223372036854775808", "%lld", INT64_MIN);		// negation edge, 64 bit
+
+	// other bases, same boundary values
+	prtestASSERT("ffffffff", "%llx", (u64_t) UINT32_MAX);
+	prtestASSERT("FFFFFFFF", "%llX", (u64_t) UINT32_MAX);
+	prtestASSERT("100000000", "%llx", (u64_t) UINT32_MAX + 1ULL);
+	prtestASSERT("ffffffffffffffff", "%llx", UINT64_MAX);
+	prtestASSERT("37777777777", "%llo", (u64_t) UINT32_MAX);
+	prtestASSERT("0", "%llx", 0ULL);
+
+	// width, precision and padding around the same values
+	prtestASSERT("       42", "%9llu", 42ULL);
+	prtestASSERT("000000042", "%09llu", 42ULL);
+	prtestASSERT("42       ", "%-9llu", 42ULL);
+	prtestASSERT("4294967296", "%5llu", (u64_t) UINT32_MAX + 1ULL);	// width < natural length
+
+	PX("[edge] ASSERTED: %lu passed, %lu FAILED" strNL, prtestPass, prtestFail);
+
+	PX(strNL "[edge] REFERENCE DUMP - proprietary formats, diff before/after a change" strNL);
+	prtestDUMP("%'llu", 0ULL);
+	prtestDUMP("%'llu", 999ULL);
+	prtestDUMP("%'llu", 1000ULL);									// first grouping boundary
+	prtestDUMP("%'llu", 1000000ULL);
+	prtestDUMP("%'llu", (u64_t) UINT32_MAX);
+	prtestDUMP("%'llu", (u64_t) UINT32_MAX + 1ULL);
+	prtestDUMP("%'llu", UINT64_MAX);
+	prtestDUMP("%'lld", -1000000LL);
+	prtestDUMP("%#llu", 1234567890ULL);								// SI scaling, the 12-of-14 branch
+	prtestDUMP("%#'llu", 1234567890ULL);
+	prtestDUMP("%llb", (u64_t) 0xF0ULL);
+	prtestDUMP("%'llb", (u64_t) 0xF0ULL);
+	prtestDUMP("%+d", 42);
+	prtestDUMP("%+d", -42);
+	prtestDUMP("%.3f", 3.14159);
+	prtestDUMP("%.6f", 0.0);
+	prtestDUMP("%e", 1234.5678);
+	prtestDUMP("%g", 0.000123456);
+}
+
+// ################################## Conversion speed benchmark ###################################
+
+/* Times CONVERSION only - snprintfx into RAM, so no console or buffer I/O is involved. That
+ * isolates xPrintValueJustified, which is what §42 changes. A second pass times the buffered
+ * console path, which is what §40 (xUBufWrite memcpy) and §38A (block emit) change. */
+
+#define	prtestBENCH_LOOPS	10000
+
+static u32_t prtestBench(const char * pcTag, int Loops, void (*fn)(void)) {
+	u64_t tNow = halTIMER_ReadRunTime();
+	for (int i = 0; i < Loops; ++i)
+		fn();
+	u64_t tElap = halTIMER_ReadRunTime() - tNow;
+	PX("  %-26s %6llu uS total   %5llu nS/call" strNL, pcTag, tElap, (tElap * 1000ULL) / Loops);
+	return (u32_t) tElap;
+}
+
+static char prtestBuf[160];
+static void bs_d1(void)    { snprintfx(prtestBuf, sizeof(prtestBuf), "%d", 5); }
+static void bs_d7(void)    { snprintfx(prtestBuf, sizeof(prtestBuf), "%d", 3390914); }
+static void bs_u32max(void){ snprintfx(prtestBuf, sizeof(prtestBuf), "%lu", UINT32_MAX); }
+static void bs_u64(void)   { snprintfx(prtestBuf, sizeof(prtestBuf), "%llu", UINT64_MAX); }
+static void bs_hex(void)   { snprintfx(prtestBuf, sizeof(prtestBuf), "%X", 0xDEADBEEF); }
+static void bs_grp(void)   { snprintfx(prtestBuf, sizeof(prtestBuf), "%'d", 1234567); }
+static void bs_str(void)   { snprintfx(prtestBuf, sizeof(prtestBuf), "%s", "ds248xReset"); }
+static void bs_flt(void)   { snprintfx(prtestBuf, sizeof(prtestBuf), "%.3f", 3.14159); }
+static void bs_line(void)  { snprintfx(prtestBuf, sizeof(prtestBuf),
+	"%d %s ds248xReset (%d) Success after %d retries", 0, "i2c_v2", 192, 5); }
+
+void vPrintfSpeedTest(u32_t Loops) {
+	if (Loops == 0)
+		Loops = prtestBENCH_LOOPS;
+	PX(strNL "[speed] conversion only, snprintfx to RAM, %lu loops each" strNL, Loops);
+	prtestBench("%d  single digit",     Loops, bs_d1);
+	prtestBench("%d  7 digits",         Loops, bs_d7);
+	prtestBench("%lu UINT32_MAX",       Loops, bs_u32max);
+	prtestBench("%llu UINT64_MAX",      Loops, bs_u64);
+	prtestBench("%X  hex 32bit",        Loops, bs_hex);
+	prtestBench("%'d grouped",          Loops, bs_grp);
+	prtestBench("%s  11 char string",   Loops, bs_str);
+	prtestBench("%.3f float",           Loops, bs_flt);
+	prtestBench("full log line",        Loops, bs_line);
+
+	/* Console path. With the console INACTIVE this lands in xUBufWrite (§40); with it ACTIVE it is
+	 * a write() per character (§38A/D). Run it both ways to separate the two. */
+	PX("[speed] console path, uart_active=%d, %lu loops" strNL, bStdioConsoleGetStatus(), Loops / 10);
+	u64_t tNow = halTIMER_ReadRunTime();
+	for (u32_t i = 0; i < Loops / 10; ++i)
+		printfx("%d %s ds248xReset (%d) Success after %d retries" strNL, 0, "i2c_v2", 192, 5);
+	u64_t tElap = halTIMER_ReadRunTime() - tNow;
+	PX("  %-26s %6llu uS total   %5llu nS/call" strNL, "printfx full line", tElap,
+		(tElap * 1000ULL) / (Loops / 10));
+}
+
 #endif	// appPRODUCTION == 0

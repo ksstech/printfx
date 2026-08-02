@@ -288,6 +288,18 @@ void vPrintfUnitTest(void);
  */
 void vPrintfStressTest(u32_t Seconds);
 
+/**
+ * @brief	value conversion boundary tests - asserted cases plus a reference dump
+ * @note	BASELINE THIS before changing xPrintValueJustified, output must stay byte identical
+ */
+void vPrintfEdgeTest(void);
+
+/**
+ * @brief	conversion and console path speed benchmark
+ * @param	Loops iterations per case, 0 selects the default
+ */
+void vPrintfSpeedTest(u32_t Loops);
+
  // #################################### Destination handlers #######################################
 
 #if defined(printfxVER0)
