@@ -474,6 +474,24 @@ static void bs_flt(void)   { snprintfx(prtestBuf, sizeof(prtestBuf), "%.3f", 3.1
 static void bs_line(void)  { snprintfx(prtestBuf, sizeof(prtestBuf),
 	"%d %s ds248xReset (%d) Success after %d retries", 0, "i2c_v2", 192, 5); }
 
+/* S65: separate the three terms that make up a format call - fixed per call, per OUTPUT CHARACTER,
+ * and per CONVERSION SPECIFIER. The S44/S58 decomposition inferred the specifier term as a residual
+ * from one equation, which is not a measurement.
+ *
+ * Every case below emits EXACTLY 12 characters, so output length is held constant and the only
+ * thing varying is how many specifiers produced it. The two literal cases carry no specifier at
+ * all, which also separates literal passthrough (the format scanner) from %s emission
+ * (vPrintStringJustified) - two different code paths that earlier working conflated. */
+static void bl_lit12(void) { snprintfx(prtestBuf, sizeof(prtestBuf), "abcdefghijkl"); }
+static void bl_lit24(void) { snprintfx(prtestBuf, sizeof(prtestBuf), "abcdefghijklabcdefghijkl"); }
+static void bl_s1x12(void) { snprintfx(prtestBuf, sizeof(prtestBuf), "%s", "abcdefghijkl"); }
+static void bl_s2x6(void)  { snprintfx(prtestBuf, sizeof(prtestBuf), "%s%s", "abcdef", "ghijkl"); }
+static void bl_s4x3(void)  { snprintfx(prtestBuf, sizeof(prtestBuf), "%s%s%s%s", "abc", "def", "ghi", "jkl"); }
+static void bl_s6x2(void)  { snprintfx(prtestBuf, sizeof(prtestBuf), "%s%s%s%s%s%s", "ab", "cd", "ef", "gh", "ij", "kl"); }
+/* Same 4 output digits, 1 specifier vs 4 - is the specifier cost type-dependent? */
+static void bl_d1x4(void)  { snprintfx(prtestBuf, sizeof(prtestBuf), "%d", 1234); }
+static void bl_d4x1(void)  { snprintfx(prtestBuf, sizeof(prtestBuf), "%d%d%d%d", 1, 2, 3, 4); }
+
 void vPrintfSpeedTest(u32_t Loops) {
 	if (Loops == 0)
 		Loops = prtestBENCH_LOOPS;
@@ -487,6 +505,25 @@ void vPrintfSpeedTest(u32_t Loops) {
 	prtestBench("%s  11 char string",   Loops, bs_str);
 	prtestBench("%.3f float",           Loops, bs_flt);
 	prtestBench("full log line",        Loops, bs_line);
+
+	PX(strNL "[speed] S65 specifier vs character cost, all 12 output chars, %lu loops each" strNL, Loops);
+	u32_t tLit12 = prtestBench("0 spec, 12 literal",   Loops, bl_lit12);
+	u32_t tLit24 = prtestBench("0 spec, 24 literal",   Loops, bl_lit24);
+	u32_t tS1    = prtestBench("1 spec, %s x12",       Loops, bl_s1x12);
+	prtestBench("2 spec, %s x6 each",   Loops, bl_s2x6);		// printed, intermediate points
+	prtestBench("4 spec, %s x3 each",   Loops, bl_s4x3);		// let linearity be eyeballed
+	u32_t tS6    = prtestBench("6 spec, %s x2 each",   Loops, bl_s6x2);
+	u32_t tD1    = prtestBench("1 spec, %d of 1234",   Loops, bl_d1x4);
+	u32_t tD4    = prtestBench("4 spec, %d x1 digit",  Loops, bl_d4x1);
+	/* nS/call throughout; output length is constant across the %s row so the slope is pure
+	 * specifier cost. 12 literal vs 24 literal gives the literal passthrough cost per character. */
+	int nLit12 = (int)((u64_t)tLit12 * 1000ULL / Loops), nLit24 = (int)((u64_t)tLit24 * 1000ULL / Loops);
+	int nS1 = (int)((u64_t)tS1 * 1000ULL / Loops), nS6 = (int)((u64_t)tS6 * 1000ULL / Loops);
+	int nD1 = (int)((u64_t)tD1 * 1000ULL / Loops), nD4 = (int)((u64_t)tD4 * 1000ULL / Loops);
+	PX("  per literal char   %5d nS   (24 literal - 12 literal) / 12" strNL, (nLit24 - nLit12) / 12);
+	PX("  per %%s specifier   %5d nS   (6 spec - 1 spec) / 5, output held at 12 chars" strNL, (nS6 - nS1) / 5);
+	PX("  per %%d specifier   %5d nS   (4 spec - 1 spec) / 3, output held at 4 digits" strNL, (nD4 - nD1) / 3);
+	PX("  1 %%s spec + 12 chr %5d nS   vs %d nS for the same 12 chars as literal" strNL, nS1, nLit12);
 
 	/* Console path -> xStdioWrite -> xUBufWrite, ie what §40 (memcpy) and §38A (block emit) change.
 	 * uart_active is FORCED to 0 for the duration: with it 1 every character is a write() to the
