@@ -43,6 +43,39 @@ extern "C" {
 	typedef uint32_t u32_t;
 #endif
 
+/* ############################### CHOOSING AN OUTPUT ROUTE #######################################
+ *
+ * FOUR routes, and they are NOT interchangeable. Picking by habit is how debug relics end up on
+ * paths that cannot tolerate them. Measured properties, see analysis/uart-console-io-flow.md S81:
+ *
+ *  route            mechanism                    blocks?              on pressure / notes
+ *  ---------------  ---------------------------  -------------------  --------------------------
+ *  CP*  cprintfx    uart_tx_chars()              NEVER                DROPS chars silently.
+ *                                                                     UART only - not telnet, not
+ *                                                                     the crash-survivable buffer.
+ *  PX*  printfx     staged -> RTC ubuf or UART   up to ~2 s           evicts old buffer content.
+ *                                                (stage + uart locks,  telnet-visible. THE DEFAULT.
+ *                                                 both WPFX_TIMEOUT)
+ *  RP* / IRP*       esp_rom_printf               ROM, direct          IRP* only in ISR context.
+ *  SL_* vSyslog     console AND/OR host          UNBOUNDED            shSLvars is portMAX_DELAY,
+ *                                                                     then a TCP send, then an LFS
+ *                                                                     write if the host is down.
+ *
+ * RULES
+ *  1. Default to PX*. It is buffered, locked, telnet-visible and survives a reboot in the RTC buffer.
+ *  2. Use SL_* for messages that belong in the operational log - it adds severity, dedup and the
+ *     host route. NEVER on a path where an unbounded stall matters: it can block on the network.
+ *  3. Use CP* where blocking is HARMFUL and losing characters is acceptable - actuator edge timing,
+ *     network receive/request handlers, anything holding a lock others need. Current CP* users are
+ *     x_http_server (request handlers), socketsX xNetReConnect (receive path, and it keeps syslog
+ *     out of a syslog->socket->syslog cycle) and pca9555Flush (actuator output path). These are
+ *     DELIBERATE - do not "tidy" them to PX*.
+ *  4. Use IRP* / IF_IRP in ISR or cache-disabled context, never plain RP*. See the IRP block below.
+ *
+ * Three axes decide a site: CONTEXT (can it run cache-disabled?), GATING (compile-time dead, guard
+ * dead, or reachable?) and LATENCY (would a multi-second stall break something?).
+ */
+
 // #################################################################################################
 
 unsigned long long halTIMER_ReadRunTime(void);
