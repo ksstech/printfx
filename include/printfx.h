@@ -85,6 +85,25 @@ unsigned long long halTIMER_ReadRunTime(void);
 #define	IF_RPT(T, f, ...)			if (T) RPT(f, ##__VA_ARGS__)
 #define	IF_RPTL(T, f, ...)			if (T) RPTL(f, ##__VA_ARGS__)
 
+/* ISR / cache-disabled context ONLY. Use these, not RP*, anywhere the code can run while the flash
+ * cache is disabled - an ESP_INTR_FLAG_IRAM handler, a FreeRTOS tick hook, or anything reachable
+ * during an NVS/littlefs/FOTA write.
+ *
+ * RP() alone is NOT sufficient there. esp_rom_printf is ROM-resident so the CODE is safe, but a
+ * plain string literal lives in .flash.rodata and faults exactly the same way. IRP() bakes in
+ * DRAM_STR so the format cannot be got wrong.
+ *
+ * There is deliberately no IRPL/IRPT/IRPTL. Those prefixes cannot be made safe:
+ *   _RL_  passes __FUNCTION__, a compiler-generated FLASH string, to a %s
+ *   _RT_  calls halTIMER_ReadRunSeconds()/Millis(), which live in FLASH (0x400dac90)
+ * Providing them would rebuild the trap this macro exists to close. If an ISR trace needs a
+ * timestamp or location, put a literal marker in the format string instead.
+ *
+ * Note the cost: every IRP format string moves from flash into DRAM, which is the scarcer
+ * resource. Use it where correctness demands it, not by default. */
+#define	IRP(f, ...)					esp_rom_printf(DRAM_STR(f), ##__VA_ARGS__)
+#define	IF_IRP(T, f, ...)			if (T) IRP(f, ##__VA_ARGS__)
+
 
 // ################################## public build definitions #####################################
 
