@@ -109,6 +109,9 @@ const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 
 // ##################################### Private functions #########################################
 
+/* Development helpers for instrumenting printfx ITSELF - printfx.h route rule 5. RP() is mandatory
+ * here, not a leftover: these are called from inside xPrintFX, so PX() would re-enter the code
+ * under test. No permanent call sites is normal for this category; do not read "unused" as "dead". */
 static __attribute__((unused)) void xpDebugMem(void * pV) {
 	RP("EXE=%d  ROM=%d  SRAM=%d  PSRAM=%d  ANY=%d (%p)\n", halMemoryEXE(pV), halMemoryROM(pV), halMemorySRAM(pV), halMemoryPSRAM(pV), halMemoryANY(pV), pV);
 }

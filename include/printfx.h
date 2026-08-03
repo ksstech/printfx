@@ -71,6 +71,12 @@ extern "C" {
  *     out of a syslog->socket->syslog cycle) and pca9555Flush (actuator output path). These are
  *     DELIBERATE - do not "tidy" them to PX*.
  *  4. Use IRP* / IF_IRP in ISR or cache-disabled context, never plain RP*. See the IRP block below.
+ *  5. Use plain RP* when INSTRUMENTING THE OUTPUT PATH ITSELF - anything called from inside
+ *     xPrintFX, xvReport or the ubuf/stdio layers. PX* there would re-enter the code under test
+ *     (PX -> printfx -> xPrintFX -> ...), so RP* is not a preference, it is the only route that
+ *     works. Existing users: vReportDebug (report.c), xpDebugMem / xpDebugFlags / xpDebugSpin
+ *     (printfx_v0.c). Development helpers with no permanent call sites - that is normal for this
+ *     category, do NOT read "unused" as "delete".
  *
  * Three axes decide a site: CONTEXT (can it run cache-disabled?), GATING (compile-time dead, guard
  * dead, or reachable?) and LATENCY (would a multi-second stall break something?).
