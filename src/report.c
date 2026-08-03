@@ -27,7 +27,7 @@
 
 // ##################################### Public functions ##########################################
 
-void vReportDebug(report_t * psR) {
+static __attribute__((unused)) void vReportDebug(report_t * psR) {
 	RP("A=%p  H=%p  B=%p  size=x%X  uSGR=%d  bDebug=%d  Xlock=%d  bHdlr=%d  sFM=x%X" strNL, psR->pcAlloc,
 	psR->hdlr, psR->pcBuf, psR->size, psR->uSGR, psR->bDebug, psR->XLock, psR->bHdlr, psR->sFM.u32Val);
 }

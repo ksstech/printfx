@@ -90,6 +90,14 @@ unsigned long long halTIMER_ReadRunTime(void);
 
 #define printfxVER0
 
+/* Build the printfx self-test / benchmark suite (vPrintfUnitTest, vPrintfStressTest,
+ * vPrintfEdgeTest, vPrintfSpeedTest) and the 'E'/'G'/'Q' console commands that launch them.
+ *
+ * DEFAULT OFF. Enable ONLY while actively changing printfx/report/x_ubuf and needing to
+ * re-baseline. It was previously gated on (appPRODUCTION == 0), which is every build this product
+ * has ever shipped, so the suite was permanently in the field image for no benefit. */
+#define	printfxTESTS				0
+
 #define	xpfMAXIMUM_DECIMALS			15
 #define	xpfDEFAULT_DECIMALS			6
 
@@ -280,6 +288,8 @@ static_assert(sizeof(xp_t) == (2 * sizeof(void *)) + sizeof(unsigned long) + siz
 
 // ######################################## Unit / stress tests ####################################
 
+#if (printfxTESTS > 0)
+
 void vPrintfUnitTest(void);
 
 /**
@@ -299,6 +309,8 @@ void vPrintfEdgeTest(void);
  * @param	Loops iterations per case, 0 selects the default
  */
 void vPrintfSpeedTest(u32_t Loops);
+
+#endif	// printfxTESTS
 
  // #################################### Destination handlers #######################################
 

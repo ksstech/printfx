@@ -266,9 +266,10 @@ void vPrintfUnitTest(void) {
  * the filler is a single repeated character. Any line mixing A and B, or with mismatched head/tail,
  * was interleaved.
  *
- * Excluded from production images by the same appPRODUCTION guard the rest of the tree uses.
+ * Gated on printfxTESTS (printfx.h), DEFAULT OFF - not on appPRODUCTION, which is 0 in every build
+ * this product ships. Enable only while actively changing printfx and re-baselining.
  */
-#if (appPRODUCTION == 0)
+#if (printfxTESTS > 0)
 
 #define	prtestFILL			90						// filler chars => ~110 char line, as per ds248x
 #define	prtestPERIOD_MS		96						// per task; 2 tasks => 48 ms => 20.8 lines/sec
@@ -575,4 +576,4 @@ void vPrintfSpeedTest(u32_t Loops) {
 	PX("  fit: %d nS/byte slope, %d nS/call intercept" strNL, Slope, (int)nLo - (Slope * aSize[0]));
 }
 
-#endif	// appPRODUCTION == 0
+#endif	// printfxTESTS

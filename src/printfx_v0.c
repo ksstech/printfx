@@ -109,18 +109,18 @@ const char vPrintStr1[] = {			// table of characters where lc/UC is applicable
 
 // ##################################### Private functions #########################################
 
-void xpDebugMem(void * pV) {
+static __attribute__((unused)) void xpDebugMem(void * pV) {
 	RP("EXE=%d  ROM=%d  SRAM=%d  PSRAM=%d  ANY=%d (%p)\n", halMemoryEXE(pV), halMemoryROM(pV), halMemorySRAM(pV), halMemoryPSRAM(pV), halMemoryANY(pV), pV);
 }
 
-void xpDebugFlags(xpc_t * psXPC) {
+static __attribute__((unused)) void xpDebugFlags(xpc_t * psXPC) {
 	RP(" [SGR=%d  bLT=%d  bGT=%d  bFlt=%d  bArr=%d  bPad0=%d  ", psXPC->flg.uSGR, psXPC->flg.bLT, psXPC->flg.bGT, psXPC->flg.bFloat, psXPC->flg.bArray, psXPC->flg.bPad0);
 	RP("bPre=%d  Pre=%d  bMW=%d  MW=%d  uSiz=%d  bGrp=%d  ", psXPC->flg.bPrecis, psXPC->flg.Precis, psXPC->flg.bMinWid, psXPC->flg.MinWid, psXPC->flg.uSize, psXPC->flg.bGroup);
 	RP("uForm=%d  uBase=%d  bRdx=%d  bRel=%d  bNeg=%d  ", psXPC->flg.uForm, psXPC->flg.uBase, psXPC->flg.bRadix, psXPC->flg.bRelVal, psXPC->flg.bNegVal);
 	RP("bSign=%d  bPlus=%d  bCase=%d  bLeft=%d  bAltF=%d] " strNL, psXPC->flg.bSigned, psXPC->flg.bPlus, psXPC->flg.bCase, psXPC->flg.bLeft, psXPC->flg.bAltF);
 }
 
-void xpDebugSpin(void) {
+static __attribute__((unused)) void xpDebugSpin(void) {
 	static u8_t Index = 0;
 	RP("%c\x08", CHR_SPACE + Index++);
 	Index %= 96;
